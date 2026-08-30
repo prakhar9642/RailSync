@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 app = FastAPI(title="RailSync Optimization API", version="1.0.0")
 
@@ -30,6 +30,20 @@ def get_mock_data() -> Dict[str, Any]:
             with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
     return {}
+
+# ----------------- Request Models -----------------
+
+class OptimizeRequest(BaseModel):
+    profile: Optional[str] = "Availability First"
+    corridor_id: Optional[str] = None
+    horizon_hours: Optional[int] = 24
+
+class ReoptimizeRequest(BaseModel):
+    cancelled_blocks: Optional[List[str]] = Field(default_factory=list)
+    emergency_tasks: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+    delay_minutes: Optional[int] = 0
+
+# ----------------- API Endpoints -----------------
 
 @app.get("/health")
 def health_check():
@@ -63,35 +77,40 @@ def get_blocks():
     return {"blocks": [block] if block else []}
 
 @app.post("/api/optimize")
-def run_optimization(profile: str = "Availability First"):
+def run_optimization(request: Optional[OptimizeRequest] = None):
     data = get_mock_data()
     block = data.get("example_optimized_block")
     blocks_list = [block] if block else []
+    
     return {
         "status": "success",
-        "profile": profile,
         "blocks": blocks_list,
         "unscheduled_tasks": [],
-        "baseline_block_hours": None,
-        "optimized_block_hours": None,
-        "baseline_affected_trains": None,
-        "optimized_affected_trains": None,
-        "integrated_blocks": len(blocks_list) if (block and block.get("integrated")) else 0
+        "metrics": {
+            "baseline_block_hours": 4.5,
+            "optimized_block_hours": 2.0,
+            "baseline_affected_trains": 3,
+            "optimized_affected_trains": 0,
+            "integrated_blocks": len(blocks_list) if (block and block.get("integrated")) else 0
+        }
     }
 
 @app.post("/api/reoptimize")
-def run_reoptimization(payload: Optional[Dict[str, Any]] = None):
+def run_reoptimization(request: Optional[ReoptimizeRequest] = None):
     data = get_mock_data()
     block = data.get("example_optimized_block")
     blocks_list = [block] if block else []
+    
     return {
         "status": "success",
         "message": "Re-optimization triggered",
         "blocks": blocks_list,
         "unscheduled_tasks": [],
-        "baseline_block_hours": None,
-        "optimized_block_hours": None,
-        "baseline_affected_trains": None,
-        "optimized_affected_trains": None,
-        "integrated_blocks": len(blocks_list) if (block and block.get("integrated")) else 0
+        "metrics": {
+            "baseline_block_hours": 4.5,
+            "optimized_block_hours": 2.0,
+            "baseline_affected_trains": 3,
+            "optimized_affected_trains": 0,
+            "integrated_blocks": len(blocks_list) if (block and block.get("integrated")) else 0
+        }
     }
