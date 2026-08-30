@@ -7,7 +7,6 @@ from pydantic import BaseModel
 
 app = FastAPI(title="RailSync Optimization API", version="1.0.0")
 
-# Enable CORS for React frontend integration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,63 +15,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ----------------------------------------------------
-# Canonical Pydantic Schemas (Roadmap Section 7)
-# ----------------------------------------------------
-class MaintenanceTask(BaseModel):
-    task_id: str
-    department: str
-    section_id: str
-    task_type: str
-    duration_minutes: int
-    criticality: int
-    urgency: int
-    overdue_days: int
-    deadline: str
-    requires_power_block: bool
-    crew_type: str
-    compatibility_group: str
-    asset_importance: Optional[int] = None
-
-class TrainOccupancy(BaseModel):
-    train_id: str
-    section_id: str
-    entry_time: str
-    exit_time: str
-    train_type: Optional[str] = "PASSENGER"
-    priority_weight: Optional[int] = 1
-
-class ScheduledBlock(BaseModel):
-    block_id: str
-    section_id: str
-    start_time: str
-    end_time: str
-    tasks: List[str]
-    integrated: bool
-    affected_trains: List[str]
-    explanation: List[str]
-
-# ----------------------------------------------------
-# Helper to read mock-data.json
-# ----------------------------------------------------
 def get_mock_data() -> Dict[str, Any]:
-    # Look in the same folder as main.py first
-    json_path = Path(__file__).parent / "mock-data.json"
-    if not json_path.exists():
-        # Fallback to root or parent folder if needed
-        json_path = Path(__file__).parent.parent / "mock-data.json"
+    current_dir = Path(__file__).resolve().parent
+    repo_root = current_dir.parent
     
-    if json_path.exists():
-        with open(json_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+    paths_to_check = [
+        repo_root / "docs" / "mock-data.json",
+        current_dir / "mock-data.json",
+        repo_root / "mock-data.json"
+    ]
+    
+    for path in paths_to_check:
+        if path.exists():
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
     return {}
 
-# ----------------------------------------------------
-# API Endpoints
-# ----------------------------------------------------
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "service": "RailSync Backend"}
+
+@app.get("/api/dashboard")
+def get_dashboard():
+    data = get_mock_data()
+    return {
+        "status": "success",
+        "tasks_count": len(data.get("maintenance_tasks", [])),
+        "trains_count": len(data.get("train_occupancy", [])),
+        "recent_alerts": [],
+        "system_status": "operational"
+    }
 
 @app.get("/api/tasks")
 def get_tasks():
@@ -87,22 +59,39 @@ def get_trains():
 @app.get("/api/blocks")
 def get_blocks():
     data = get_mock_data()
-    block = data.get("example_optimized_block", {})
+    block = data.get("example_optimized_block")
     return {"blocks": [block] if block else []}
 
 @app.post("/api/optimize")
 def run_optimization(profile: str = "Availability First"):
     data = get_mock_data()
-    block = data.get("example_optimized_block", {})
+    block = data.get("example_optimized_block")
+    blocks_list = [block] if block else []
     return {
-        "status": "OPTIMAL",
+        "status": "success",
         "profile": profile,
-        "metrics": {
-            "baseline_closure_hours": 3.0,
-            "optimized_closure_hours": 2.0,
-            "closure_reduction_pct": 33.3,
-            "integrated_blocks_count": 1,
-            "trains_affected": 0
-        },
-        "scheduled_blocks": [block] if block else []
+        "blocks": blocks_list,
+        "unscheduled_tasks": [],
+        "baseline_block_hours": None,
+        "optimized_block_hours": None,
+        "baseline_affected_trains": None,
+        "optimized_affected_trains": None,
+        "integrated_blocks": len(blocks_list) if (block and block.get("integrated")) else 0
+    }
+
+@app.post("/api/reoptimize")
+def run_reoptimization(payload: Optional[Dict[str, Any]] = None):
+    data = get_mock_data()
+    block = data.get("example_optimized_block")
+    blocks_list = [block] if block else []
+    return {
+        "status": "success",
+        "message": "Re-optimization triggered",
+        "blocks": blocks_list,
+        "unscheduled_tasks": [],
+        "baseline_block_hours": None,
+        "optimized_block_hours": None,
+        "baseline_affected_trains": None,
+        "optimized_affected_trains": None,
+        "integrated_blocks": len(blocks_list) if (block and block.get("integrated")) else 0
     }
