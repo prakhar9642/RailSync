@@ -1,0 +1,47 @@
+[
+  {
+    "station_id": "STN01",
+    "station_name": "New Delhi",
+    "order": 1
+  },
+  {
+    "station_id": "STN02",
+    "station_name": "Hazrat Nizamuddin",
+    "order": 2
+  },
+  {
+    "station_id": "STN03",
+    "station_name": "Faridabad",
+    "order": 3
+  },
+  {
+    "station_id": "STN04",
+    "station_name": "Palwal",
+    "order": 4
+  },
+  {
+    "station_id": "STN05",
+    "station_name": "Kosi Kalan",
+    "order": 5
+  },
+  {
+    "station_id": "STN06",
+    "station_name": "Mathura Junction",
+    "order": 6
+  },
+  {
+    "station_id": "STN07",
+    "station_name": "Chata",
+    "order": 7
+  },
+  {
+    "station_id": "STN08",
+    "station_name": "Raja Ki Mandi",
+    "order": 8
+  },
+  {
+    "station_id": "STN09",
+    "station_name": "Agra Cantt",
+    "order": 9
+  }
+]
