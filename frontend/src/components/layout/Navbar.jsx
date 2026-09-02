@@ -6,8 +6,44 @@ export default function Navbar({
   scrolled = false,
   onLaunchPlanner,
   onHome,
+  workspace = false,
 }) {
   const [open, setOpen] = useState(false);
+
+  if (workspace) {
+    return (
+      <header className="navbar navbar-solid workspace-navbar">
+        <button className="nav-brand" type="button" onClick={onHome}>
+          <span className="nav-mark" aria-hidden="true" />
+          RailSync
+        </button>
+
+        <nav className="workspace-navigation" aria-label="Workspace navigation">
+          <ul>
+            <li>
+              <button className="active" type="button" aria-current="page">
+                Planning
+              </button>
+            </li>
+            <li>
+              <button type="button" disabled title="Available in a later phase">
+                Analysis
+              </button>
+            </li>
+            <li>
+              <button type="button" disabled title="Available in a later phase">
+                Scenario Lab
+              </button>
+            </li>
+          </ul>
+        </nav>
+
+        <Button variant="ghost" onClick={onHome} className="workspace-home-button">
+          Back to Home
+        </Button>
+      </header>
+    );
+  }
 
   const goHomeSection = (id) => (event) => {
     event.preventDefault();

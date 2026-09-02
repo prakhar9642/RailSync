@@ -6,6 +6,8 @@ export default function Button({
   type = "button",
   href,
   className = "",
+  disabled = false,
+  ariaBusy = false,
 }) {
   const classes = [
     "rs-btn",
@@ -25,7 +27,13 @@ export default function Button({
   }
 
   return (
-    <button className={classes} type={type} onClick={onClick}>
+    <button
+      className={classes}
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      aria-busy={ariaBusy}
+    >
       {children}
     </button>
   );
