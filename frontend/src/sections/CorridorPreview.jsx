@@ -25,31 +25,27 @@ export const CORRIDOR_SECTIONS = [
   "SEC08",
 ];
 
-function StationMarker({ x, y, active, terminus }) {
-  const fill = active ? "#1e5a8a" : "#fcfcfa";
-  const stroke = active ? "#1e5a8a" : "#0c1d32";
-  const scale = terminus ? 1.12 : 1;
-
+function StationNode({ x, y, active, terminus }) {
   return (
-    <g transform={`translate(${x} ${y}) scale(${scale})`}>
-      <path
-        d="M-8 3 L0 -11 L8 3 Z"
-        fill={fill}
-        stroke={stroke}
-        strokeWidth="1.6"
-        strokeLinejoin="round"
+    <g transform={`translate(${x} ${y})`}>
+      <circle
+        r={terminus ? 7 : 5.5}
+        fill={active ? "#1e5a8a" : "#fcfcfa"}
+        stroke={active ? "#1e5a8a" : "#0c1d32"}
+        strokeWidth="2"
       />
-      <rect
-        x="-5.5"
-        y="3"
-        width="11"
-        height="8"
-        fill={fill}
-        stroke={stroke}
-        strokeWidth="1.6"
-      />
-      <rect x="-1.6" y="6.5" width="3.2" height="4.5" fill={stroke} />
+      {terminus ? (
+        <circle r="2" fill={active ? "#fcfcfa" : "#0c1d32"} />
+      ) : null}
     </g>
+  );
+}
+
+function StationLabelIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <path d="m3 7 7-4 7 4M5 8v7m5-7v7m5-7v7M3 16h14" />
+    </svg>
   );
 }
 
@@ -62,7 +58,7 @@ export default function CorridorPreview({
   const count = stations.length;
   const pad = 42;
   const width = 1100;
-  const y = 92;
+  const y = 78;
   const inner = width - pad * 2;
   const xAt = (index) => pad + (inner * index) / (count - 1);
   const ease = [0.22, 1, 0.36, 1];
@@ -79,7 +75,7 @@ export default function CorridorPreview({
         <div className="corridor-track">
           <svg
             className="corridor-svg"
-            viewBox={`0 0 ${width} 210`}
+            viewBox={`0 0 ${width} 150`}
             role="img"
             aria-label="Rail corridor from New Delhi to Agra Cantt"
           >
@@ -193,29 +189,13 @@ export default function CorridorPreview({
                       delay: reduceMotion ? 0 : 0.55 + index * 0.07,
                     }}
                   >
-                    <StationMarker
+                    <StationNode
                       x={xAt(index)}
-                      y={y - 2}
+                      y={y + 4}
                       active={highlighted}
                       terminus={terminus}
                     />
                   </motion.g>
-                  <motion.text
-                    x={xAt(index)}
-                    y={y + 36}
-                    textAnchor="middle"
-                    className="station-code"
-                    fill="#0c1d32"
-                    initial={reduceMotion ? false : { opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true, amount: 0.4 }}
-                    transition={{
-                      duration: 0.3,
-                      delay: reduceMotion ? 0 : 0.85 + index * 0.07,
-                    }}
-                  >
-                    {station.id}
-                  </motion.text>
                 </g>
               );
             })}
@@ -225,7 +205,12 @@ export default function CorridorPreview({
             {stations.map((station, index) => (
               <motion.span
                 key={station.id}
-                className={active === station.id ? "is-active" : ""}
+                className={`station-name ${active === station.id ? "is-active" : ""}`}
+                tabIndex="0"
+                onMouseEnter={() => setActive(station.id)}
+                onMouseLeave={() => setActive(null)}
+                onFocus={() => setActive(station.id)}
+                onBlur={() => setActive(null)}
                 initial={reduceMotion ? false : { opacity: 0, y: 6 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.35 }}
@@ -235,6 +220,7 @@ export default function CorridorPreview({
                   ease,
                 }}
               >
+                <StationLabelIcon />
                 {station.name}
               </motion.span>
             ))}
