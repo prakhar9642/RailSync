@@ -3,7 +3,10 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from schemas import OptimizeRequest, ReoptimizeRequest
+try:
+    from schemas import OptimizeRequest, ReoptimizeRequest
+except ImportError:
+    from backend.schemas import OptimizeRequest, ReoptimizeRequest
 
 app = FastAPI(title="RailSync Optimization API", version="1.0.0")
 
