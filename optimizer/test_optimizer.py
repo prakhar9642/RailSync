@@ -13,7 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 OPTIMIZER_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(OPTIMIZER_DIR))
 
-from optimizer import load_mock_data, optimize_schedule  # noqa: E402
+from optimizer import load_mock_data, optimize_schedule, task_requirements  # noqa: E402
 
 
 DEFAULT_MOCK_DATA_PATH = PROJECT_ROOT / "backend" / "mock-data.json"
@@ -68,7 +68,7 @@ def test_feasible_mock_data_generates_a_block(result: dict) -> None:
     assert len(result["blocks"]) >= 1
 
 
-def test_scheduled_duration_matches_task_duration(
+def test_scheduled_duration_includes_setup_and_release(
     mock_data: dict, result: dict
 ) -> None:
     task_by_id = {
@@ -80,7 +80,7 @@ def test_scheduled_duration_matches_task_duration(
         duration_minutes = (
             _parse(block["end_time"]) - _parse(block["start_time"])
         ).total_seconds() / 60
-        assert duration_minutes == task["duration_minutes"]
+        assert duration_minutes == task_requirements(task).required_minutes
         assert block["section_id"] == task["section_id"]
 
 

@@ -1,13 +1,22 @@
-"""Day 1 CP-SAT maintenance-block optimizer for RailSync."""
+"""CP-SAT maintenance planning over feasible section/window assignments."""
 
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from ortools.sat.python import cp_model
+
+try:
+    from .time_utils import parse_datetime, datetime_to_minutes, minutes_to_datetime
+    from .candidate_windows import CandidateWindow, OperationalAllowances, generate_candidate_windows
+    from .feasibility import FeasibilityContext, evaluate_task_in_window, task_requirements
+except ImportError:  # Preserve direct-script and existing test imports.
+    from time_utils import parse_datetime, datetime_to_minutes, minutes_to_datetime
+    from candidate_windows import CandidateWindow, OperationalAllowances, generate_candidate_windows
+    from feasibility import FeasibilityContext, evaluate_task_in_window, task_requirements
 
 
 DEFAULT_HORIZON_START = "2026-09-01T00:00:00"
@@ -24,50 +33,6 @@ def load_mock_data(path: str | Path = DEFAULT_DATA_PATH) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError("Mock data must contain a JSON object at the top level.")
     return data
-
-
-def parse_datetime(value: str | datetime) -> datetime:
-    """Parse an ISO 8601 timestamp, accepting both ``Z`` and offset notation."""
-    if isinstance(value, datetime):
-        return value
-    if not isinstance(value, str):
-        raise TypeError(f"Expected an ISO timestamp string, got {type(value).__name__}.")
-
-    normalized_value = value[:-1] + "+00:00" if value.endswith("Z") else value
-    try:
-        return datetime.fromisoformat(normalized_value)
-    except ValueError as error:
-        raise ValueError(f"Invalid ISO timestamp: {value!r}") from error
-
-
-def datetime_to_minutes(
-    value: str | datetime, horizon_start: str | datetime
-) -> int:
-    """Convert a timestamp to exact whole minutes relative to horizon start."""
-    timestamp = parse_datetime(value)
-    start = parse_datetime(horizon_start)
-    try:
-        total_seconds = (timestamp - start).total_seconds()
-    except TypeError as error:
-        raise ValueError(
-            "Timestamps must use compatible timezone information."
-        ) from error
-
-    if not total_seconds.is_integer() or int(total_seconds) % 60 != 0:
-        raise ValueError(
-            f"Timestamp {timestamp.isoformat()} is not aligned to a whole minute."
-        )
-    return int(total_seconds) // 60
-
-
-def minutes_to_datetime(
-    minutes: int, horizon_start: str | datetime
-) -> str:
-    """Convert relative integer minutes back to an ISO 8601 timestamp."""
-    if not isinstance(minutes, int):
-        raise TypeError("Minutes must be an integer.")
-    timestamp = parse_datetime(horizon_start) + timedelta(minutes=minutes)
-    return timestamp.isoformat(timespec="seconds")
 
 
 def _validate_input_data(data: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -165,6 +130,8 @@ def validate_solution(
     train_occupancy: list[dict[str, Any]],
     horizon_start: str | datetime = DEFAULT_HORIZON_START,
     horizon_end: str | datetime = DEFAULT_HORIZON_END,
+    *,
+    allowances: OperationalAllowances = OperationalAllowances(),
 ) -> None:
     """Raise a clear error if any generated Day 1 block is invalid."""
     task_by_id = {task["task_id"]: task for task in maintenance_tasks}
@@ -195,7 +162,7 @@ def validate_solution(
             raise ValueError(f"{block_id} lies outside the planning horizon.")
 
         actual_duration = (end_time - start_time).total_seconds() / 60
-        if actual_duration != task["duration_minutes"]:
+        if actual_duration != task_requirements(task, allowances).required_minutes:
             raise ValueError(
                 f"{block_id} duration does not match task {task_id!r}."
             )
@@ -229,8 +196,10 @@ def calculate_metrics(
     blocks: list[dict[str, Any]],
     train_occupancy: list[dict[str, Any]],
 ) -> dict[str, int | float]:
-    """Calculate only metrics that are meaningful for the Day 1 model."""
-    baseline_minutes = sum(task["duration_minutes"] for task in maintenance_tasks)
+    """Sum possession section-hours; baseline zero means unavailable, not savings.
+
+    maintenance_tasks is retained for call compatibility, not baseline estimation.
+    """
     optimized_minutes = 0
     affected_train_ids: set[str] = set()
 
@@ -245,7 +214,7 @@ def calculate_metrics(
         )
 
     return {
-        "baseline_block_hours": round(baseline_minutes / 60, 3),
+        "baseline_block_hours": 0,
         "optimized_block_hours": round(optimized_minutes / 60, 3),
         # No baseline schedule is supplied, so its affected trains are not measurable.
         "baseline_affected_trains": 0,
@@ -258,8 +227,11 @@ def optimize_schedule(
     data: dict[str, Any],
     horizon_start: str = DEFAULT_HORIZON_START,
     horizon_end: str = DEFAULT_HORIZON_END,
+    *,
+    allowances: OperationalAllowances = OperationalAllowances(),
+    window_contexts: dict[str, FeasibilityContext] | None = None,
 ) -> dict[str, Any]:
-    """Build and solve the Day 1 optional-task CP-SAT scheduling model."""
+    """Reserve setup/work/release in feasible windows; return full possession blocks."""
     maintenance_tasks, train_occupancy = _validate_input_data(data)
     horizon_start_dt = parse_datetime(horizon_start)
     horizon_end_dt = parse_datetime(horizon_end)
@@ -267,13 +239,25 @@ def optimize_schedule(
     if horizon_minutes <= 0:
         raise ValueError("horizon_end must be later than horizon_start.")
 
+    windows = generate_candidate_windows(
+        train_occupancy,
+        {task["section_id"] for task in maintenance_tasks}
+        | {row["section_id"] for row in train_occupancy}
+        | {section["section_id"] for section in data.get("sections", [])},
+        horizon_start_dt, horizon_end_dt, allowances,
+    )
+    windows_by_section: dict[str, list[CandidateWindow]] = {}
+    for window in windows:
+        windows_by_section.setdefault(window.section_id, []).append(window)
+    window_contexts = window_contexts or {}
     model = cp_model.CpModel()
     task_variables: dict[str, dict[str, Any]] = {}
     intervals_by_section: dict[str, list[Any]] = {}
 
     for task_index, task in enumerate(maintenance_tasks):
         task_id = task["task_id"]
-        duration = task["duration_minutes"]
+        requirement = task_requirements(task, allowances)
+        duration = requirement.required_minutes
         scheduled = model.NewBoolVar(f"task_{task_index}_scheduled")
         start = model.NewIntVar(0, horizon_minutes, f"task_{task_index}_start")
         end = model.NewIntVar(0, horizon_minutes, f"task_{task_index}_end")
@@ -293,6 +277,25 @@ def optimize_schedule(
             "start": start,
             "end": end,
         }
+
+        choices = []
+        for window in windows_by_section.get(task["section_id"], []):
+            feasibility = evaluate_task_in_window(
+                task, window, window_contexts.get(window.window_id), allowances,
+            )
+            if not feasibility.feasible:
+                continue
+            chosen = model.NewBoolVar(f"task_{task_index}_{window.window_id}")
+            choices.append(chosen)
+            earliest = datetime_to_minutes(window.usable_start, horizon_start_dt)
+            latest = datetime_to_minutes(
+                feasibility.latest_reservation_start, horizon_start_dt
+            )
+            window_end = datetime_to_minutes(window.usable_end, horizon_start_dt)
+            model.Add(start >= earliest).OnlyEnforceIf(chosen)
+            model.Add(start <= latest).OnlyEnforceIf(chosen)
+            model.Add(end <= window_end).OnlyEnforceIf(chosen)
+        model.Add(sum(choices) == scheduled)
 
         for train_index, occupancy in enumerate(train_occupancy):
             if occupancy["section_id"] != task["section_id"]:
@@ -375,7 +378,7 @@ def optimize_schedule(
     for block_index, (start_minute, task_id, task) in enumerate(
         scheduled_results, start=1
     ):
-        end_minute = start_minute + task["duration_minutes"]
+        end_minute = start_minute + task_requirements(task, allowances).required_minutes
         start_time = parse_datetime(minutes_to_datetime(start_minute, horizon_start_dt))
         end_time = parse_datetime(minutes_to_datetime(end_minute, horizon_start_dt))
         blocks.append(
@@ -395,12 +398,36 @@ def optimize_schedule(
             }
         )
 
+    # Independently check the chosen actual reservation, not just earliest fit.
+    reservations: dict[str, list[tuple[int, int]]] = {}
+    task_by_id = {task["task_id"]: task for task in maintenance_tasks}
+    for block in blocks:
+        task = task_by_id[block["tasks"][0]]
+        requirement = task_requirements(task, allowances)
+        start = datetime_to_minutes(block["start_time"], horizon_start_dt)
+        end = start + requirement.required_minutes
+        reservation_start = minutes_to_datetime(start, horizon_start_dt)
+        legal = any(
+            evaluate_task_in_window(
+                task, window, window_contexts.get(window.window_id), allowances,
+                reservation_start=reservation_start,
+            ).feasible
+            for window in windows_by_section.get(task["section_id"], [])
+        )
+        if not legal:
+            raise ValueError(f"Infeasible reservation for {task['task_id']}.")
+        for other_start, other_end in reservations.get(task["section_id"], []):
+            if start < other_end and other_start < end:
+                raise ValueError("Maintenance setup/work/release reservations overlap.")
+        reservations.setdefault(task["section_id"], []).append((start, end))
+
     validate_solution(
         blocks,
         maintenance_tasks,
         train_occupancy,
         horizon_start_dt,
         horizon_end_dt,
+        allowances=allowances,
     )
     return {
         "status": "success",
