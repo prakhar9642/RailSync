@@ -56,14 +56,3 @@ React web application
 Where feasible, public timetable-derived train data will be used.
 
 Maintenance demand will use synthetic/sample data based on documented maintenance categories and clearly stated assumptions.
-
-## Not Part of V1
-
-- Production Railway API integration
-- Predictive ML / GNN
-- Kafka
-- Neo4j
-- Ray
-- Full Railway digital twin
-- LLM chatbot
-- Authentication system
