@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
+from itertools import combinations
 from typing import Any
 
 from ortools.sat.python import cp_model
@@ -13,10 +14,16 @@ try:
     from .time_utils import parse_datetime, datetime_to_minutes, minutes_to_datetime
     from .candidate_windows import CandidateWindow, OperationalAllowances, generate_candidate_windows
     from .feasibility import FeasibilityContext, evaluate_task_in_window, task_requirements
+    from .compatibility import CompatibilityPolicy, evaluate_compatibility
+    from .resources import ResourceContext, add_capacity_constraints, validate_capacities
+    from .possessions import build_possessions, solve_priorities
 except ImportError:  # Preserve direct-script and existing test imports.
     from time_utils import parse_datetime, datetime_to_minutes, minutes_to_datetime
     from candidate_windows import CandidateWindow, OperationalAllowances, generate_candidate_windows
     from feasibility import FeasibilityContext, evaluate_task_in_window, task_requirements
+    from compatibility import CompatibilityPolicy, evaluate_compatibility
+    from resources import ResourceContext, add_capacity_constraints, validate_capacities
+    from possessions import build_possessions, solve_priorities
 
 
 DEFAULT_HORIZON_START = "2026-09-01T00:00:00"
@@ -132,6 +139,7 @@ def validate_solution(
     horizon_end: str | datetime = DEFAULT_HORIZON_END,
     *,
     allowances: OperationalAllowances = OperationalAllowances(),
+    compatibility_policy: CompatibilityPolicy = CompatibilityPolicy(),
 ) -> None:
     """Raise a clear error if any generated Day 1 block is invalid."""
     task_by_id = {task["task_id"]: task for task in maintenance_tasks}
@@ -143,17 +151,20 @@ def validate_solution(
     for block in blocks:
         block_id = block.get("block_id", "<unknown block>")
         block_tasks = block.get("tasks")
-        if not isinstance(block_tasks, list) or len(block_tasks) != 1:
-            raise ValueError(f"{block_id} must contain exactly one task on Day 1.")
-
-        task_id = block_tasks[0]
-        if task_id not in task_by_id:
-            raise ValueError(f"{block_id} references unknown task {task_id!r}.")
-        if task_id in scheduled_task_ids:
-            raise ValueError(f"Task {task_id!r} is scheduled more than once.")
-        scheduled_task_ids.add(task_id)
-
-        task = task_by_id[task_id]
+        if not isinstance(block_tasks, list) or not block_tasks:
+            raise ValueError(f"{block_id} must contain tasks.")
+        members = []
+        for task_id in block_tasks:
+            if task_id not in task_by_id or task_id in scheduled_task_ids:
+                raise ValueError(f"Unknown or duplicate task: {task_id}")
+            scheduled_task_ids.add(task_id)
+            members.append(task_by_id[task_id])
+        for first, second in combinations(members, 2):
+            if not evaluate_compatibility(first, second, compatibility_policy).eligible:
+                raise ValueError(f"{block_id} contains incompatible tasks.")
+        departments = {task.get("department") for task in members if task.get("department")}
+        if block["integrated"] != (len(departments) >= 2):
+            raise ValueError(f"{block_id} has an incorrect integrated flag.")
         start_time = parse_datetime(block["start_time"])
         end_time = parse_datetime(block["end_time"])
         if not start_time < end_time:
@@ -162,14 +173,11 @@ def validate_solution(
             raise ValueError(f"{block_id} lies outside the planning horizon.")
 
         actual_duration = (end_time - start_time).total_seconds() / 60
-        if actual_duration != task_requirements(task, allowances).required_minutes:
-            raise ValueError(
-                f"{block_id} duration does not match task {task_id!r}."
-            )
-        if block["section_id"] != task["section_id"]:
-            raise ValueError(
-                f"{block_id} section does not match task {task_id!r}."
-            )
+        expected = max(task_requirements(task, allowances).required_minutes for task in members)
+        if actual_duration != expected:
+            raise ValueError(f"{block_id} duration does not match synchronized possession.")
+        if any(block["section_id"] != task["section_id"] for task in members):
+            raise ValueError(f"{block_id} has mismatched task sections.")
 
         affected_trains = _affected_train_ids(
             block["section_id"], start_time, end_time, train_occupancy
@@ -230,6 +238,9 @@ def optimize_schedule(
     *,
     allowances: OperationalAllowances = OperationalAllowances(),
     window_contexts: dict[str, FeasibilityContext] | None = None,
+    resource_context: ResourceContext | None = None,
+    compatibility_policy: CompatibilityPolicy = CompatibilityPolicy(),
+    diagnostics: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Reserve setup/work/release in feasible windows; return full possession blocks."""
     maintenance_tasks, train_occupancy = _validate_input_data(data)
@@ -239,6 +250,10 @@ def optimize_schedule(
     if horizon_minutes <= 0:
         raise ValueError("horizon_end must be later than horizon_start.")
 
+    if resource_context is not None:
+        resource_context.validate_times(horizon_start_dt)
+    facts = diagnostics if diagnostics is not None else {}
+    facts.update(pair_checks=[], task_windows=[], priority_stages=[], outcomes={})
     windows = generate_candidate_windows(
         train_occupancy,
         {task["section_id"] for task in maintenance_tasks}
@@ -252,7 +267,6 @@ def optimize_schedule(
     window_contexts = window_contexts or {}
     model = cp_model.CpModel()
     task_variables: dict[str, dict[str, Any]] = {}
-    intervals_by_section: dict[str, list[Any]] = {}
 
     for task_index, task in enumerate(maintenance_tasks):
         task_id = task["task_id"]
@@ -271,30 +285,33 @@ def optimize_schedule(
         interval = model.NewOptionalIntervalVar(
             start, duration, end, scheduled, f"task_{task_index}_interval"
         )
-        intervals_by_section.setdefault(task["section_id"], []).append(interval)
         task_variables[task_id] = {
             "scheduled": scheduled,
             "start": start,
             "end": end,
+            "interval": interval,
         }
 
         choices = []
         for window in windows_by_section.get(task["section_id"], []):
             feasibility = evaluate_task_in_window(
                 task, window, window_contexts.get(window.window_id), allowances,
+                resource_context=resource_context,
             )
+            facts["task_windows"].append(dict(
+                task_id=task_id, window_id=window.window_id, feasible=feasibility.feasible,
+                reasons=[reason.value for reason in feasibility.reasons],
+                resource_checks={k: v.value for k, v in feasibility.resource_checks.items()},
+            ))
             if not feasibility.feasible:
                 continue
-            chosen = model.NewBoolVar(f"task_{task_index}_{window.window_id}")
-            choices.append(chosen)
-            earliest = datetime_to_minutes(window.usable_start, horizon_start_dt)
-            latest = datetime_to_minutes(
-                feasibility.latest_reservation_start, horizon_start_dt
-            )
-            window_end = datetime_to_minutes(window.usable_end, horizon_start_dt)
-            model.Add(start >= earliest).OnlyEnforceIf(chosen)
-            model.Add(start <= latest).OnlyEnforceIf(chosen)
-            model.Add(end <= window_end).OnlyEnforceIf(chosen)
+            for range_index, (range_start, range_end) in enumerate(feasibility.start_ranges):
+                chosen = model.NewBoolVar(f"task_{task_index}_{window.window_id}_{range_index}")
+                choices.append(chosen)
+                earliest = datetime_to_minutes(range_start, horizon_start_dt)
+                latest = datetime_to_minutes(range_end, horizon_start_dt)
+                model.Add(start >= earliest).OnlyEnforceIf(chosen)
+                model.Add(start <= latest).OnlyEnforceIf(chosen)
         model.Add(sum(choices) == scheduled)
 
         for train_index, occupancy in enumerate(train_occupancy):
@@ -329,22 +346,17 @@ def optimize_schedule(
             model.AddImplication(before_train, scheduled)
             model.AddImplication(after_train, scheduled)
 
-    for section_intervals in intervals_by_section.values():
-        if len(section_intervals) > 1:
-            model.AddNoOverlap(section_intervals)
-
-    scheduled_variables = [
-        variables["scheduled"] for variables in task_variables.values()
-    ]
-    start_variables = [variables["start"] for variables in task_variables.values()]
-    primary_weight = len(maintenance_tasks) * horizon_minutes + 1
-    model.Maximize(
-        primary_weight * sum(scheduled_variables) - sum(start_variables)
+    possession_variables = build_possessions(
+        model, maintenance_tasks, task_variables, horizon_minutes, allowances,
+        compatibility_policy, facts["pair_checks"], resource_context,
     )
-
+    add_capacity_constraints(model, maintenance_tasks, task_variables, resource_context)
     solver = cp_model.CpSolver()
     solver.parameters.num_search_workers = 1
-    solver_status = solver.Solve(model)
+    solver_status = solve_priorities(
+        model, solver, maintenance_tasks, task_variables, possession_variables,
+        facts["priority_stages"],
+    )
 
     if solver_status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         status_name = {
@@ -362,64 +374,48 @@ def optimize_schedule(
             ),
         }
 
-    scheduled_results: list[tuple[int, str, dict[str, Any]]] = []
-    unscheduled_tasks: list[str] = []
-    for task in maintenance_tasks:
-        variables = task_variables[task["task_id"]]
-        if solver.Value(variables["scheduled"]):
-            scheduled_results.append(
-                (solver.Value(variables["start"]), task["task_id"], task)
-            )
-        else:
-            unscheduled_tasks.append(task["task_id"])
-
-    scheduled_results.sort(key=lambda item: (item[0], item[2]["section_id"], item[1]))
-    blocks: list[dict[str, Any]] = []
-    for block_index, (start_minute, task_id, task) in enumerate(
-        scheduled_results, start=1
-    ):
-        end_minute = start_minute + task_requirements(task, allowances).required_minutes
-        start_time = parse_datetime(minutes_to_datetime(start_minute, horizon_start_dt))
-        end_time = parse_datetime(minutes_to_datetime(end_minute, horizon_start_dt))
-        blocks.append(
-            {
-                "block_id": f"BLK{block_index:03d}",
-                "section_id": task["section_id"],
-                "start_time": start_time.isoformat(timespec="seconds"),
-                "end_time": end_time.isoformat(timespec="seconds"),
-                "tasks": [task_id],
-                "integrated": False,
-                "affected_trains": _affected_train_ids(
-                    task["section_id"], start_time, end_time, train_occupancy
-                ),
-                "explanation": [
-                    "Scheduled outside protected train occupancy"
-                ],
-            }
-        )
-
-    # Independently check the chosen actual reservation, not just earliest fit.
-    reservations: dict[str, list[tuple[int, int]]] = {}
-    task_by_id = {task["task_id"]: task for task in maintenance_tasks}
-    for block in blocks:
-        task = task_by_id[block["tasks"][0]]
-        requirement = task_requirements(task, allowances)
-        start = datetime_to_minutes(block["start_time"], horizon_start_dt)
-        end = start + requirement.required_minutes
-        reservation_start = minutes_to_datetime(start, horizon_start_dt)
-        legal = any(
-            evaluate_task_in_window(
+    unscheduled_tasks = [task["task_id"] for task in maintenance_tasks
+                         if not solver.Value(task_variables[task["task_id"]]["scheduled"])]
+    scheduled_results = []
+    for possession in possession_variables:
+        if solver.Value(possession["present"]):
+            members = [maintenance_tasks[i] for i, member in possession["members"].items()
+                       if solver.Value(member)]
+            scheduled_results.append((solver.Value(possession["start"]),
+                                      solver.Value(possession["end"]), possession["section_id"], members))
+    scheduled_results.sort(key=lambda item: (item[0], item[2], sorted(t["task_id"] for t in item[3])))
+    blocks = []
+    reservations = []
+    for index, (start, end, section, members) in enumerate(scheduled_results, 1):
+        start_time = minutes_to_datetime(start, horizon_start_dt)
+        end_time = minutes_to_datetime(end, horizon_start_dt)
+        departments = {t.get("department") for t in members if t.get("department")}
+        blocks.append(dict(
+            block_id=f"BLK{index:03d}", section_id=section,
+            start_time=start_time, end_time=end_time,
+            tasks=sorted(t["task_id"] for t in members), integrated=len(departments) >= 2,
+            affected_trains=_affected_train_ids(section, parse_datetime(start_time),
+                                               parse_datetime(end_time), train_occupancy),
+            explanation=["Scheduled outside protected train occupancy"],
+        ))
+        for task in members:
+            legal = any(evaluate_task_in_window(
                 task, window, window_contexts.get(window.window_id), allowances,
-                reservation_start=reservation_start,
-            ).feasible
-            for window in windows_by_section.get(task["section_id"], [])
-        )
-        if not legal:
-            raise ValueError(f"Infeasible reservation for {task['task_id']}.")
-        for other_start, other_end in reservations.get(task["section_id"], []):
-            if start < other_end and other_start < end:
-                raise ValueError("Maintenance setup/work/release reservations overlap.")
-        reservations.setdefault(task["section_id"], []).append((start, end))
+                reservation_start=start_time, resource_context=resource_context,
+            ).feasible for window in windows_by_section[section])
+            if not legal:
+                raise ValueError(f"Infeasible reservation for {task['task_id']}.")
+            reservations.append((task, start, start + task_requirements(task, allowances).required_minutes))
+    validate_capacities(reservations, resource_context)
+    for task in maintenance_tasks:
+        task_id = task["task_id"]
+        if task_id not in unscheduled_tasks:
+            facts["outcomes"][task_id] = "SELECTED"
+        elif any(f["feasible"] for f in facts["task_windows"] if f["task_id"] == task_id):
+            facts["outcomes"][task_id] = ("LOWER_PRIORITY_THAN_SELECTED_WORK"
+                if solver_status == cp_model.OPTIMAL else "NOT_SELECTED_UNPROVEN_OPTIMUM")
+        else:
+            facts["outcomes"][task_id] = "NO_FEASIBLE_TASK_WINDOW"
 
     validate_solution(
         blocks,
@@ -428,6 +424,7 @@ def optimize_schedule(
         horizon_start_dt,
         horizon_end_dt,
         allowances=allowances,
+        compatibility_policy=compatibility_policy,
     )
     return {
         "status": "success",

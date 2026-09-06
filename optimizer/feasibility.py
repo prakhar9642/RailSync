@@ -9,9 +9,11 @@ from typing import Any, Mapping
 try:
     from .candidate_windows import CandidateWindow, OperationalAllowances
     from .time_utils import datetime_to_minutes, minutes_to_datetime
+    from .resources import ResourceContext, power_start_ranges
 except ImportError:
     from candidate_windows import CandidateWindow, OperationalAllowances
     from time_utils import datetime_to_minutes, minutes_to_datetime
+    from resources import ResourceContext, power_start_ranges
 
 
 class ReasonCode(str, Enum):
@@ -21,6 +23,7 @@ class ReasonCode(str, Enum):
     POWER_BLOCK_UNAVAILABLE = "POWER_BLOCK_UNAVAILABLE"
     CREW_UNAVAILABLE = "CREW_UNAVAILABLE"
     MACHINE_UNAVAILABLE = "MACHINE_UNAVAILABLE"
+    POWER_WINDOW_UNAVAILABLE = "POWER_WINDOW_UNAVAILABLE"
 
 
 class ResourceCheckStatus(str, Enum):
@@ -104,6 +107,7 @@ class FeasibilityResult:
     reasons: tuple[ReasonCode, ...]
     latest_reservation_start: str
     resource_checks: dict[str, ResourceCheckStatus]
+    start_ranges: tuple[tuple[str, str], ...]
 
 
 def evaluate_task_in_window(
@@ -113,6 +117,7 @@ def evaluate_task_in_window(
     allowances: OperationalAllowances = OperationalAllowances(),
     *,
     reservation_start: str | None = None,
+    resource_context: ResourceContext | None = None,
 ) -> FeasibilityResult:
     """Check earliest execution or an actual reservation, including release deadline.
 
@@ -139,6 +144,23 @@ def evaluate_task_in_window(
         "crew": _resource_check(bool(requirement.crew_type), context.crew_availability.get(requirement.crew_type)),
         "machine": _resource_check(bool(requirement.machine_type), context.machine_availability.get(requirement.machine_type)),
     }
+    ranges = power_start_ranges(
+        task, required, start, latest if reservation_start is None else min(start, latest),
+        window.usable_start, resource_context,
+    )
+    if resource_context is not None:
+        for resource, pool, capacities in (
+            ("crew", requirement.crew_type, resource_context.crew_capacities),
+            ("machine", requirement.machine_type, resource_context.machine_capacities),
+        ):
+            if pool and pool in capacities and resource_checks[resource] != ResourceCheckStatus.FAILED:
+                resource_checks[resource] = _resource_check(True, capacities[pool] > 0)
+        if requirement.requires_power_isolation and task["section_id"] in resource_context.power_windows:
+            if not ranges:
+                reasons.append(ReasonCode.POWER_WINDOW_UNAVAILABLE)
+                resource_checks["power"] = ResourceCheckStatus.FAILED
+            elif resource_checks["power"] != ResourceCheckStatus.FAILED:
+                resource_checks["power"] = ResourceCheckStatus.PASSED
     for resource, reason in (
         ("power", ReasonCode.POWER_BLOCK_UNAVAILABLE),
         ("crew", ReasonCode.CREW_UNAVAILABLE),
@@ -153,4 +175,6 @@ def evaluate_task_in_window(
         reasons=tuple(reasons),
         latest_reservation_start=minutes_to_datetime(latest, window.usable_start),
         resource_checks=resource_checks,
+        start_ranges=tuple((minutes_to_datetime(a, window.usable_start),
+                            minutes_to_datetime(b, window.usable_start)) for a, b in ranges),
     )
