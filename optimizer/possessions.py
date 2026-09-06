@@ -1,6 +1,7 @@
 """Solver-level synchronized possessions and exact lexicographic objectives."""
 
 from itertools import combinations
+from time import perf_counter
 
 from ortools.sat.python import cp_model
 
@@ -69,7 +70,7 @@ def build_possessions(model, tasks, variables, horizon, allowances, policy, fact
     return blocks
 
 
-def solve_priorities(model, solver, tasks, variables, blocks, facts):
+def solve_priorities(model, solver, tasks, variables, blocks, facts, slack_objectives):
     stages = []
     for field in ("criticality", "urgency", "overdue_days"):
         weights = []
@@ -83,6 +84,8 @@ def solve_priorities(model, solver, tasks, variables, blocks, facts):
         ("task_count", True, sum(v["scheduled"] for v in variables.values())),
         ("possession_minutes", False, sum(b["size"] for b in blocks)),
         ("block_count", False, sum(b["present"] for b in blocks)),
+        ("minimum_boundary_slack_minutes", True, slack_objectives[0]),
+        ("total_boundary_slack_minutes", True, slack_objectives[1]),
         ("start_minutes", False, sum(v["start"] for v in variables.values())),
     ]
     for name, maximize, expression in stages:
@@ -90,8 +93,10 @@ def solve_priorities(model, solver, tasks, variables, blocks, facts):
             model.Maximize(expression)
         else:
             model.Minimize(expression)
+        started = perf_counter()
         status = solver.Solve(model)
-        facts.append(dict(objective=name, status=solver.StatusName(status)))
+        facts.append(dict(objective=name, status=solver.StatusName(status),
+                          runtime_seconds=perf_counter() - started))
         # Never fix an unproven incumbent as an optimum or proceed to lower stages.
         if status != cp_model.OPTIMAL:
             return status

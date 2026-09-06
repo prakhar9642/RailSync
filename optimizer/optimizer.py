@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import math
+from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 from itertools import combinations
@@ -17,6 +19,8 @@ try:
     from .compatibility import CompatibilityPolicy, evaluate_compatibility
     from .resources import ResourceContext, add_capacity_constraints, validate_capacities
     from .possessions import build_possessions, solve_priorities
+    from .robustness import add_boundary_slack
+    from .metrics import summarize_plan
 except ImportError:  # Preserve direct-script and existing test imports.
     from time_utils import parse_datetime, datetime_to_minutes, minutes_to_datetime
     from candidate_windows import CandidateWindow, OperationalAllowances, generate_candidate_windows
@@ -24,6 +28,8 @@ except ImportError:  # Preserve direct-script and existing test imports.
     from compatibility import CompatibilityPolicy, evaluate_compatibility
     from resources import ResourceContext, add_capacity_constraints, validate_capacities
     from possessions import build_possessions, solve_priorities
+    from robustness import add_boundary_slack
+    from metrics import summarize_plan
 
 
 DEFAULT_HORIZON_START = "2026-09-01T00:00:00"
@@ -241,8 +247,19 @@ def optimize_schedule(
     resource_context: ResourceContext | None = None,
     compatibility_policy: CompatibilityPolicy = CompatibilityPolicy(),
     diagnostics: dict[str, Any] | None = None,
+    allow_integration: bool = True,
+    stage_time_limit_seconds: float | None = None,
 ) -> dict[str, Any]:
     """Reserve setup/work/release in feasible windows; return full possession blocks."""
+    if stage_time_limit_seconds is not None:
+        if (isinstance(stage_time_limit_seconds, bool)
+                or not isinstance(stage_time_limit_seconds, (int, float))
+                or not math.isfinite(stage_time_limit_seconds) or stage_time_limit_seconds <= 0):
+            raise ValueError("stage_time_limit_seconds must be finite and positive.")
+    if not isinstance(allow_integration, bool):
+        raise ValueError("allow_integration must be boolean.")
+    if not allow_integration:
+        compatibility_policy = replace(compatibility_policy, allow_same_group=False)
     maintenance_tasks, train_occupancy = _validate_input_data(data)
     horizon_start_dt = parse_datetime(horizon_start)
     horizon_end_dt = parse_datetime(horizon_end)
@@ -350,12 +367,17 @@ def optimize_schedule(
         model, maintenance_tasks, task_variables, horizon_minutes, allowances,
         compatibility_policy, facts["pair_checks"], resource_context,
     )
+    slack_objectives = add_boundary_slack(
+        model, possession_variables, windows_by_section, horizon_start_dt, horizon_minutes,
+    )
     add_capacity_constraints(model, maintenance_tasks, task_variables, resource_context)
     solver = cp_model.CpSolver()
     solver.parameters.num_search_workers = 1
+    if stage_time_limit_seconds is not None:
+        solver.parameters.max_time_in_seconds = stage_time_limit_seconds
     solver_status = solve_priorities(
         model, solver, maintenance_tasks, task_variables, possession_variables,
-        facts["priority_stages"],
+        facts["priority_stages"], slack_objectives,
     )
 
     if solver_status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
@@ -426,6 +448,12 @@ def optimize_schedule(
         allowances=allowances,
         compatibility_policy=compatibility_policy,
     )
+    facts["service_metrics"] = summarize_plan(maintenance_tasks, blocks, windows, allowances)
+    for key, expression in zip(
+        ("minimum_boundary_slack_minutes", "total_boundary_slack_minutes"), slack_objectives
+    ):
+        if facts["service_metrics"][key] != solver.Value(expression):
+            raise ValueError("Solved boundary slack does not match possession timestamps.")
     return {
         "status": "success",
         "blocks": blocks,

@@ -69,10 +69,11 @@ def test_lexicographic_optima_recorded_in_order():
     result = run(pair(), diagnostics=facts)
     assert [f["objective"] for f in facts["priority_stages"]] == [
         "criticality", "urgency", "overdue_days", "task_count",
-        "possession_minutes", "block_count", "start_minutes",
+        "possession_minutes", "block_count", "minimum_boundary_slack_minutes",
+        "total_boundary_slack_minutes", "start_minutes",
     ]
     assert all(f["status"] == "OPTIMAL" for f in facts["priority_stages"])
-    assert [f["optimum"] for f in facts["priority_stages"]] == [0, 0, 0, 2, 135, 1, 0]
+    assert [f["optimum"] for f in facts["priority_stages"]] == [0, 0, 0, 2, 135, 1, 22, 22, 44]
     assert result["metrics"]["optimized_block_hours"] == 2.25
 
 
@@ -81,7 +82,7 @@ def test_integrated_union_and_contract():
     assert set(result) == {"status", "blocks", "unscheduled_tasks", "metrics"}
     block, = result["blocks"]
     assert block["tasks"] == ["ENG", "SNT"] and block["integrated"] is True
-    assert (block["start_time"], block["end_time"]) == (stamp(0), stamp(135))
+    assert (block["start_time"], block["end_time"]) == (stamp(22), stamp(157))
     assert set(block) == {"block_id", "section_id", "start_time", "end_time", "tasks",
                           "integrated", "affected_trains", "explanation"}
     assert result["metrics"] == dict(baseline_block_hours=0, optimized_block_hours=2.25,
@@ -210,14 +211,18 @@ def test_three_department_demo_safety_and_explanations():
     result, facts = demo["result"], demo["diagnostics"]
     assert selected(result) == {"ENG017", "SNT008"}
     block, = result["blocks"]
-    assert (block["start_time"], block["end_time"]) == (stamp(30), stamp(165))
+    assert (block["start_time"], block["end_time"]) == (stamp(45), stamp(180))
     assert block["affected_trains"] == [] and block["integrated"]
     assert result["metrics"]["optimized_block_hours"] == 2.25
     assert result["metrics"]["baseline_block_hours"] == 0
     assert facts["outcomes"]["ENG_LOW"] == "LOWER_PRIORITY_THAN_SELECTED_WORK"
     assert facts["outcomes"]["TRD004"] == "NO_FEASIBLE_TASK_WINDOW"
     assert any("POWER_WINDOW_UNAVAILABLE" in f["reasons"] for f in facts["task_windows"] if f["task_id"] == "TRD004")
-    assert demonstration() == demo
+    repeated = demonstration()
+    for output in (demo, repeated):
+        for stage in output["diagnostics"]["priority_stages"]:
+            stage.pop("runtime_seconds")
+    assert repeated == demo
 
 
 if __name__ == "__main__":

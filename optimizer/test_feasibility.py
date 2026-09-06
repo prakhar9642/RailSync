@@ -173,12 +173,12 @@ def test_solver_contract_and_actual_assignments():
     assert len(result["blocks"]) == 1
     block = result["blocks"][0]
     assert set(block) == {"block_id", "section_id", "start_time", "end_time", "tasks", "integrated", "affected_trains", "explanation"}
-    assert (block["start_time"], block["end_time"]) == (stamp(55), stamp(130))
+    assert (block["start_time"], block["end_time"]) == (stamp(72), stamp(147))
     assert block["affected_trains"] == []
     assert result["metrics"]["optimized_affected_trains"] == 0
     assert result["metrics"]["optimized_block_hours"] == 1.25
     assert result["metrics"]["baseline_block_hours"] == 0
-    assert evaluate_task_in_window(task(), windows()[0], reservation_start=stamp(55)).feasible
+    assert evaluate_task_in_window(task(), windows()[0], reservation_start=block["start_time"]).feasible
     assert demonstration() == example
 
 
@@ -218,7 +218,8 @@ def test_public_possession_with_configured_overhead_and_train_protection(setup, 
     block, = result["blocks"]
     start = datetime_to_minutes(block["start_time"], ORIGIN)
     end = datetime_to_minutes(block["end_time"], ORIGIN)
-    assert (start, end) == (55, 55 + setup + 60 + release)
+    expected_start = 55 + (110 - (setup + 60 + release)) // 2
+    assert (start, end) == (expected_start, expected_start + setup + 60 + release)
     assert result["metrics"]["optimized_block_hours"] == round((setup + 60 + release) / 60, 3)
     for row in rows:
         assert end <= datetime_to_minutes(row["entry_time"], ORIGIN) or start >= datetime_to_minutes(row["exit_time"], ORIGIN)

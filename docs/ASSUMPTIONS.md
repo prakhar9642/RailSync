@@ -14,12 +14,32 @@
   this same interval. Train safety margins remain outside possession.
 - optimized_block_hours = round(sum(block possession minutes) / 60, 3).
   This sums section-hours, including concurrent possessions on different sections.
-- No baseline scheduler exists. baseline_block_hours and baseline_affected_trains
-  are always numeric 0 as an unavailable-baseline placeholder required for API
-  compatibility, NOT a measured zero-closure baseline. Do not compute savings,
-  differences or improvement percentages from these placeholders.
-  Unscheduled tasks remain outstanding work; they contribute no scheduled
-  possession hours and are never counted as saved closure.
+- Non-integrated planning baseline is a technical CP-SAT ablation, NOT an
+  asserted reproduction of current Indian Railways manual planning. compare_plans
+  sends the same data, horizon, allowances, window/resource contexts, priority
+  policy and solver limits to one engine twice. allow_integration=False disables
+  ALL sharing (including same-department sharing): each task owns a possession.
+  No deliberately weak scheduling heuristic or late-start bias is introduced.
+- Comparison is internal only. Standalone optimize_schedule does not run the
+  baseline and retains public numeric baseline placeholders (0 = unavailable).
+  Actual baseline service/possession metrics live in compare_plans.baseline.
+  No backend/API/frontend integration or CONTRACTS.md change is made here.
+- Closure saved minutes = baseline possession - optimized possession ONLY when
+  scheduled task ID sets are identical. Otherwise saved minutes and reduction
+  percent are None. When baseline possession > 0, percentage = saved minutes /
+  baseline possession * 100. Equal empty sets have saved minutes 0, percent None.
+  Negative differences are retained, not clipped into a positive savings claim.
+- Both plans report scheduled/unscheduled IDs, task count, productive minutes,
+  criticality/urgency/overdue-days served, possession minutes, block count and
+  integrated block count. Unscheduled work remains outstanding, never saved closure.
+- maintenance_delivery_efficiency = productive maintenance minutes delivered /
+  actual unique possession minutes; None for zero possession. Concurrency can
+  legitimately make this ratio exceed one; it is not an AI score.
+- coordination_gain_minutes sums, once per shared block, individual setup/work/
+  release reservation minutes minus that block's possession minutes. This includes
+  same-department sharing, while integrated_blocks still counts cross-department
+  possessions only. It is an assumption-dependent accounting measure, not an
+  official Railway savings claim or a substitute for same-work baseline comparison.
 - Safety is applied only where an actual previous/next train is supplied, including
   outside-horizon trains whose margins extend into the horizon. Horizon edges
   themselves add no fictional train buffer. Setup/release still fit in the horizon.
@@ -47,10 +67,25 @@
   are retained as metadata only. All tasks remain indivisible in this phase.
 - Exact lexicographic priorities: maximize scheduled criticality, urgency,
   overdue_days, then task count; minimize unique possession minutes, block count,
-  then sum of task reservation start minutes. Seven CP-SAT solves fix each proven
+  then maximize minimum boundary slack, maximize total boundary slack, then
+  minimize sum of task reservation start minutes. Nine CP-SAT solves fix each proven
   optimum before proceeding. Missing priority fields default to 0 for legacy
   minimal inputs; supplied values must be non-negative integers. Deadlines remain
   hard constraints including each task's release. No weighted AI score is used.
+- Per-possession before_boundary_slack_minutes = possession start - usable
+  candidate start; after_boundary_slack_minutes = usable candidate end - possession
+  end; boundary_slack_minutes = min(before, after). Required train safety is already
+  subtracted in the candidate, and setup/release are inside the possession.
+  The solver associates each active block with its containing candidate window.
+- Slack is additional deterministic candidate-boundary margin, including horizon
+  edges. It does not measure separation from other maintenance, resource-calendar
+  slack, a probability of success, predicted train delay, or official reliability.
+  Minimum block slack is maximized BEFORE total block slack, and only AFTER all
+  six service/possession/block-count objectives. Unscheduled anchors are excluded
+  from the minimum; empty plans have minimum and total slack 0. Both modes share
+  this hierarchy. Public timestamps may move later than Phase 2 to gain margin.
+- Boundary slacks are independently recomputed from returned possession times
+  and checked against the solver values. No robustness percentage is generated.
 - CompatibilityPolicy permits same non-empty, exact compatibility_group values
   conditionally, unless integration is disabled or that group is disabled.
   Different groups are INCOMPATIBLE; missing/blank information is UNKNOWN.
@@ -90,10 +125,14 @@
   rejection facts. None of these add fields to the public response.
 - Solver size uses at most one block anchor per task, not all compatible subsets.
   Membership variables grow quadratically; pair restrictions can grow cubically.
-  Seven exact solves may be expensive for larger instances. One worker ensures
-  repeatable small demos; no time limit or large-instance performance guarantee
-  is claimed. An unproven stage stops the hierarchy, never fixes its incumbent
-  as an optimum; diagnostics distinguish FEASIBLE from OPTIMAL.
+  Nine exact solves may be expensive for larger instances. One worker ensures
+  repeatable small plans; no large-instance performance guarantee is claimed.
+  Default solves have no time limit. Optional stage_time_limit_seconds is applied
+  equally to both comparison modes; the benchmark uses 2 seconds per stage. An unproven stage stops the hierarchy, never fixes its incumbent
+  as an optimum; diagnostics distinguish FEASIBLE from OPTIMAL. Stage runtimes
+  are observational and not deterministic. compare_plans.both_proven_optimal
+  distinguishes full optimal comparisons from feasible incumbents. A failed solve
+  raises instead of being summarized as an empty successful plan.
 - Internal reason codes: WRONG_SECTION, INSUFFICIENT_USABLE_DURATION,
   DEADLINE_VIOLATION, POWER_BLOCK_UNAVAILABLE, CREW_UNAVAILABLE,
   MACHINE_UNAVAILABLE, POWER_WINDOW_UNAVAILABLE. Pair facts additionally include
@@ -138,6 +177,9 @@ productive task needs 135 minutes with setup/release and is rejected, while a
 
 # Requires Indian Railways Domain Validation
 
+- Numeric criticality/urgency/overdue prioritization remains a prototype decision
+  policy, requiring domain validation; boundary slack requires later disruption
+  testing and is not predictive reliability.
 - Exact Engineering/S&T/TRD activity-to-activity compatibility, shared setup/release
   procedures, real crew capacities, machine allocations and power-block windows.
 - Safety margins by signalling, traffic direction, section, and train category.
@@ -150,3 +192,9 @@ productive task needs 135 minutes with setup/release and is rejected, while a
   bidirectional movement and crossing protection. Supplied sample data is synthetic.
 - Future explicit API representation of unavailable baseline metrics, and any
   additional productive-work timestamps, without confusing them with possession.
+
+
+Run `python optimizer/test_comparison.py` for same-work, different-work and robust
+placement demos. Run `python optimizer/benchmark_planning.py` for bounded 10/20/40
+synthetic task benchmarks (five tasks per section, no train/resource contention).
+These are modest distributed instances, not production-scale railway benchmarks.
