@@ -1,0 +1,42 @@
+[
+  {
+    "section_id": "SEC01",
+    "from_station": "STN01",
+    "to_station": "STN02"
+  },
+  {
+    "section_id": "SEC02",
+    "from_station": "STN02",
+    "to_station": "STN03"
+  },
+  {
+    "section_id": "SEC03",
+    "from_station": "STN03",
+    "to_station": "STN04"
+  },
+  {
+    "section_id": "SEC04",
+    "from_station": "STN04",
+    "to_station": "STN05"
+  },
+  {
+    "section_id": "SEC05",
+    "from_station": "STN05",
+    "to_station": "STN06"
+  },
+  {
+    "section_id": "SEC06",
+    "from_station": "STN06",
+    "to_station": "STN07"
+  },
+  {
+    "section_id": "SEC07",
+    "from_station": "STN07",
+    "to_station": "STN08"
+  },
+  {
+    "section_id": "SEC08",
+    "from_station": "STN08",
+    "to_station": "STN09"
+  }
+]
