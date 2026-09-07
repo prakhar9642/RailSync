@@ -1,0 +1,12 @@
+[
+  {"station_id": "EHDN_STN01", "station_name": "Eastgate Terminal", "order": 1},
+  {"station_id": "EHDN_STN02", "station_name": "Canal Road", "order": 2},
+  {"station_id": "EHDN_STN03", "station_name": "Meadow Junction", "order": 3},
+  {"station_id": "EHDN_STN04", "station_name": "Riverbend", "order": 4},
+  {"station_id": "EHDN_STN05", "station_name": "Industrial Estate", "order": 5},
+  {"station_id": "EHDN_STN06", "station_name": "Central Yard", "order": 6},
+  {"station_id": "EHDN_STN07", "station_name": "Forest Road", "order": 7},
+  {"station_id": "EHDN_STN08", "station_name": "Lake Crossing", "order": 8},
+  {"station_id": "EHDN_STN09", "station_name": "Hillview", "order": 9},
+  {"station_id": "EHDN_STN10", "station_name": "Frontier Terminal", "order": 10}
+]

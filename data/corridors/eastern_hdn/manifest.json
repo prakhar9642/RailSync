@@ -1,9 +1,28 @@
 {
   "territory_id": "eastern_hdn",
-  "display_name": "Eastern HDN (Placeholder)",
-  "description": "Registered dataset identifier only; no verified corridor or timetable data is present.",
-  "status": "PLACEHOLDER",
-  "provenance": [],
-  "datasets": {},
-  "scenario_references": []
+  "display_name": "Eastern HDN Synthetic Demonstration",
+  "description": "A fictional high-density corridor used to demonstrate territory-independent optimization.",
+  "status": "POPULATED",
+  "provenance": [
+    {
+      "label": "SYNTHETIC_PROTOTYPE",
+      "datasets": ["stations", "sections", "train_occupancy"],
+      "description": "Fictional corridor topology and train movements constructed for the RailSync demonstration."
+    },
+    {
+      "label": "SYNTHETIC_SCENARIO",
+      "datasets": ["maintenance_tasks"],
+      "description": "Synthetic multi-department maintenance demand with transparent priorities and compatibility groups."
+    }
+  ],
+  "datasets": {
+    "stations": {"adapter": "json_list", "path": "stations.json"},
+    "sections": {"adapter": "json_list", "path": "sections.json"},
+    "train_occupancy": {"adapter": "json_list", "path": "train_occupancy.json"},
+    "maintenance_tasks": {
+      "adapter": "json_list",
+      "path": "../../scenarios/eastern_hdn/maintenance_tasks.json"
+    }
+  },
+  "scenario_references": ["eastern_hdn_demo_v1"]
 }

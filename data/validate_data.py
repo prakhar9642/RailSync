@@ -22,6 +22,7 @@ def validate_records(
     stations: list[dict],
     sections: list[dict],
     occupancy: list[dict],
+    maintenance_tasks: list[dict],
     territory_id: str,
 ) -> list[str]:
     errors: list[str] = []
@@ -64,6 +65,13 @@ def validate_records(
             errors.append(
                 f"{prefix}train_occupancy: {record.get('train_id')} on {section_id} "
                 f"has entry_time >= exit_time"
+            )
+
+    for task in maintenance_tasks:
+        if task["section_id"] not in section_ids:
+            errors.append(
+                f"{prefix}maintenance_tasks: {task['task_id']} references unknown "
+                f"section_id {task['section_id']}"
             )
 
     by_train: dict[str, list[dict]] = {}
@@ -112,6 +120,7 @@ def validate() -> list[str]:
                     territory.stations,
                     territory.sections,
                     territory.train_occupancy,
+                    territory.maintenance_tasks,
                     manifest.territory_id,
                 )
             )

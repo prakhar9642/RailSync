@@ -9,6 +9,7 @@ import pytest
 
 from data.adapters import load_json_list
 from data.territories import (
+    CANONICAL_FIELDS,
     PLACEHOLDER,
     TerritoryNotPopulatedError,
     UnknownTerritoryError,
@@ -17,6 +18,7 @@ from data.territories import (
     registered_territory_ids,
 )
 from optimizer.optimizer import optimize_schedule
+from optimizer.comparison import compare_plans
 
 
 def test_multiple_territories_are_registered() -> None:
@@ -102,12 +104,64 @@ def test_manifest_metadata_is_excluded_and_does_not_change_optimizer_semantics()
     assert result["status"] == "success"
 
 
-@pytest.mark.parametrize("territory_id", ["eastern_hdn", "western_hdn"])
-def test_placeholder_cannot_masquerade_as_populated(territory_id: str) -> None:
-    manifest = get_territory_manifest(territory_id)
+def test_eastern_hdn_manifest_and_synthetic_provenance() -> None:
+    manifest = get_territory_manifest("eastern_hdn")
+    assert manifest.status == "POPULATED"
+    assert set(manifest.available_datasets) == set(CANONICAL_FIELDS)
+    assert manifest.scenario_references == ("eastern_hdn_demo_v1",)
+    assert {item["label"] for item in manifest.provenance} == {
+        "SYNTHETIC_PROTOTYPE",
+        "SYNTHETIC_SCENARIO",
+    }
+
+
+def test_eastern_hdn_loads_canonical_corridor_and_scenario() -> None:
+    territory = load_territory("eastern_hdn")
+    assert len(territory.stations) == 10
+    assert len(territory.sections) == 9
+    assert len(territory.train_occupancy) == 49
+    assert len(territory.maintenance_tasks) == 9
+    assert {task["department"] for task in territory.maintenance_tasks} == {
+        "ENGINEERING",
+        "S&T",
+        "TRD",
+    }
+    assert all(
+        CANONICAL_FIELDS[name] <= set(record)
+        for name, records in (
+            ("stations", territory.stations),
+            ("sections", territory.sections),
+            ("train_occupancy", territory.train_occupancy),
+            ("maintenance_tasks", territory.maintenance_tasks),
+        )
+        for record in records
+    )
+
+
+def test_eastern_hdn_runs_through_existing_optimizer() -> None:
+    result = optimize_schedule(load_territory("eastern_hdn").as_optimizer_input())
+    assert result["status"] == "success"
+    assert "EHDN_ENG003" not in result["unscheduled_tasks"]
+    assert result["unscheduled_tasks"] == ["EHDN_TRD003"]
+    assert result["metrics"]["integrated_blocks"] == 2
+    assert all(block["affected_trains"] == [] for block in result["blocks"])
+
+
+def test_eastern_hdn_uses_existing_fair_comparison_pipeline() -> None:
+    comparison = compare_plans(load_territory("eastern_hdn").as_optimizer_input())
+    assert comparison["both_proven_optimal"] is True
+    assert comparison["comparison"]["same_task_set"] is True
+    assert comparison["comparison"]["closure_saved_minutes"] == 105
+    assert comparison["baseline"]["scheduled_tasks"] == comparison["optimized"][
+        "scheduled_tasks"
+    ]
+
+
+def test_western_placeholder_cannot_masquerade_as_populated() -> None:
+    manifest = get_territory_manifest("western_hdn")
     assert manifest.status == PLACEHOLDER
     assert manifest.available_datasets == ()
     assert manifest.scenario_references == ()
 
     with pytest.raises(TerritoryNotPopulatedError, match="placeholder"):
-        load_territory(territory_id)
+        load_territory("western_hdn")

@@ -9,8 +9,9 @@
 - `territories.py` discovers manifests and provides `load_territory(territory_id)`.
 
 `delhi_agra` is populated through adapters that reference the existing root JSON
-files, so current file paths remain valid. `eastern_hdn` and `western_hdn` are
-registered placeholders and cannot be loaded until verified datasets are added.
+files, so current file paths remain valid. `eastern_hdn` is a fully synthetic
+demonstration territory. `western_hdn` remains a registered placeholder and
+cannot be loaded until a dataset is added.
 
 The canonical optimizer payload is available with:
 
