@@ -1,0 +1,9 @@
+{
+  "territory_id": "eastern_hdn",
+  "display_name": "Eastern HDN (Placeholder)",
+  "description": "Registered dataset identifier only; no verified corridor or timetable data is present.",
+  "status": "PLACEHOLDER",
+  "provenance": [],
+  "datasets": {},
+  "scenario_references": []
+}

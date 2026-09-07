@@ -1,4 +1,28 @@
-# RailSync Day 1 Corridor Data
+# RailSync Territory Data
+
+## Multi-territory layout
+
+- `corridors/<territory_id>/manifest.json` registers territory metadata,
+  provenance, adapters, available datasets, and scenario references.
+- `adapters/` converts source snapshots into the canonical RailSync fields.
+- `scenarios/<territory_id>/` is reserved for explicit synthetic scenarios.
+- `territories.py` discovers manifests and provides `load_territory(territory_id)`.
+
+`delhi_agra` is populated through adapters that reference the existing root JSON
+files, so current file paths remain valid. `eastern_hdn` and `western_hdn` are
+registered placeholders and cannot be loaded until verified datasets are added.
+
+The canonical optimizer payload is available with:
+
+```python
+from data import load_territory
+
+optimizer_input = load_territory("delhi_agra").as_optimizer_input()
+```
+
+See `docs/DATA_PROVENANCE.md` for provenance labels and future adapter policy.
+
+## Existing prototype corridor
 
 ## Corridor
 

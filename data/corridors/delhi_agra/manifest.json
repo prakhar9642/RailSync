@@ -1,0 +1,33 @@
+{
+  "territory_id": "delhi_agra",
+  "display_name": "Delhi–Agra Prototype Corridor",
+  "description": "The existing prototype corridor, loaded from the original root data files.",
+  "status": "POPULATED",
+  "provenance": [
+    {
+      "label": "PUBLIC_TIMETABLE_DERIVED",
+      "datasets": ["stations", "sections"],
+      "description": "Station names and corridor ordering follow the sources recorded in data/README.md."
+    },
+    {
+      "label": "SYNTHETIC_PROTOTYPE",
+      "datasets": ["train_occupancy"],
+      "description": "Train identifiers and occupancy times are manually constructed prototype data."
+    }
+  ],
+  "datasets": {
+    "stations": {
+      "adapter": "json_list",
+      "path": "../../stations.json"
+    },
+    "sections": {
+      "adapter": "json_list",
+      "path": "../../sections.json"
+    },
+    "train_occupancy": {
+      "adapter": "json_list",
+      "path": "../../train_occupancy.json"
+    }
+  },
+  "scenario_references": []
+}

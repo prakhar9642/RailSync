@@ -1,31 +1,31 @@
-"""Validate RailSync corridor data files."""
+"""Validate every populated RailSync territory."""
 
 from __future__ import annotations
 
-import json
 import sys
 from datetime import datetime
 from pathlib import Path
 
 DATA_DIR = Path(__file__).parent
+PROJECT_ROOT = DATA_DIR.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-
-def load_json(filename: str) -> list[dict]:
-    path = DATA_DIR / filename
-    with path.open(encoding="utf-8") as handle:
-        return json.load(handle)
+from data.territories import PLACEHOLDER, list_territories, load_territory  # noqa: E402
 
 
 def parse_time(value: str) -> datetime:
     return datetime.fromisoformat(value)
 
 
-def validate() -> list[str]:
+def validate_records(
+    stations: list[dict],
+    sections: list[dict],
+    occupancy: list[dict],
+    territory_id: str,
+) -> list[str]:
     errors: list[str] = []
-
-    stations = load_json("stations.json")
-    sections = load_json("sections.json")
-    occupancy = load_json("train_occupancy.json")
+    prefix = f"{territory_id}: "
 
     station_ids = {station["station_id"] for station in stations}
     section_ids = {section["section_id"] for section in sections}
@@ -36,17 +36,17 @@ def validate() -> list[str]:
 
     orders = [station["order"] for station in stations]
     if len(orders) != len(set(orders)):
-        errors.append("stations.json: duplicate order values found")
+        errors.append(f"{prefix}stations: duplicate order values found")
 
     for section in sections:
         if section["from_station"] not in station_ids:
             errors.append(
-                f"sections.json: {section['section_id']} references unknown "
+                f"{prefix}sections: {section['section_id']} references unknown "
                 f"from_station {section['from_station']}"
             )
         if section["to_station"] not in station_ids:
             errors.append(
-                f"sections.json: {section['section_id']} references unknown "
+                f"{prefix}sections: {section['section_id']} references unknown "
                 f"to_station {section['to_station']}"
             )
 
@@ -54,7 +54,7 @@ def validate() -> list[str]:
         section_id = record.get("section_id")
         if section_id not in section_ids:
             errors.append(
-                f"train_occupancy.json: unknown section_id {section_id} "
+                f"{prefix}train_occupancy: unknown section_id {section_id} "
                 f"for train {record.get('train_id')}"
             )
 
@@ -62,7 +62,7 @@ def validate() -> list[str]:
         exit_time = parse_time(record["exit_time"])
         if entry_time >= exit_time:
             errors.append(
-                f"train_occupancy.json: {record.get('train_id')} on {section_id} "
+                f"{prefix}train_occupancy: {record.get('train_id')} on {section_id} "
                 f"has entry_time >= exit_time"
             )
 
@@ -77,7 +77,7 @@ def validate() -> list[str]:
             curr_entry = parse_time(current["entry_time"])
             if curr_entry < prev_exit:
                 errors.append(
-                    f"train_occupancy.json: {train_id} time ordering breaks "
+                    f"{prefix}train_occupancy: {train_id} time ordering breaks "
                     f"between {previous['section_id']} and {current['section_id']}"
                 )
 
@@ -88,10 +88,35 @@ def validate() -> list[str]:
                 curr_from, _ = section_endpoints[curr_section]
                 if prev_to != curr_from:
                     errors.append(
-                        f"train_occupancy.json: {train_id} jumps from "
+                        f"{prefix}train_occupancy: {train_id} jumps from "
                         f"{prev_section} to non-adjacent {curr_section}"
                     )
 
+    return errors
+
+
+def validate() -> list[str]:
+    errors: list[str] = []
+    try:
+        manifests = list_territories()
+    except ValueError as error:
+        return [str(error)]
+
+    for manifest in manifests:
+        if manifest.status == PLACEHOLDER:
+            continue
+        try:
+            territory = load_territory(manifest.territory_id)
+            errors.extend(
+                validate_records(
+                    territory.stations,
+                    territory.sections,
+                    territory.train_occupancy,
+                    manifest.territory_id,
+                )
+            )
+        except ValueError as error:
+            errors.append(f"{manifest.territory_id}: {error}")
     return errors
 
 
