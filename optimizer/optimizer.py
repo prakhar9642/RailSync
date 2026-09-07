@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import json
-import math
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 from itertools import combinations
+from time import perf_counter
 from typing import Any
 
 from ortools.sat.python import cp_model
@@ -21,6 +21,7 @@ try:
     from .possessions import build_possessions, solve_priorities
     from .robustness import add_boundary_slack
     from .metrics import summarize_plan
+    from .runtime import PlanProofState, validate_time_limit
 except ImportError:  # Preserve direct-script and existing test imports.
     from time_utils import parse_datetime, datetime_to_minutes, minutes_to_datetime
     from candidate_windows import CandidateWindow, OperationalAllowances, generate_candidate_windows
@@ -30,6 +31,7 @@ except ImportError:  # Preserve direct-script and existing test imports.
     from possessions import build_possessions, solve_priorities
     from robustness import add_boundary_slack
     from metrics import summarize_plan
+    from runtime import PlanProofState, validate_time_limit
 
 
 DEFAULT_HORIZON_START = "2026-09-01T00:00:00"
@@ -248,14 +250,26 @@ def optimize_schedule(
     compatibility_policy: CompatibilityPolicy = CompatibilityPolicy(),
     diagnostics: dict[str, Any] | None = None,
     allow_integration: bool = True,
+    time_limit_seconds: float | None = None,
+    # Backward-compatible internal alias; it now means one total run budget.
     stage_time_limit_seconds: float | None = None,
 ) -> dict[str, Any]:
     """Reserve setup/work/release in feasible windows; return full possession blocks."""
-    if stage_time_limit_seconds is not None:
-        if (isinstance(stage_time_limit_seconds, bool)
-                or not isinstance(stage_time_limit_seconds, (int, float))
-                or not math.isfinite(stage_time_limit_seconds) or stage_time_limit_seconds <= 0):
-            raise ValueError("stage_time_limit_seconds must be finite and positive.")
+    planning_started = perf_counter()
+    validate_time_limit(time_limit_seconds)
+    validate_time_limit(stage_time_limit_seconds, "stage_time_limit_seconds")
+    if time_limit_seconds is not None and stage_time_limit_seconds is not None:
+        raise ValueError("Specify only one optimization time limit.")
+    total_time_limit = (
+        time_limit_seconds
+        if time_limit_seconds is not None
+        else stage_time_limit_seconds
+    )
+    deadline = (
+        planning_started + total_time_limit
+        if total_time_limit is not None
+        else None
+    )
     if not isinstance(allow_integration, bool):
         raise ValueError("allow_integration must be boolean.")
     if not allow_integration:
@@ -373,14 +387,19 @@ def optimize_schedule(
     add_capacity_constraints(model, maintenance_tasks, task_variables, resource_context)
     solver = cp_model.CpSolver()
     solver.parameters.num_search_workers = 1
-    if stage_time_limit_seconds is not None:
-        solver.parameters.max_time_in_seconds = stage_time_limit_seconds
-    solver_status = solve_priorities(
+    solve_result = solve_priorities(
         model, solver, maintenance_tasks, task_variables, possession_variables,
-        facts["priority_stages"], slack_objectives,
+        facts["priority_stages"], slack_objectives, deadline=deadline,
     )
+    solver_status = solve_result.solver_status
+    solver = solve_result.solver
+    facts["proof_state"] = solve_result.proof_state.value
+    facts["last_stage_reached"] = solve_result.last_stage_reached
+    facts["solution_stage"] = solve_result.solution_stage
+    facts["time_limit_seconds"] = total_time_limit
+    facts["planning_elapsed_seconds"] = perf_counter() - planning_started
 
-    if solver_status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+    if solver is None:
         status_name = {
             cp_model.INFEASIBLE: "infeasible",
             cp_model.MODEL_INVALID: "model_invalid",
@@ -435,7 +454,8 @@ def optimize_schedule(
             facts["outcomes"][task_id] = "SELECTED"
         elif any(f["feasible"] for f in facts["task_windows"] if f["task_id"] == task_id):
             facts["outcomes"][task_id] = ("LOWER_PRIORITY_THAN_SELECTED_WORK"
-                if solver_status == cp_model.OPTIMAL else "NOT_SELECTED_UNPROVEN_OPTIMUM")
+                if solve_result.proof_state == PlanProofState.FULLY_OPTIMAL
+                else "NOT_SELECTED_UNPROVEN_OPTIMUM")
         else:
             facts["outcomes"][task_id] = "NO_FEASIBLE_TASK_WINDOW"
 

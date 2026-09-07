@@ -8,9 +8,15 @@ from ortools.sat.python import cp_model
 try:
     from .compatibility import evaluate_compatibility
     from .feasibility import task_requirements
+    from .runtime import (
+        LexicographicSolveResult,
+        OBJECTIVE_STAGE_NAMES,
+        PlanProofState,
+    )
 except ImportError:
     from compatibility import evaluate_compatibility
     from feasibility import task_requirements
+    from runtime import LexicographicSolveResult, OBJECTIVE_STAGE_NAMES, PlanProofState
 
 
 def build_possessions(model, tasks, variables, horizon, allowances, policy, facts, resources):
@@ -70,7 +76,45 @@ def build_possessions(model, tasks, variables, horizon, allowances, policy, fact
     return blocks
 
 
-def solve_priorities(model, solver, tasks, variables, blocks, facts, slack_objectives):
+def _make_stage_solver(template, remaining_seconds, solver_factory):
+    if solver_factory is not None:
+        return solver_factory(template, remaining_seconds)
+    stage_solver = cp_model.CpSolver()
+    stage_solver.parameters.copy_from(template.parameters)
+    if remaining_seconds is not None:
+        stage_solver.parameters.max_time_in_seconds = max(remaining_seconds, 1e-9)
+    return stage_solver
+
+
+def _not_run(stage, reason, elapsed):
+    return dict(
+        stage=stage,
+        objective=stage,
+        status="NOT_RUN",
+        solver_status=None,
+        termination_reason=reason,
+        elapsed_seconds=0.0,
+        runtime_seconds=0.0,
+        cumulative_elapsed_seconds=elapsed,
+        remaining_seconds_before_stage=None,
+        objective_value=None,
+    )
+
+
+def solve_priorities(
+    model,
+    solver,
+    tasks,
+    variables,
+    blocks,
+    facts,
+    slack_objectives,
+    *,
+    deadline=None,
+    clock=perf_counter,
+    solver_factory=None,
+):
+    """Solve stages within one deadline and retain the last usable incumbent."""
     stages = []
     for field in ("criticality", "urgency", "overdue_days"):
         weights = []
@@ -88,19 +132,94 @@ def solve_priorities(model, solver, tasks, variables, blocks, facts, slack_objec
         ("total_boundary_slack_minutes", True, slack_objectives[1]),
         ("start_minutes", False, sum(v["start"] for v in variables.values())),
     ]
-    for name, maximize, expression in stages:
+    run_started = clock()
+    last_solver = None
+    last_status = cp_model.UNKNOWN
+    solution_stage = None
+    last_stage_reached = None
+    for index, (name, maximize, expression) in enumerate(stages):
+        now = clock()
+        remaining = None if deadline is None else deadline - now
+        if remaining is not None and remaining <= 0:
+            elapsed = now - run_started
+            facts.extend(
+                _not_run(stage, "TIME_LIMIT", elapsed)
+                for stage in OBJECTIVE_STAGE_NAMES[index:]
+            )
+            return LexicographicSolveResult(
+                last_status,
+                last_solver,
+                PlanProofState.FEASIBLE_BOUNDED if last_solver else PlanProofState.NO_SOLUTION,
+                last_stage_reached,
+                solution_stage,
+            )
         if maximize:
             model.Maximize(expression)
         else:
             model.Minimize(expression)
-        started = perf_counter()
-        status = solver.Solve(model)
-        facts.append(dict(objective=name, status=solver.StatusName(status),
-                          runtime_seconds=perf_counter() - started))
-        # Never fix an unproven incumbent as an optimum or proceed to lower stages.
-        if status != cp_model.OPTIMAL:
-            return status
-        optimum = solver.Value(expression)
-        facts[-1]["optimum"] = optimum
-        model.Add(expression == optimum)
-    return status
+        stage_solver = _make_stage_solver(solver, remaining, solver_factory)
+        last_stage_reached = name
+        started = clock()
+        status = stage_solver.Solve(model)
+        finished = clock()
+        status_name = stage_solver.StatusName(status)
+        has_solution = status in (cp_model.OPTIMAL, cp_model.FEASIBLE)
+        objective_value = stage_solver.Value(expression) if has_solution else None
+        termination = (
+            "PROVEN_OPTIMAL"
+            if status == cp_model.OPTIMAL
+            else "TIME_LIMIT"
+            if deadline is not None and status in (cp_model.FEASIBLE, cp_model.UNKNOWN)
+            else status_name
+        )
+        diagnostic = dict(
+            stage=name,
+            objective=name,  # Compatibility with existing internal diagnostics.
+            status=status_name,
+            solver_status=status_name,
+            termination_reason=termination,
+            elapsed_seconds=finished - started,
+            runtime_seconds=finished - started,
+            cumulative_elapsed_seconds=finished - run_started,
+            remaining_seconds_before_stage=remaining,
+            objective_value=objective_value,
+        )
+        facts.append(diagnostic)
+        if has_solution:
+            last_solver = stage_solver
+            last_status = status
+            solution_stage = name
+        if status == cp_model.OPTIMAL:
+            diagnostic["optimum"] = objective_value
+            model.Add(expression == objective_value)
+            continue
+
+        # Never fix an unproven value or run a lower-priority objective.
+        facts.extend(
+            _not_run(stage, "HIGHER_STAGE_UNPROVEN", finished - run_started)
+            for stage in OBJECTIVE_STAGE_NAMES[index + 1 :]
+        )
+        if last_solver is not None:
+            return LexicographicSolveResult(
+                last_status,
+                last_solver,
+                PlanProofState.FEASIBLE_BOUNDED,
+                last_stage_reached,
+                solution_stage,
+            )
+        return LexicographicSolveResult(
+            status,
+            None,
+            PlanProofState.INFEASIBLE
+            if status == cp_model.INFEASIBLE
+            else PlanProofState.NO_SOLUTION,
+            name,
+            None,
+        )
+    return LexicographicSolveResult(
+        cp_model.OPTIMAL,
+        last_solver,
+        PlanProofState.FULLY_OPTIMAL,
+        last_stage_reached,
+        solution_stage,
+    )

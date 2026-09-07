@@ -220,8 +220,15 @@ def test_three_department_demo_safety_and_explanations():
     assert any("POWER_WINDOW_UNAVAILABLE" in f["reasons"] for f in facts["task_windows"] if f["task_id"] == "TRD004")
     repeated = demonstration()
     for output in (demo, repeated):
+        output["diagnostics"].pop("planning_elapsed_seconds")
         for stage in output["diagnostics"]["priority_stages"]:
-            stage.pop("runtime_seconds")
+            for key in (
+                "runtime_seconds",
+                "elapsed_seconds",
+                "cumulative_elapsed_seconds",
+                "remaining_seconds_before_stage",
+            ):
+                stage.pop(key, None)
     assert repeated == demo
 
 

@@ -15,7 +15,8 @@ except ImportError:
 def compare_plans(
     data, horizon_start=DEFAULT_HORIZON_START, horizon_end=DEFAULT_HORIZON_END, *,
     allowances=OperationalAllowances(), window_contexts=None, resource_context=None,
-    compatibility_policy=CompatibilityPolicy(), stage_time_limit_seconds=None,
+    compatibility_policy=CompatibilityPolicy(), time_limit_seconds=None,
+    stage_time_limit_seconds=None,
 ):
     """Same solver/inputs/objectives; only possession sharing differs.
 
@@ -28,16 +29,23 @@ def compare_plans(
             data, horizon_start, horizon_end, allowances=allowances,
             window_contexts=window_contexts, resource_context=resource_context,
             compatibility_policy=compatibility_policy, allow_integration=allow_integration,
-            diagnostics=diagnostics, stage_time_limit_seconds=stage_time_limit_seconds,
+            diagnostics=diagnostics, time_limit_seconds=time_limit_seconds,
+            stage_time_limit_seconds=stage_time_limit_seconds,
         )
         if plan["status"] != "success":
             raise RuntimeError(f"{name} planning failed: {plan['status']}")
         results[name] = dict(diagnostics["service_metrics"], plan=plan,
-                             priority_stages=diagnostics["priority_stages"])
+                             priority_stages=diagnostics["priority_stages"],
+                             proof_state=diagnostics["proof_state"],
+                             last_stage_reached=diagnostics["last_stage_reached"],
+                             solution_stage=diagnostics["solution_stage"],
+                             time_limit_seconds=diagnostics["time_limit_seconds"])
     results["both_proven_optimal"] = all(
-        len(results[name]["priority_stages"]) == 9
-        and all(stage["status"] == "OPTIMAL" for stage in results[name]["priority_stages"])
+        results[name]["proof_state"] == "FULLY_OPTIMAL"
         for name in ("baseline", "optimized")
+    )
+    results["comparison_proof_state"] = (
+        "FULLY_OPTIMAL" if results["both_proven_optimal"] else "FEASIBLE_BOUNDED"
     )
     results["comparison"] = compare_service(results["baseline"], results["optimized"])
     return results

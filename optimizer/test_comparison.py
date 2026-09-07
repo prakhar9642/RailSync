@@ -97,7 +97,14 @@ def test_identical_feasibility_inputs_and_same_quality(monkeypatch):
     result = compare_plans(inputs, ORIGIN, stamp(180), window_contexts=contexts, resource_context=resources)
     assert calls[0][0] == calls[1][0]
     assert calls[0][0][0] is inputs and inputs == saved
-    for key in ("allowances", "window_contexts", "resource_context", "compatibility_policy", "stage_time_limit_seconds"):
+    for key in (
+        "allowances",
+        "window_contexts",
+        "resource_context",
+        "compatibility_policy",
+        "time_limit_seconds",
+        "stage_time_limit_seconds",
+    ):
         assert calls[0][1][key] is calls[1][1][key]
     assert calls[0][1]["allow_integration"] is False
     assert calls[1][1]["allow_integration"] is True
@@ -183,9 +190,10 @@ def test_max_min_protects_weakest_possession_before_total():
     solver = cp_model.CpSolver()
     solver.parameters.num_search_workers = 1
     facts = []
-    assert solve_priorities(model, solver, tasks, variables, blocks, facts, slacks) == cp_model.OPTIMAL
-    assert solver.Value(choose_b) == 1
-    assert (solver.Value(slacks[0]), solver.Value(slacks[1])) == (20, 60)
+    outcome = solve_priorities(model, solver, tasks, variables, blocks, facts, slacks)
+    assert outcome.solver_status == cp_model.OPTIMAL
+    assert outcome.solver.Value(choose_b) == 1
+    assert (outcome.solver.Value(slacks[0]), outcome.solver.Value(slacks[1])) == (20, 60)
 
 
 def test_robustness_cannot_override_priority_or_possession():
@@ -205,16 +213,29 @@ def test_failed_plan_not_misreported_as_empty_success(monkeypatch):
 
 def test_unproven_stage_does_not_fix_incumbent_or_continue():
     class UnprovenSolver:
+        parameters = None
         def Solve(self, model):
             return cp_model.FEASIBLE
         def StatusName(self, status):
             return "FEASIBLE"
         def Value(self, expression):
-            raise AssertionError("An unproven objective must not be fixed")
+            return 0
     model = cp_model.CpModel()
     facts = []
-    assert solve_priorities(model, UnprovenSolver(), [], {}, [], facts, (0, 0)) == cp_model.FEASIBLE
-    assert len(facts) == 1 and "optimum" not in facts[0]
+    outcome = solve_priorities(
+        model,
+        UnprovenSolver(),
+        [],
+        {},
+        [],
+        facts,
+        (0, 0),
+        solver_factory=lambda template, remaining: template,
+    )
+    assert outcome.solver_status == cp_model.FEASIBLE
+    assert outcome.proof_state == "FEASIBLE_BOUNDED"
+    assert facts[0]["status"] == "FEASIBLE" and "optimum" not in facts[0]
+    assert all(stage["status"] == "NOT_RUN" for stage in facts[1:])
     assert len(model.Proto().constraints) == 0
 
 

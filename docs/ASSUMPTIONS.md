@@ -127,8 +127,12 @@
   Membership variables grow quadratically; pair restrictions can grow cubically.
   Nine exact solves may be expensive for larger instances. One worker ensures
   repeatable small plans; no large-instance performance guarantee is claimed.
-  Default solves have no time limit. Optional stage_time_limit_seconds is applied
-  equally to both comparison modes; the benchmark uses 2 seconds per stage. An unproven stage stops the hierarchy, never fixes its incumbent
+  Default solves have no time limit. Optional `time_limit_seconds` is one total
+  wall-clock budget covering preprocessing/model construction and all objective
+  stages. Before every CP-SAT call, only the remaining budget is supplied. The
+  older internal `stage_time_limit_seconds` keyword remains accepted for caller
+  compatibility but now has the same total-budget meaning; both names together
+  are rejected. An unproven stage stops the hierarchy, never fixes its incumbent
   as an optimum; diagnostics distinguish FEASIBLE from OPTIMAL. Stage runtimes
   are observational and not deterministic. compare_plans.both_proven_optimal
   distinguishes full optimal comparisons from feasible incumbents. A failed solve
@@ -198,3 +202,26 @@ Run `python optimizer/test_comparison.py` for same-work, different-work and robu
 placement demos. Run `python optimizer/benchmark_planning.py` for bounded 10/20/40
 synthetic task benchmarks (five tasks per section, no train/resource contention).
 These are modest distributed instances, not production-scale railway benchmarks.
+
+`DEMO_SOLVE_LIMIT_SECONDS = 5.0` in `optimizer/runtime.py` is a centralized
+engineering profile for future interactive use; it is not wired into the backend
+and is not a Railway rule. `None` retains uncapped development behavior.
+
+Each run records `proof_state`: FULLY_OPTIMAL only after all nine stages are
+proven; FEASIBLE_BOUNDED when a valid incumbent is returned after a budget or
+unproven stage; INFEASIBLE when the model is proven infeasible before any plan;
+NO_SOLUTION when no incumbent exists. A FEASIBLE result is never relabeled as
+optimal. If a stage returns UNKNOWN, the previous stage's solver response is
+retained. If no prior solution exists, public status remains non-success.
+
+Every `priority_stages` diagnostic records stage/objective name, solver status,
+termination reason, stage and cumulative elapsed seconds, remaining budget before
+the call, and objective value when an incumbent exists. Proven values also carry
+`optimum`. Skipped lower stages are explicitly `NOT_RUN`. Timing fields are
+observational; tests do not depend on exact milliseconds.
+
+Baseline and RailSync comparison gives each planner the same complete budget,
+independently. Their proof states and the aggregate comparison proof state remain
+visible internally. Same-task-set arithmetic is still available for bounded valid
+plans, but the comparison is not labeled fully optimal unless both runs prove all
+nine stages.
