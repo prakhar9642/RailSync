@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "../components/layout/Navbar.jsx";
+import DataAssumptions from "../components/analysis/DataAssumptions.jsx";
 import BlockDetails from "../components/planning/BlockDetails.jsx";
 import MaintenanceTaskList from "../components/planning/MaintenanceTaskList.jsx";
 import MaintenanceTimeline from "../components/planning/MaintenanceTimeline.jsx";
@@ -15,30 +16,47 @@ import "./planner/planner.css";
 
 const DEMO_TERRITORY_ID = "eastern_hdn_test_fixture";
 
-function initialDataState() {
+function initialDataState(session = {}) {
+  if (session.territory) {
+    return {
+      status: "ready",
+      error: null,
+      territory: session.territory,
+      tasks: session.tasks,
+      trains: session.trains,
+    };
+  }
   return {
-    status: "loading",
-    error: null,
+    status: session.dataError ? "error" : "loading",
+    error: session.dataError ?? null,
     territory: null,
     tasks: [],
     trains: [],
   };
 }
 
-export default function PlanningWorkspace({ onHome }) {
-  const [dataState, setDataState] = useState(initialDataState);
+export default function PlanningWorkspace({ session, setSession, onNavigate, onHome }) {
+  const initialSection = session.territory?.sections?.[0]?.section_id ?? "";
+  const initialTask = session.tasks.find((task) => task.section_id === initialSection);
+  const initialBlock = session.plan?.blocks.find(
+    (block) => block.section_id === initialSection,
+  );
+  const [dataState, setDataState] = useState(() => initialDataState(session));
   const [loadVersion, setLoadVersion] = useState(0);
-  const [selectedSection, setSelectedSection] = useState("");
-  const [selectedTaskId, setSelectedTaskId] = useState("");
-  const [selectedBlockId, setSelectedBlockId] = useState("");
-  const [optimizationStatus, setOptimizationStatus] = useState("idle");
-  const [optimizationError, setOptimizationError] = useState(null);
-  const [plan, setPlan] = useState(null);
+  const [selectedSection, setSelectedSection] = useState(initialSection);
+  const [selectedTaskId, setSelectedTaskId] = useState(initialTask?.task_id ?? "");
+  const [selectedBlockId, setSelectedBlockId] = useState(initialBlock?.block_id ?? "");
+  const [optimizationStatus, setOptimizationStatus] = useState(
+    session.plan ? "success" : session.optimizationError ? "error" : "idle",
+  );
+  const [optimizationError, setOptimizationError] = useState(session.optimizationError);
+  const [plan, setPlan] = useState(session.plan);
   const optimizeRequestId = useRef(0);
   const optimizeController = useRef(null);
-  const selectedSectionRef = useRef("");
+  const selectedSectionRef = useRef(initialSection);
 
   useEffect(() => {
+    if (session.territory) return undefined;
     const controller = new AbortController();
 
     Promise.all([
@@ -68,6 +86,13 @@ export default function PlanningWorkspace({ onHome }) {
           tasks,
           trains: trainResponse.trains ?? [],
         });
+        setSession((current) => ({
+          ...current,
+          territory,
+          tasks,
+          trains: trainResponse.trains ?? [],
+          dataError: null,
+        }));
         selectedSectionRef.current = firstSection;
         setSelectedSection(firstSection);
         setSelectedTaskId(firstTask?.task_id ?? "");
@@ -79,10 +104,11 @@ export default function PlanningWorkspace({ onHome }) {
           status: "error",
           error,
         });
+        setSession((current) => ({ ...current, dataError: error, plan: null }));
       });
 
     return () => controller.abort();
-  }, [loadVersion]);
+  }, [loadVersion, session.territory, setSession]);
 
   useEffect(
     () => () => {
@@ -94,6 +120,14 @@ export default function PlanningWorkspace({ onHome }) {
 
   const selectedBlock = useMemo(
     () => plan?.blocks.find((block) => block.block_id === selectedBlockId) ?? null,
+    [plan, selectedBlockId],
+  );
+
+  const selectedBlockDiagnostic = useMemo(
+    () =>
+      plan?.analysis?.block_diagnostics.find(
+        (item) => item.block_id === selectedBlockId,
+      ) ?? null,
     [plan, selectedBlockId],
   );
 
@@ -153,6 +187,11 @@ export default function PlanningWorkspace({ onHome }) {
     setOptimizationStatus("loading");
     setOptimizationError(null);
     setPlan(null);
+    setSession((current) => ({
+      ...current,
+      plan: null,
+      optimizationError: null,
+    }));
     setSelectedBlockId("");
 
     try {
@@ -166,6 +205,11 @@ export default function PlanningWorkspace({ onHome }) {
       );
       const initialBlock = firstBlockForSection ?? result.blocks[0] ?? null;
       setPlan(result);
+      setSession((current) => ({
+        ...current,
+        plan: result,
+        optimizationError: null,
+      }));
       setSelectedBlockId(initialBlock?.block_id ?? "");
       if (!selectedSectionRef.current && initialBlock) {
         selectedSectionRef.current = initialBlock.section_id;
@@ -177,6 +221,11 @@ export default function PlanningWorkspace({ onHome }) {
       setPlan(null);
       setOptimizationError(error);
       setOptimizationStatus("error");
+      setSession((current) => ({
+        ...current,
+        plan: null,
+        optimizationError: error,
+      }));
     } finally {
       if (requestId === optimizeRequestId.current) optimizeController.current = null;
     }
@@ -184,13 +233,27 @@ export default function PlanningWorkspace({ onHome }) {
 
   const retryDataLoad = () => {
     setDataState(initialDataState());
+    setSession((current) => ({
+      ...current,
+      territory: null,
+      tasks: [],
+      trains: [],
+      plan: null,
+      dataError: null,
+      optimizationError: null,
+    }));
     setLoadVersion((version) => version + 1);
   };
   const dataReady = dataState.status === "ready";
 
   return (
     <div className="planning-workspace">
-      <Navbar workspace onHome={onHome} />
+      <Navbar
+        workspace
+        activeWorkspaceView="planning"
+        onNavigateWorkspace={onNavigate}
+        onHome={onHome}
+      />
 
       <main className="planning-workspace-main" id="planning-workspace">
         <header className="planning-workspace-intro">
@@ -232,6 +295,7 @@ export default function PlanningWorkspace({ onHome }) {
               <MaintenanceTaskList
                 tasks={dataState.tasks}
                 sections={dataState.territory.sections}
+                territory={dataState.territory}
                 selectedSection={selectedSection}
                 selectedTaskId={selectedTaskId}
                 scheduledTaskIds={scheduledTaskIds}
@@ -248,6 +312,7 @@ export default function PlanningWorkspace({ onHome }) {
                 hasPlan={Boolean(plan)}
                 selectedBlockId={selectedBlockId}
                 onSelectBlock={setSelectedBlockId}
+                territory={dataState.territory}
               />
 
               <aside className="planner-control-column">
@@ -258,10 +323,17 @@ export default function PlanningWorkspace({ onHome }) {
                   horizon={horizon}
                   onOptimize={runOptimization}
                   canOptimize={dataReady}
+                  tasks={dataState.tasks}
                 />
-                <BlockDetails block={selectedBlock} tasks={dataState.tasks} />
+                <BlockDetails
+                  block={selectedBlock}
+                  diagnostic={selectedBlockDiagnostic}
+                  tasks={dataState.tasks}
+                  territory={dataState.territory}
+                />
               </aside>
             </div>
+            <DataAssumptions plan={plan} />
           </>
         ) : null}
       </main>

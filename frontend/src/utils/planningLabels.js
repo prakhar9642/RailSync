@@ -1,0 +1,41 @@
+export function departmentLabel(department) {
+  return department === "ENGINEERING" ? "Engineering" : department;
+}
+
+export function priorityLabel(task) {
+  if (task.criticality >= 8) return "Critical";
+  if (task.criticality >= 6) return "High";
+  return "Normal";
+}
+
+export function sectionLabel(territory, sectionId) {
+  const section = territory?.sections?.find((item) => item.section_id === sectionId);
+  if (!section) return sectionId;
+  const stationNames = new Map(
+    territory.stations.map((station) => [station.station_id, station.station_name]),
+  );
+  return `${stationNames.get(section.from_station) ?? section.from_station} → ${
+    stationNames.get(section.to_station) ?? section.to_station
+  }`;
+}
+
+export function trainLabel(trainId, territory) {
+  if (territory?.provenance?.includes("TEST_FIXTURE")) {
+    return trainId.replace(/^EHDN_/, "");
+  }
+  return trainId;
+}
+
+export function proofLabel(proofState) {
+  if (proofState === "FULLY_OPTIMAL") return "Optimal plan proven";
+  if (proofState === "FEASIBLE_BOUNDED") return "Valid bounded plan";
+  return proofState ? proofState.replaceAll("_", " ").toLowerCase() : "Unavailable";
+}
+
+export function resourceStateLabel(state) {
+  if (state === "PASSED") return "Passed";
+  if (state === "FAILED") return "Failed";
+  if (state === "UNKNOWN") return "Unknown";
+  if (state === "NOT_EVALUATED") return "Not evaluated";
+  return "Unavailable";
+}

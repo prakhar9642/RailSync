@@ -71,6 +71,117 @@ class PlanningContext(BaseModel):
     solver_time_limit_seconds_per_plan: float
 
 
+class AnalysisPlanMetrics(BaseModel):
+    scheduled_task_count: int
+    unscheduled_task_count: int
+    productive_minutes: int
+    possession_minutes: int
+    block_count: int
+    integrated_blocks: int
+    criticality_served: int
+    urgency_served: int
+    overdue_days_served: int
+    maintenance_delivery_efficiency: Optional[float] = None
+    minimum_boundary_slack_minutes: int
+    total_boundary_slack_minutes: int
+
+
+class AnalysisPlan(BaseModel):
+    blocks: List[ScheduledBlock]
+    scheduled_task_ids: List[str]
+    unscheduled_task_ids: List[str]
+    proof_state: str
+    metrics: AnalysisPlanMetrics
+
+
+class FairnessAnalysis(BaseModel):
+    baseline_label: str
+    same_task_set: bool
+    possession_saved_minutes: Optional[int] = None
+    possession_reduction_percent: Optional[float] = None
+    statement: str
+
+
+class AnalysisTaskDetail(BaseModel):
+    task_id: str
+    task_type: str
+    department: str
+    section_id: str
+    criticality: int
+    urgency: int
+    overdue_days: int
+    crew_type: Optional[str] = None
+    machine_type: Optional[str] = None
+    requires_power_block: bool
+    reservation_minutes: int
+    deadline_check: str
+    resource_checks: Dict[str, str]
+
+
+class BlockFeasibility(BaseModel):
+    section_match: str
+    duration_fit: str
+    train_conflict: str
+    candidate_window: str
+
+
+class BlockIntegration(BaseModel):
+    integrated: bool
+    sharing_status: str
+    compatibility_status: str
+    reason_codes: List[str]
+
+
+class BlockRobustness(BaseModel):
+    before_boundary_slack_minutes: int
+    after_boundary_slack_minutes: int
+    minimum_boundary_slack_minutes: int
+
+
+class BlockDiagnostic(BaseModel):
+    block_id: str
+    section_id: str
+    window_id: Optional[str] = None
+    feasibility: BlockFeasibility
+    integration: BlockIntegration
+    robustness: Optional[BlockRobustness] = None
+    tasks: List[AnalysisTaskDetail]
+
+
+class IntegratedBlockGain(BaseModel):
+    block_id: str
+    section_id: str
+    task_ids: List[str]
+    departments: List[str]
+    individual_reservation_minutes: int
+    shared_possession_minutes: int
+    coordination_gain_minutes: int
+
+
+class CandidateWindowDiagnostic(BaseModel):
+    task_id: str
+    window_id: str
+    feasible: bool
+    reasons: List[str]
+    resource_checks: Dict[str, str]
+
+
+class UnscheduledTaskDiagnostic(BaseModel):
+    task: AnalysisTaskDetail
+    outcome: str
+    reason_codes: List[str]
+    candidate_windows: List[CandidateWindowDiagnostic]
+
+
+class OptimizeAnalysis(BaseModel):
+    fairness: FairnessAnalysis
+    baseline: AnalysisPlan
+    railsync: AnalysisPlan
+    integrated_blocks: List[IntegratedBlockGain]
+    block_diagnostics: List[BlockDiagnostic]
+    unscheduled_tasks: List[UnscheduledTaskDiagnostic]
+
+
 class OptimizeResponse(BaseModel):
     status: str
     blocks: List[ScheduledBlock]
@@ -80,3 +191,4 @@ class OptimizeResponse(BaseModel):
     comparison_proof_state: str
     comparison: ComparisonSummary
     planning_context: PlanningContext
+    analysis: OptimizeAnalysis

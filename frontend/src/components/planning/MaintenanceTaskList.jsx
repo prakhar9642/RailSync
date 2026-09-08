@@ -1,21 +1,17 @@
 import { useMemo, useState } from "react";
+import {
+  departmentLabel,
+  priorityLabel,
+  sectionLabel,
+} from "../../utils/planningLabels.js";
 
 const departments = ["ENGINEERING", "S&T", "TRD"];
 const priorities = ["Critical", "High", "Normal"];
 
-function priorityForTask(task) {
-  if (task.criticality >= 8) return "Critical";
-  if (task.criticality >= 6) return "High";
-  return "Normal";
-}
-
-function departmentLabel(department) {
-  return department === "ENGINEERING" ? "Engineering" : department;
-}
-
 export default function MaintenanceTaskList({
   tasks,
   sections,
+  territory,
   selectedSection,
   selectedTaskId,
   scheduledTaskIds,
@@ -30,7 +26,7 @@ export default function MaintenanceTaskList({
     () =>
       tasks.filter((task) => {
         const departmentMatch = department === "ALL" || task.department === department;
-        const priorityMatch = priority === "ALL" || priorityForTask(task) === priority;
+        const priorityMatch = priority === "ALL" || priorityLabel(task) === priority;
         return task.section_id === selectedSection && departmentMatch && priorityMatch;
       }),
     [department, priority, selectedSection, tasks],
@@ -60,7 +56,9 @@ export default function MaintenanceTaskList({
           <span>Section</span>
           <select value={selectedSection} onChange={(event) => onSelectSection(event.target.value)}>
             {sections.map((item) => (
-              <option key={item.section_id} value={item.section_id}>{item.section_id}</option>
+              <option key={item.section_id} value={item.section_id}>
+                {sectionLabel(territory, item.section_id)} · {item.section_id}
+              </option>
             ))}
           </select>
         </label>
@@ -76,7 +74,7 @@ export default function MaintenanceTaskList({
       <div className="planner-task-table" aria-label="Maintenance requests">
         <div className="planner-task-table-body">
           {filteredTasks.map((task) => {
-            const taskPriority = priorityForTask(task);
+            const taskPriority = priorityLabel(task);
             const selected = selectedTaskId === task.task_id;
             const unscheduled = unscheduledTaskIds.has(task.task_id);
             const scheduled = scheduledTaskIds.has(task.task_id);
@@ -89,8 +87,8 @@ export default function MaintenanceTaskList({
                 onClick={() => onSelectTask(task)}
               >
                 <span className="planner-task-name" data-label="Task">
-                  <strong>{task.task_id}</strong>
-                  <small>{task.task_type}</small>
+                  <strong>{task.task_type}</strong>
+                  <small>{departmentLabel(task.department)} · {task.task_id}</small>
                   {unscheduled ? <em className="task-plan-state is-unscheduled">Unscheduled</em> : null}
                   {scheduled ? <em className="task-plan-state is-scheduled">Scheduled</em> : null}
                 </span>

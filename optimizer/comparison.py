@@ -36,6 +36,9 @@ def compare_plans(
             raise RuntimeError(f"{name} planning failed: {plan['status']}")
         results[name] = dict(diagnostics["service_metrics"], plan=plan,
                              priority_stages=diagnostics["priority_stages"],
+                             task_windows=diagnostics["task_windows"],
+                             pair_checks=diagnostics["pair_checks"],
+                             outcomes=diagnostics["outcomes"],
                              proof_state=diagnostics["proof_state"],
                              last_stage_reached=diagnostics["last_stage_reached"],
                              solution_stage=diagnostics["solution_stage"],

@@ -843,6 +843,21 @@
   color: var(--critical);
 }
 
+.optimizer-unscheduled li strong,
+.optimizer-unscheduled li span {
+  display: block;
+}
+
+.optimizer-unscheduled li strong {
+  color: var(--ink);
+  font-size: 10px;
+}
+
+.optimizer-unscheduled li span {
+  color: var(--muted);
+  font-size: 8px;
+}
+
 .optimizer-unscheduled > span {
   display: block;
   margin-top: 4px;
@@ -869,6 +884,21 @@
 .block-details-content {
   display: grid;
   gap: 18px;
+}
+
+.block-details-location {
+  display: grid;
+  gap: 3px;
+}
+
+.block-details-location strong {
+  color: var(--navy);
+  font-size: 13px;
+}
+
+.block-details-location span {
+  color: var(--muted);
+  font-size: 9px;
 }
 
 .block-details-facts {
@@ -906,7 +936,8 @@
 
 .block-details-tasks > span,
 .block-details-departments > span,
-.block-details-why > span {
+.block-details-why > span,
+.block-details-checks > span {
   display: block;
   margin-bottom: 7px;
   color: var(--muted);
@@ -914,6 +945,76 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+.block-task-list {
+  display: grid !important;
+}
+
+.block-task-list article {
+  display: grid;
+  gap: 2px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+}
+
+.block-task-list article strong {
+  padding: 0;
+  border: 0;
+}
+
+.block-task-list article small {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.block-details-checks dl {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.block-details-checks dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line);
+}
+
+.block-details-checks dt,
+.block-details-checks dd {
+  margin: 0;
+  font-size: 9px;
+}
+
+.block-details-checks dt {
+  color: var(--muted);
+}
+
+.block-details-checks dd {
+  color: var(--navy);
+  font-weight: 600;
+  text-align: right;
+}
+
+.block-task-diagnostic {
+  margin-top: 10px;
+}
+
+.block-task-diagnostic > strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--navy);
+  font-size: 10px;
+}
+
+.block-details-checks > p,
+.block-diagnostic-unavailable {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
 }
 
 .block-details-departments p {

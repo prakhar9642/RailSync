@@ -1,0 +1,79 @@
+.data-assumptions {
+  margin-top: 28px;
+  border: 1px solid var(--line);
+  background: var(--white);
+}
+
+.data-assumptions summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 20px;
+  color: var(--navy);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  list-style-position: inside;
+}
+
+.data-assumptions summary small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.data-assumptions dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--line);
+}
+
+.data-assumptions dl div {
+  padding: 13px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.data-assumptions dl div:nth-child(odd) {
+  border-right: 1px solid var(--line);
+}
+
+.data-assumptions dt,
+.data-assumptions dd {
+  margin: 0;
+}
+
+.data-assumptions dt {
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.data-assumptions dd {
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.data-assumptions > p {
+  margin: 0;
+  padding: 13px 20px;
+  color: var(--critical);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+@media (max-width: 680px) {
+  .data-assumptions dl {
+    grid-template-columns: 1fr;
+  }
+
+  .data-assumptions dl div:nth-child(odd) {
+    border-right: 0;
+  }
+}

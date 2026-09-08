@@ -1,46 +1,5 @@
-function timestampValue(timestamp) {
-  return new Date(timestamp).getTime();
-}
-
-function timeLabel(timestamp) {
-  return timestamp?.split("T")[1]?.slice(0, 5) ?? "";
-}
-
-function dateLabel(timestamp) {
-  if (!timestamp) return "Planning horizon";
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(timestamp));
-}
-
-function buildTicks(horizon) {
-  if (!horizon) return [];
-  const start = timestampValue(horizon.start_time);
-  const end = timestampValue(horizon.end_time);
-  const hours = Math.max(1, Math.round((end - start) / 3_600_000));
-  return Array.from({ length: hours + 1 }, (_, index) => {
-    const timestamp = new Date(start + ((end - start) * index) / hours);
-    return {
-      key: timestamp.toISOString(),
-      label: timestamp.toTimeString().slice(0, 5),
-      left: `${(index / hours) * 100}%`,
-    };
-  });
-}
-
-function rangeStyle(startTime, endTime, horizon) {
-  const horizonStart = timestampValue(horizon.start_time);
-  const horizonEnd = timestampValue(horizon.end_time);
-  const duration = horizonEnd - horizonStart;
-  const start = Math.max(horizonStart, timestampValue(startTime));
-  const end = Math.min(horizonEnd, timestampValue(endTime));
-  return {
-    left: `${((start - horizonStart) / duration) * 100}%`,
-    width: `${(Math.max(0, end - start) / duration) * 100}%`,
-  };
-}
+import { trainLabel } from "../../utils/planningLabels.js";
+import { buildTicks, dateLabel, rangeStyle, timeLabel } from "../../utils/timeline.js";
 
 function TimelineGrid({ ticks }) {
   return (
@@ -58,6 +17,7 @@ export default function MaintenanceTimeline({
   hasPlan,
   selectedBlockId,
   onSelectBlock,
+  territory,
 }) {
   const ticks = buildTicks(horizon);
   if (!horizon) return null;
@@ -93,7 +53,9 @@ export default function MaintenanceTimeline({
               className="planner-timeline-row"
               key={`${train.train_id}-${train.entry_time}`}
             >
-              <span className="timeline-lane-label">{train.train_id}</span>
+              <span className="timeline-lane-label" title={train.train_id}>
+                {trainLabel(train.train_id, territory)}
+              </span>
               <div className="planner-timeline-track">
                 <TimelineGrid ticks={ticks} />
                 <span
@@ -101,7 +63,7 @@ export default function MaintenanceTimeline({
                   style={rangeStyle(train.entry_time, train.exit_time, horizon)}
                   title={`${train.train_id}: ${timeLabel(train.entry_time)}–${timeLabel(train.exit_time)}`}
                 >
-                  {train.train_id}
+                  {trainLabel(train.train_id, territory)}
                 </span>
               </div>
             </div>

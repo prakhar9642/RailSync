@@ -7,6 +7,8 @@ export default function Navbar({
   onLaunchPlanner,
   onHome,
   workspace = false,
+  activeWorkspaceView = "planning",
+  onNavigateWorkspace,
 }) {
   const [open, setOpen] = useState(false);
 
@@ -21,12 +23,22 @@ export default function Navbar({
         <nav className="workspace-navigation" aria-label="Workspace navigation">
           <ul>
             <li>
-              <button className="active" type="button" aria-current="page">
+              <button
+                className={activeWorkspaceView === "planning" ? "active" : ""}
+                type="button"
+                aria-current={activeWorkspaceView === "planning" ? "page" : undefined}
+                onClick={() => onNavigateWorkspace?.("planning")}
+              >
                 Planning
               </button>
             </li>
             <li>
-              <button type="button" disabled title="Available in a later phase">
+              <button
+                className={activeWorkspaceView === "analysis" ? "active" : ""}
+                type="button"
+                aria-current={activeWorkspaceView === "analysis" ? "page" : undefined}
+                onClick={() => onNavigateWorkspace?.("analysis")}
+              >
                 Analysis
               </button>
             </li>

@@ -1,4 +1,5 @@
 import Button from "../ui/Button.jsx";
+import { departmentLabel } from "../../utils/planningLabels.js";
 
 function timeLabel(timestamp) {
   return timestamp?.split("T")[1]?.slice(0, 5) ?? "";
@@ -17,7 +18,9 @@ export default function OptimizerControls({
   horizon,
   onOptimize,
   canOptimize,
+  tasks,
 }) {
+  const taskById = new Map(tasks.map((task) => [task.task_id, task]));
   const busy = optimizationStatus === "loading";
   const statusText = busy
     ? "Optimizing plan..."
@@ -100,7 +103,12 @@ export default function OptimizerControls({
           <div className="optimizer-unscheduled">
             <strong>Unscheduled maintenance</strong>
             {plan.unscheduled_tasks.length > 0 ? (
-              <ul>{plan.unscheduled_tasks.map((id) => <li key={id}>{id}</li>)}</ul>
+              <ul>{plan.unscheduled_tasks.map((id) => (
+                <li key={id}>
+                  <strong>{taskById.get(id)?.task_type ?? "Maintenance task"}</strong>
+                  <span>{departmentLabel(taskById.get(id)?.department)} · {id}</span>
+                </li>
+              ))}</ul>
             ) : (
               <span>None</span>
             )}

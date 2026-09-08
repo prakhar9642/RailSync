@@ -15,6 +15,65 @@ client = TestClient(app)
 FIXTURE_ID = "eastern_hdn_test_fixture"
 
 
+def comparison_side(
+    *,
+    proof_state: str = "FULLY_OPTIMAL",
+    scheduled_tasks: list[str] | None = None,
+    possession_minutes: int = 0,
+) -> dict:
+    scheduled_tasks = scheduled_tasks or []
+    return {
+        "scheduled_tasks": scheduled_tasks,
+        "unscheduled_tasks": [],
+        "scheduled_task_count": len(scheduled_tasks),
+        "productive_minutes": 0,
+        "possession_minutes": possession_minutes,
+        "block_count": 0,
+        "integrated_blocks": 0,
+        "criticality_served": 0,
+        "urgency_served": 0,
+        "overdue_days_served": 0,
+        "maintenance_delivery_efficiency": None,
+        "coordination_gain_minutes": 0,
+        "boundary_slacks": [],
+        "minimum_boundary_slack_minutes": 0,
+        "total_boundary_slack_minutes": 0,
+        "task_windows": [],
+        "pair_checks": [],
+        "outcomes": {},
+        "proof_state": proof_state,
+        "plan": {
+            "status": "success",
+            "blocks": [],
+            "unscheduled_tasks": [],
+            "metrics": {"optimized_affected_trains": 0},
+        },
+    }
+
+
+def comparison_result(
+    *,
+    proof_state: str = "FULLY_OPTIMAL",
+    baseline_tasks: list[str] | None = None,
+    optimized_tasks: list[str] | None = None,
+    same_task_set: bool = True,
+) -> dict:
+    return {
+        "baseline": comparison_side(
+            proof_state=proof_state, scheduled_tasks=baseline_tasks
+        ),
+        "optimized": comparison_side(
+            proof_state=proof_state, scheduled_tasks=optimized_tasks
+        ),
+        "comparison_proof_state": proof_state,
+        "comparison": {
+            "same_task_set": same_task_set,
+            "closure_saved_minutes": 99,
+            "closure_reduction_percent": 50.0,
+        },
+    }
+
+
 @pytest.fixture(scope="module")
 def optimized_response() -> dict:
     response = client.post("/api/optimize", json={"territory_id": FIXTURE_ID})
@@ -151,37 +210,125 @@ def test_real_non_integrated_baseline_replaces_fake_zero(
     assert optimized_response["comparison"]["closure_saved_minutes"] == 105
 
 
-def test_bounded_feasible_proof_is_not_labeled_optimal(monkeypatch) -> None:
-    bounded = {
-        "baseline": {
-            "possession_minutes": 0,
-            "integrated_blocks": 0,
-            "proof_state": "FEASIBLE_BOUNDED",
-            "plan": {"metrics": {"optimized_affected_trains": 0}},
-        },
-        "optimized": {
-            "possession_minutes": 0,
-            "integrated_blocks": 0,
-            "proof_state": "FEASIBLE_BOUNDED",
-            "plan": {
-                "status": "success",
-                "blocks": [],
-                "unscheduled_tasks": [],
-                "metrics": {"optimized_affected_trains": 0},
-            },
-        },
-        "comparison_proof_state": "FEASIBLE_BOUNDED",
-        "comparison": {
-            "same_task_set": True,
-            "closure_saved_minutes": 0,
-            "closure_reduction_percent": None,
-        },
+def test_analysis_exposes_real_comparison_metrics_and_fair_savings(
+    optimized_response: dict,
+) -> None:
+    analysis = optimized_response["analysis"]
+    assert analysis["baseline"]["metrics"] == {
+        "scheduled_task_count": 8,
+        "unscheduled_task_count": 1,
+        "productive_minutes": 285,
+        "possession_minutes": 405,
+        "block_count": 8,
+        "integrated_blocks": 0,
+        "criticality_served": 61,
+        "urgency_served": 60,
+        "overdue_days_served": 72,
+        "maintenance_delivery_efficiency": pytest.approx(285 / 405),
+        "minimum_boundary_slack_minutes": 0,
+        "total_boundary_slack_minutes": 47,
     }
+    assert analysis["railsync"]["metrics"]["possession_minutes"] == 300
+    assert analysis["railsync"]["metrics"]["integrated_blocks"] == 2
+    assert analysis["fairness"]["same_task_set"] is True
+    assert analysis["fairness"]["possession_saved_minutes"] == 105
+    assert analysis["fairness"]["possession_reduction_percent"] == pytest.approx(
+        105 / 405 * 100
+    )
+
+
+def test_different_task_sets_suppress_pure_savings(monkeypatch) -> None:
+    compared = comparison_result(
+        baseline_tasks=["EHDN_ENG001"],
+        optimized_tasks=["EHDN_ENG002"],
+        same_task_set=False,
+    )
+    monkeypatch.setattr(planning_service, "compare_plans", lambda *args, **kwargs: compared)
+    response = client.post("/api/optimize", json={"territory_id": FIXTURE_ID})
+    assert response.status_code == 200
+    fairness = response.json()["analysis"]["fairness"]
+    assert fairness["same_task_set"] is False
+    assert fairness["possession_saved_minutes"] is None
+    assert fairness["possession_reduction_percent"] is None
+    assert fairness["statement"] == (
+        "Pure possession savings are not reported because the planners delivered "
+        "different maintenance task sets."
+    )
+
+
+def test_integrated_and_unscheduled_explanations_are_factual(
+    optimized_response: dict,
+) -> None:
+    analysis = optimized_response["analysis"]
+    integrated = analysis["integrated_blocks"][0]
+    assert integrated["task_ids"] == ["EHDN_ENG001", "EHDN_SNT001"]
+    assert integrated["departments"] == ["ENGINEERING", "S&T"]
+    assert integrated["coordination_gain_minutes"] == 60
+    block = next(
+        item for item in analysis["block_diagnostics"] if item["block_id"] == "BLK003"
+    )
+    assert block["integration"]["compatibility_status"] == "CONDITIONAL"
+    assert block["integration"]["reason_codes"] == ["COMPATIBLE_GROUP"]
+    unscheduled = analysis["unscheduled_tasks"][0]
+    assert unscheduled["task"]["task_id"] == "EHDN_TRD003"
+    assert unscheduled["task"]["deadline_check"] == "NOT_EVALUATED"
+    assert "POWER_WINDOW_UNAVAILABLE" in unscheduled["reason_codes"]
+    assert all(
+        window["resource_checks"]["power"] == "FAILED"
+        for window in unscheduled["candidate_windows"]
+    )
+
+
+def test_unknown_resource_diagnostic_remains_unknown() -> None:
+    task = load_territory(FIXTURE_ID).maintenance_tasks[0]
+    result = comparison_side(scheduled_tasks=[task["task_id"]])
+    result["plan"]["blocks"] = [
+        {
+            "block_id": "BLK001",
+            "section_id": task["section_id"],
+            "start_time": "2026-09-01T02:37:00",
+            "end_time": "2026-09-01T03:52:00",
+            "tasks": [task["task_id"]],
+            "integrated": False,
+            "affected_trains": [],
+            "explanation": [],
+        }
+    ]
+    result["boundary_slacks"] = [
+        {
+            "block_id": "BLK001",
+            "window_id": "WIN_TEST",
+            "before_boundary_slack_minutes": 1,
+            "after_boundary_slack_minutes": 2,
+            "boundary_slack_minutes": 1,
+        }
+    ]
+    result["task_windows"] = [
+        {
+            "task_id": task["task_id"],
+            "window_id": "WIN_TEST",
+            "feasible": True,
+            "reasons": [],
+            "resource_checks": {
+                "crew": "UNKNOWN",
+                "machine": "NOT_EVALUATED",
+                "power": "NOT_EVALUATED",
+            },
+        }
+    ]
+    diagnostics = planning_service._block_diagnostics([task], result)
+    assert diagnostics[0]["tasks"][0]["resource_checks"]["crew"] == "UNKNOWN"
+
+
+def test_bounded_feasible_proof_is_not_labeled_optimal(monkeypatch) -> None:
+    bounded = comparison_result(proof_state="FEASIBLE_BOUNDED")
     monkeypatch.setattr(planning_service, "compare_plans", lambda *args, **kwargs: bounded)
     response = client.post("/api/optimize", json={"territory_id": FIXTURE_ID})
     assert response.status_code == 200
     assert response.json()["proof_state"] == "FEASIBLE_BOUNDED"
     assert response.json()["comparison_proof_state"] == "FEASIBLE_BOUNDED"
+    assert response.json()["analysis"]["baseline"]["proof_state"] == "FEASIBLE_BOUNDED"
+    assert response.json()["analysis"]["railsync"]["proof_state"] == "FEASIBLE_BOUNDED"
     assert "OPTIMAL" not in response.json()["proof_state"]
 
 
