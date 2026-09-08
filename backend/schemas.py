@@ -40,10 +40,43 @@ class OptimizeMetrics(BaseModel):
 
 class OptimizeRequest(BaseModel):
     profile: Optional[str] = "Availability First"
+    territory_id: Optional[str] = None
     corridor_id: Optional[str] = None
-    horizon_hours: Optional[int] = 24
+    horizon_hours: Optional[int] = Field(default=None, gt=0)
 
 class ReoptimizeRequest(BaseModel):
     cancelled_blocks: Optional[List[str]] = Field(default_factory=list)
     emergency_tasks: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
     delay_minutes: Optional[int] = 0
+
+
+class ComparisonSummary(BaseModel):
+    baseline_label: str
+    same_task_set: bool
+    closure_saved_minutes: Optional[int] = None
+    closure_reduction_percent: Optional[float] = None
+    baseline_proof_state: str
+    optimized_proof_state: str
+
+
+class PlanningContext(BaseModel):
+    territory_id: str
+    display_name: str
+    territory_status: str
+    provenance: List[str]
+    horizon_start: str
+    horizon_end: str
+    resource_context_applied: bool
+    resource_provenance: Optional[str] = None
+    solver_time_limit_seconds_per_plan: float
+
+
+class OptimizeResponse(BaseModel):
+    status: str
+    blocks: List[ScheduledBlock]
+    unscheduled_tasks: List[str]
+    metrics: OptimizeMetrics
+    proof_state: str
+    comparison_proof_state: str
+    comparison: ComparisonSummary
+    planning_context: PlanningContext

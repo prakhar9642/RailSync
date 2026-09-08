@@ -141,9 +141,10 @@
   DEADLINE_VIOLATION, POWER_BLOCK_UNAVAILABLE, CREW_UNAVAILABLE,
   MACHINE_UNAVAILABLE, POWER_WINDOW_UNAVAILABLE. Pair facts additionally include
   COMPATIBLE_GROUP, INCOMPATIBLE_GROUP, UNKNOWN_COMPATIBILITY,
-  CREW_CAPACITY_CONFLICT and MACHINE_CAPACITY_CONFLICT. Public response shape remains.
-- The existing backend API serves mock responses and is not connected to CP-SAT.
-  This phase does not change that architecture or the shared contract.
+  CREW_CAPACITY_CONFLICT and MACHINE_CAPACITY_CONFLICT. The optimizer response
+  shape remains; the backend adds proof, comparison and planning context fields.
+- POST /api/optimize now loads a registered territory and calls the existing fair
+  comparison pipeline. POST /api/reoptimize explicitly returns not implemented.
 
 SOURCE/SCHEMA-BACKED: CONTRACTS.md contains department, compatibility_group,
 crew_type and requires_power_block fields. It supplies field names, not official
@@ -170,7 +171,7 @@ unavailable power; ENG_LOW loses to higher-criticality work. No savings percenta
 
 All values must be non-negative whole integers (booleans rejected). Pass an
 allowances instance to candidate generation, feasibility, and optimization;
-use the same configuration throughout. No external dependencies were added.
+use the same configuration throughout. No new optimizer dependencies were added.
 The defaults are simple conservative prototype choices, not official Indian
 Railways rules. No authoritative operational allowance source exists here.
 
@@ -194,8 +195,7 @@ productive task needs 135 minutes with setup/release and is rejected, while a
 - Crew skills, real rosters, travel, machine availability, and shared capacities.
 - Occupancy completeness, horizon boundary coverage, timezone conventions,
   bidirectional movement and crossing protection. Supplied sample data is synthetic.
-- Future explicit API representation of unavailable baseline metrics, and any
-  additional productive-work timestamps, without confusing them with possession.
+- Any additional productive-work timestamps must remain distinct from possession.
 
 
 Run `python optimizer/test_comparison.py` for same-work, different-work and robust
@@ -203,9 +203,11 @@ placement demos. Run `python optimizer/benchmark_planning.py` for bounded 10/20/
 synthetic task benchmarks (five tasks per section, no train/resource contention).
 These are modest distributed instances, not production-scale railway benchmarks.
 
-`DEMO_SOLVE_LIMIT_SECONDS = 5.0` in `optimizer/runtime.py` is a centralized
-engineering profile for future interactive use; it is not wired into the backend
-and is not a Railway rule. `None` retains uncapped development behavior.
+`DEMO_SOLVE_LIMIT_SECONDS = 5.0` in `optimizer/runtime.py` is the backend demo
+limit supplied independently to the non-integrated and integrated plans. A full
+comparison may therefore consume up to two solver budgets plus preprocessing and
+HTTP overhead. This is an engineering setting, not a Railway rule. `None` retains
+uncapped development behavior for direct optimizer callers.
 
 Each run records `proof_state`: FULLY_OPTIMAL only after all nine stages are
 proven; FEASIBLE_BOUNDED when a valid incumbent is returned after a budget or
@@ -225,3 +227,8 @@ independently. Their proof states and the aggregate comparison proof state remai
 visible internally. Same-task-set arithmetic is still available for bounded valid
 plans, but the comparison is not labeled fully optimal unless both runs prove all
 nine stages.
+
+The authoritative backend demonstration uses `eastern_hdn_test_fixture` from
+2026-09-01T00:00:00 through 2026-09-01T06:00:00. Its one-unit crew capacities and
+section power windows are `TEST_FIXTURE` assumptions. The API labels its baseline
+`NON_INTEGRATED_CP_SAT_COMPARISON`; it is not current or manual Railway practice.

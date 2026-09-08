@@ -1,0 +1,24 @@
+{
+  "provenance": "TEST_FIXTURE",
+  "crew_capacities": {
+    "TRACK_CREW": 1,
+    "SIGNAL_CREW": 1,
+    "OHE_CREW": 1
+  },
+  "machine_capacities": {},
+  "power_windows": {
+    "EHDN_SEC06": [],
+    "EHDN_SEC08": [
+      {
+        "start_time": "2026-09-01T02:33:00",
+        "end_time": "2026-09-01T03:37:00"
+      }
+    ],
+    "EHDN_SEC09": [
+      {
+        "start_time": "2026-09-01T04:37:00",
+        "end_time": "2026-09-01T06:00:00"
+      }
+    ]
+  }
+}

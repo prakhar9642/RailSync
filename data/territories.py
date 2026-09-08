@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
-from .adapters import ADAPTERS
+from .adapters import ADAPTERS, load_resource_context
 
 DATA_DIR = Path(__file__).resolve().parent
 CORRIDORS_DIR = DATA_DIR / "corridors"
@@ -67,6 +67,8 @@ class TerritoryManifest:
     provenance: tuple[Mapping[str, Any], ...]
     datasets: Mapping[str, Mapping[str, str]]
     scenario_references: tuple[str, ...]
+    planning_horizon: Mapping[str, str] | None
+    resource_context: Mapping[str, str] | None
     path: Path
 
     @property
@@ -84,6 +86,7 @@ class LoadedTerritory:
     train_occupancy: list[dict[str, Any]]
     maintenance_tasks: list[dict[str, Any]]
     resource_context: Any | None = None
+    resource_provenance: str | None = None
 
     def as_optimizer_input(self) -> dict[str, list[dict[str, Any]]]:
         """Return only canonical data fields accepted by the existing optimizer."""
@@ -148,6 +151,27 @@ def _manifest_from_path(path: Path) -> TerritoryManifest:
             f"Manifest {territory_id!r} scenario_references must be a string list."
         )
 
+    planning_horizon = raw.get("planning_horizon")
+    if planning_horizon is not None and (
+        not isinstance(planning_horizon, dict)
+        or not all(
+            isinstance(planning_horizon.get(field), str) and planning_horizon[field]
+            for field in ("start_time", "end_time")
+        )
+    ):
+        raise TerritoryError(
+            f"Manifest {territory_id!r} planning_horizon needs start_time and end_time."
+        )
+
+    resource_spec = raw.get("resource_context")
+    if resource_spec is not None and (
+        not isinstance(resource_spec, dict)
+        or resource_spec.get("adapter") != "resource_context_json"
+        or not isinstance(resource_spec.get("path"), str)
+        or not resource_spec["path"]
+    ):
+        raise TerritoryError(f"Manifest {territory_id!r} has invalid resource_context.")
+
     for dataset_name, spec in raw["datasets"].items():
         if dataset_name not in CANONICAL_FIELDS:
             raise TerritoryError(
@@ -181,7 +205,7 @@ def _manifest_from_path(path: Path) -> TerritoryManifest:
             )
 
     if raw["status"] == PLACEHOLDER and (
-        raw["datasets"] or raw["scenario_references"]
+        raw["datasets"] or raw["scenario_references"] or resource_spec
     ):
         raise TerritoryError(
             f"Placeholder territory {territory_id!r} cannot declare datasets or scenarios."
@@ -201,6 +225,8 @@ def _manifest_from_path(path: Path) -> TerritoryManifest:
         provenance=tuple(raw["provenance"]),
         datasets=raw["datasets"],
         scenario_references=tuple(raw["scenario_references"]),
+        planning_horizon=planning_horizon,
+        resource_context=resource_spec,
         path=path,
     )
 
@@ -266,10 +292,19 @@ def load_territory(territory_id: str) -> LoadedTerritory:
             required_fields=CANONICAL_FIELDS[dataset_name],
         )
 
+    resource_context = None
+    resource_provenance = None
+    if manifest.resource_context is not None:
+        resource_context, resource_provenance = load_resource_context(
+            _dataset_path(manifest, manifest.resource_context["path"])
+        )
+
     return LoadedTerritory(
         manifest=manifest,
         stations=loaded["stations"],
         sections=loaded["sections"],
         train_occupancy=loaded["train_occupancy"],
         maintenance_tasks=loaded["maintenance_tasks"],
+        resource_context=resource_context,
+        resource_provenance=resource_provenance,
     )

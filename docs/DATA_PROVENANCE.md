@@ -35,6 +35,10 @@ it rather than returning an empty object that could be mistaken for verified dat
 Fixture manifests live under `data/fixtures/` and require their explicit fixture
 ID. A real/future corridor ID never falls back to a fixture.
 
+The Eastern fixture manifest also fixes its six-hour planning horizon and points
+to a `TEST_FIXTURE` resource context. Crew capacities and power windows in that
+file are deterministic demonstration assumptions, not official Railway data.
+
 ## Intended source split
 
 Public or grounded inputs are frozen passenger timetable snapshots and corridor

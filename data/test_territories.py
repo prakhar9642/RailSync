@@ -123,6 +123,10 @@ def test_eastern_fixture_manifest_is_explicitly_synthetic() -> None:
     assert manifest.scenario_references == ("eastern_hdn_synthetic_demo_v1",)
     assert {item["label"] for item in manifest.provenance} == {"TEST_FIXTURE"}
     assert set(manifest.provenance[0]["datasets"]) == set(CANONICAL_FIELDS)
+    assert manifest.planning_horizon == {
+        "start_time": "2026-09-01T00:00:00",
+        "end_time": "2026-09-01T06:00:00",
+    }
 
 
 def test_eastern_fixture_loads_canonical_corridor_and_scenario() -> None:
@@ -131,6 +135,14 @@ def test_eastern_fixture_loads_canonical_corridor_and_scenario() -> None:
     assert len(territory.sections) == 9
     assert len(territory.train_occupancy) == 49
     assert len(territory.maintenance_tasks) == 9
+    assert territory.resource_context is not None
+    assert territory.resource_provenance == "TEST_FIXTURE"
+    assert territory.resource_context.crew_capacities == {
+        "TRACK_CREW": 1,
+        "SIGNAL_CREW": 1,
+        "OHE_CREW": 1,
+    }
+    assert territory.resource_context.power_windows["EHDN_SEC06"] == ()
     assert {task["department"] for task in territory.maintenance_tasks} == {
         "ENGINEERING",
         "S&T",
@@ -149,8 +161,12 @@ def test_eastern_fixture_loads_canonical_corridor_and_scenario() -> None:
 
 
 def test_eastern_fixture_runs_through_existing_optimizer() -> None:
+    territory = load_territory("eastern_hdn_test_fixture")
     result = optimize_schedule(
-        load_territory("eastern_hdn_test_fixture").as_optimizer_input()
+        territory.as_optimizer_input(),
+        territory.manifest.planning_horizon["start_time"],
+        territory.manifest.planning_horizon["end_time"],
+        resource_context=territory.resource_context,
     )
     assert result["status"] == "success"
     assert "EHDN_ENG003" not in result["unscheduled_tasks"]
@@ -160,8 +176,12 @@ def test_eastern_fixture_runs_through_existing_optimizer() -> None:
 
 
 def test_eastern_fixture_uses_existing_fair_comparison_pipeline() -> None:
+    territory = load_territory("eastern_hdn_test_fixture")
     comparison = compare_plans(
-        load_territory("eastern_hdn_test_fixture").as_optimizer_input()
+        territory.as_optimizer_input(),
+        territory.manifest.planning_horizon["start_time"],
+        territory.manifest.planning_horizon["end_time"],
+        resource_context=territory.resource_context,
     )
     assert comparison["both_proven_optimal"] is True
     assert comparison["comparison"]["same_task_set"] is True

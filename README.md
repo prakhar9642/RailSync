@@ -19,3 +19,15 @@ Read these files before development:
 - CONTRACTS.md
 
 Do not modify shared contracts without team discussion.
+
+## Backend demo
+
+From the repository root:
+
+```powershell
+python -m pip install -r backend/requirements.txt
+python -m uvicorn backend.main:app
+```
+
+`POST /api/optimize` defaults to the explicitly synthetic
+`eastern_hdn_test_fixture` planning input.

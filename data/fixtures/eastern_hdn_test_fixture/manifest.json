@@ -16,5 +16,13 @@
     "train_occupancy": {"adapter": "json_list", "path": "train_occupancy.json"},
     "maintenance_tasks": {"adapter": "json_list", "path": "maintenance_tasks.json"}
   },
-  "scenario_references": ["eastern_hdn_synthetic_demo_v1"]
+  "scenario_references": ["eastern_hdn_synthetic_demo_v1"],
+  "planning_horizon": {
+    "start_time": "2026-09-01T00:00:00",
+    "end_time": "2026-09-01T06:00:00"
+  },
+  "resource_context": {
+    "adapter": "resource_context_json",
+    "path": "resource_context.json"
+  }
 }
