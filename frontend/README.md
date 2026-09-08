@@ -1,16 +1,24 @@
-# React + Vite
+# RailSync frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The Planning Workspace loads the explicitly synthetic
+`eastern_hdn_test_fixture` from FastAPI and sends optimization requests to the
+real RailSync CP-SAT backend.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Start FastAPI from the repository root at `http://127.0.0.1:8000`:
 
-## React Compiler
+```powershell
+python -m uvicorn backend.main:app
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Then start Vite at `http://localhost:5173`:
 
-## Expanding the Oxlint configuration
+```powershell
+cd frontend
+npm.cmd run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Vite proxies `/api` to the local FastAPI process. For another deployment, set
+`VITE_API_BASE_URL` to the backend API prefix, such as
+`https://example.invalid/api`. No external API is required by default.

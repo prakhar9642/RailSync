@@ -33,11 +33,19 @@ def test_health_check_still_works() -> None:
 
 
 def test_dashboard_uses_authoritative_territory() -> None:
+    territory = load_territory(FIXTURE_ID)
     response = client.get("/api/dashboard")
     assert response.status_code == 200
-    assert response.json()["territory_id"] == FIXTURE_ID
-    assert response.json()["tasks_count"] == 9
-    assert response.json()["trains_count"] == 49
+    dashboard = response.json()
+    assert dashboard["territory_id"] == FIXTURE_ID
+    assert dashboard["display_name"] == "Eastern HDN Synthetic Test Fixture"
+    assert dashboard["territory_status"] == "POPULATED"
+    assert dashboard["provenance"] == ["TEST_FIXTURE"]
+    assert dashboard["planning_horizon"] == territory.manifest.planning_horizon
+    assert dashboard["stations"] == territory.stations
+    assert dashboard["sections"] == territory.sections
+    assert dashboard["tasks_count"] == 9
+    assert dashboard["trains_count"] == 49
 
 
 def test_tasks_and_trains_come_from_territory_loader() -> None:

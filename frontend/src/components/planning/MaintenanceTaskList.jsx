@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { plannerSections } from "../../data/plannerMockData.js";
 
 const departments = ["ENGINEERING", "S&T", "TRD"];
 const priorities = ["Critical", "High", "Normal"];
@@ -14,27 +13,34 @@ function departmentLabel(department) {
   return department === "ENGINEERING" ? "Engineering" : department;
 }
 
-export default function MaintenanceTaskList({ tasks, selectedTaskId, onSelectTask }) {
+export default function MaintenanceTaskList({
+  tasks,
+  sections,
+  selectedSection,
+  selectedTaskId,
+  scheduledTaskIds,
+  unscheduledTaskIds,
+  onSelectSection,
+  onSelectTask,
+}) {
   const [department, setDepartment] = useState("ALL");
-  const [section, setSection] = useState("ALL");
   const [priority, setPriority] = useState("ALL");
 
   const filteredTasks = useMemo(
     () =>
       tasks.filter((task) => {
         const departmentMatch = department === "ALL" || task.department === department;
-        const sectionMatch = section === "ALL" || task.section_id === section;
         const priorityMatch = priority === "ALL" || priorityForTask(task) === priority;
-        return departmentMatch && sectionMatch && priorityMatch;
+        return task.section_id === selectedSection && departmentMatch && priorityMatch;
       }),
-    [department, priority, section, tasks],
+    [department, priority, selectedSection, tasks],
   );
 
   return (
     <section className="planner-task-column" aria-labelledby="maintenance-heading">
       <div className="workspace-column-heading">
         <div>
-          <span className="planner-kicker">Work queue</span>
+          <span className="planner-kicker">Work queue · selected section</span>
           <h2 id="maintenance-heading">Maintenance Requests</h2>
         </div>
         <span className="planner-count">{filteredTasks.length}</span>
@@ -46,20 +52,15 @@ export default function MaintenanceTaskList({ tasks, selectedTaskId, onSelectTas
           <select value={department} onChange={(event) => setDepartment(event.target.value)}>
             <option value="ALL">All</option>
             {departments.map((item) => (
-              <option key={item} value={item}>
-                {departmentLabel(item)}
-              </option>
+              <option key={item} value={item}>{departmentLabel(item)}</option>
             ))}
           </select>
         </label>
         <label>
           <span>Section</span>
-          <select value={section} onChange={(event) => setSection(event.target.value)}>
-            <option value="ALL">All</option>
-            {plannerSections.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.id}
-              </option>
+          <select value={selectedSection} onChange={(event) => onSelectSection(event.target.value)}>
+            {sections.map((item) => (
+              <option key={item.section_id} value={item.section_id}>{item.section_id}</option>
             ))}
           </select>
         </label>
@@ -67,28 +68,18 @@ export default function MaintenanceTaskList({ tasks, selectedTaskId, onSelectTas
           <span>Priority</span>
           <select value={priority} onChange={(event) => setPriority(event.target.value)}>
             <option value="ALL">All</option>
-            {priorities.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
+            {priorities.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         </label>
       </div>
 
       <div className="planner-task-table" aria-label="Maintenance requests">
-        <div className="planner-task-table-head" aria-hidden="true">
-          <span>Task</span>
-          <span>Department</span>
-          <span>Section</span>
-          <span>Duration</span>
-          <span>Priority</span>
-        </div>
-
         <div className="planner-task-table-body">
           {filteredTasks.map((task) => {
             const taskPriority = priorityForTask(task);
             const selected = selectedTaskId === task.task_id;
+            const unscheduled = unscheduledTaskIds.has(task.task_id);
+            const scheduled = scheduledTaskIds.has(task.task_id);
             return (
               <button
                 key={task.task_id}
@@ -100,9 +91,10 @@ export default function MaintenanceTaskList({ tasks, selectedTaskId, onSelectTas
                 <span className="planner-task-name" data-label="Task">
                   <strong>{task.task_id}</strong>
                   <small>{task.task_type}</small>
+                  {unscheduled ? <em className="task-plan-state is-unscheduled">Unscheduled</em> : null}
+                  {scheduled ? <em className="task-plan-state is-scheduled">Scheduled</em> : null}
                 </span>
                 <span data-label="Department">{departmentLabel(task.department)}</span>
-                <span data-label="Section">{task.section_id}</span>
                 <span data-label="Duration">{task.duration_minutes} min</span>
                 <span
                   className={`planner-task-priority priority-${taskPriority.toLowerCase()}`}
@@ -114,7 +106,7 @@ export default function MaintenanceTaskList({ tasks, selectedTaskId, onSelectTas
             );
           })}
           {filteredTasks.length === 0 ? (
-            <p className="planner-task-empty">No requests match these filters.</p>
+            <p className="planner-task-empty">No requests match this section and filter selection.</p>
           ) : null}
         </div>
       </div>

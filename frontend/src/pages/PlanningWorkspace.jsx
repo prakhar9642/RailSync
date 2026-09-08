@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "../components/layout/Navbar.jsx";
 import BlockDetails from "../components/planning/BlockDetails.jsx";
 import MaintenanceTaskList from "../components/planning/MaintenanceTaskList.jsx";
@@ -6,64 +6,187 @@ import MaintenanceTimeline from "../components/planning/MaintenanceTimeline.jsx"
 import OptimizerControls from "../components/planning/OptimizerControls.jsx";
 import PlannerCorridor from "../components/planning/PlannerCorridor.jsx";
 import {
-  maintenanceTasks,
-  previewBlocksBySection,
-  trainOccupancy,
-} from "../data/plannerMockData.js";
+  getTasks,
+  getTerritory,
+  getTrains,
+  optimizePlan,
+} from "../services/api.js";
 import "./planner/planner.css";
 
-const PREVIEW_TRANSITIONS = {
-  evaluating: { next: "finding", delay: 450 },
-  finding: { next: "proposed", delay: 450 },
-  proposed: { next: "generated", delay: 500 },
-};
+const DEMO_TERRITORY_ID = "eastern_hdn_test_fixture";
+
+function initialDataState() {
+  return {
+    status: "loading",
+    error: null,
+    territory: null,
+    tasks: [],
+    trains: [],
+  };
+}
 
 export default function PlanningWorkspace({ onHome }) {
-  const [selectedSection, setSelectedSection] = useState("SEC03");
-  const [selectedTaskId, setSelectedTaskId] = useState("ENG017");
-  const [optimizationStage, setOptimizationStage] = useState("idle");
+  const [dataState, setDataState] = useState(initialDataState);
+  const [loadVersion, setLoadVersion] = useState(0);
+  const [selectedSection, setSelectedSection] = useState("");
+  const [selectedTaskId, setSelectedTaskId] = useState("");
+  const [selectedBlockId, setSelectedBlockId] = useState("");
+  const [optimizationStatus, setOptimizationStatus] = useState("idle");
+  const [optimizationError, setOptimizationError] = useState(null);
+  const [plan, setPlan] = useState(null);
+  const optimizeRequestId = useRef(0);
+  const optimizeController = useRef(null);
+  const selectedSectionRef = useRef("");
 
   useEffect(() => {
-    const transition = PREVIEW_TRANSITIONS[optimizationStage];
-    if (!transition) return undefined;
+    const controller = new AbortController();
 
-    const id = window.setTimeout(
-      () => setOptimizationStage(transition.next),
-      transition.delay,
-    );
-    return () => window.clearTimeout(id);
-  }, [optimizationStage]);
+    Promise.all([
+      getTerritory(DEMO_TERRITORY_ID, { signal: controller.signal }),
+      getTasks(DEMO_TERRITORY_ID, { signal: controller.signal }),
+      getTrains(DEMO_TERRITORY_ID, { signal: controller.signal }),
+    ])
+      .then(([territory, taskResponse, trainResponse]) => {
+        const territoryIds = [
+          territory.territory_id,
+          taskResponse.territory_id,
+          trainResponse.territory_id,
+        ];
+        if (territoryIds.some((id) => id !== DEMO_TERRITORY_ID)) {
+          throw new Error("Backend returned inconsistent territory data.");
+        }
 
-  const selectedTask = useMemo(
-    () => maintenanceTasks.find((task) => task.task_id === selectedTaskId),
-    [selectedTaskId],
+        const tasks = taskResponse.tasks ?? [];
+        const sections = territory.sections ?? [];
+        const firstSection = sections[0]?.section_id ?? tasks[0]?.section_id ?? "";
+        const firstTask = tasks.find((task) => task.section_id === firstSection);
+
+        setDataState({
+          status: "ready",
+          error: null,
+          territory,
+          tasks,
+          trains: trainResponse.trains ?? [],
+        });
+        selectedSectionRef.current = firstSection;
+        setSelectedSection(firstSection);
+        setSelectedTaskId(firstTask?.task_id ?? "");
+      })
+      .catch((error) => {
+        if (error.name === "AbortError") return;
+        setDataState({
+          ...initialDataState(),
+          status: "error",
+          error,
+        });
+      });
+
+    return () => controller.abort();
+  }, [loadVersion]);
+
+  useEffect(
+    () => () => {
+      optimizeRequestId.current += 1;
+      optimizeController.current?.abort();
+    },
+    [],
+  );
+
+  const selectedBlock = useMemo(
+    () => plan?.blocks.find((block) => block.block_id === selectedBlockId) ?? null,
+    [plan, selectedBlockId],
   );
 
   const sectionOccupancy = useMemo(
-    () => trainOccupancy.filter((train) => train.section_id === selectedSection),
-    [selectedSection],
+    () => dataState.trains.filter((train) => train.section_id === selectedSection),
+    [dataState.trains, selectedSection],
   );
 
-  const previewBlock = previewBlocksBySection[selectedSection];
-  const generatedBlock = optimizationStage === "generated" ? previewBlock : null;
+  const sectionBlocks = useMemo(
+    () => plan?.blocks.filter((block) => block.section_id === selectedSection) ?? [],
+    [plan, selectedSection],
+  );
 
-  const resetPreview = () => setOptimizationStage("idle");
+  const scheduledTaskIds = useMemo(
+    () => new Set(plan?.blocks.flatMap((block) => block.tasks) ?? []),
+    [plan],
+  );
+  const unscheduledTaskIds = useMemo(
+    () => new Set(plan?.unscheduled_tasks ?? []),
+    [plan],
+  );
+
+  const horizon = useMemo(() => {
+    if (plan?.planning_context) {
+      return {
+        start_time: plan.planning_context.horizon_start,
+        end_time: plan.planning_context.horizon_end,
+      };
+    }
+    return dataState.territory?.planning_horizon ?? null;
+  }, [dataState.territory, plan]);
 
   const selectSection = (sectionId) => {
-    const firstTask = maintenanceTasks.find((task) => task.section_id === sectionId);
+    const firstTask = dataState.tasks.find((task) => task.section_id === sectionId);
+    const firstBlock = plan?.blocks.find((block) => block.section_id === sectionId);
+    selectedSectionRef.current = sectionId;
     setSelectedSection(sectionId);
     setSelectedTaskId(firstTask?.task_id ?? "");
-    resetPreview();
+    setSelectedBlockId(firstBlock?.block_id ?? "");
   };
 
   const selectTask = (task) => {
+    const firstBlock = plan?.blocks.find((block) => block.section_id === task.section_id);
+    selectedSectionRef.current = task.section_id;
     setSelectedTaskId(task.task_id);
     setSelectedSection(task.section_id);
-    resetPreview();
+    setSelectedBlockId(firstBlock?.block_id ?? "");
   };
 
-  // Replace this state-machine entry point with POST /api/optimize in the API phase.
-  const runOptimizationPreview = () => setOptimizationStage("evaluating");
+  const runOptimization = async () => {
+    optimizeController.current?.abort();
+    const controller = new AbortController();
+    const requestId = optimizeRequestId.current + 1;
+    optimizeRequestId.current = requestId;
+    optimizeController.current = controller;
+
+    setOptimizationStatus("loading");
+    setOptimizationError(null);
+    setPlan(null);
+    setSelectedBlockId("");
+
+    try {
+      const result = await optimizePlan(DEMO_TERRITORY_ID, {
+        signal: controller.signal,
+      });
+      if (requestId !== optimizeRequestId.current) return;
+
+      const firstBlockForSection = result.blocks.find(
+        (block) => block.section_id === selectedSectionRef.current,
+      );
+      const initialBlock = firstBlockForSection ?? result.blocks[0] ?? null;
+      setPlan(result);
+      setSelectedBlockId(initialBlock?.block_id ?? "");
+      if (!selectedSectionRef.current && initialBlock) {
+        selectedSectionRef.current = initialBlock.section_id;
+        setSelectedSection(initialBlock.section_id);
+      }
+      setOptimizationStatus("success");
+    } catch (error) {
+      if (error.name === "AbortError" || requestId !== optimizeRequestId.current) return;
+      setPlan(null);
+      setOptimizationError(error);
+      setOptimizationStatus("error");
+    } finally {
+      if (requestId === optimizeRequestId.current) optimizeController.current = null;
+    }
+  };
+
+  const retryDataLoad = () => {
+    setDataState(initialDataState());
+    setLoadVersion((version) => version + 1);
+  };
+  const dataReady = dataState.status === "ready";
 
   return (
     <div className="planning-workspace">
@@ -72,41 +195,75 @@ export default function PlanningWorkspace({ onHome }) {
       <main className="planning-workspace-main" id="planning-workspace">
         <header className="planning-workspace-intro">
           <span className="planner-kicker">Railway maintenance planning</span>
-          <h1>Planning Workspace</h1>
+          <div className="planning-title-row">
+            <h1>Planning Workspace</h1>
+            <span className="synthetic-fixture-badge">Synthetic Test Fixture</span>
+          </div>
           <p>
             Coordinate maintenance requirements with train occupancy and generate
-            practical block windows.
+            practical block windows through the RailSync optimizer.
           </p>
         </header>
 
-        <PlannerCorridor
-          selectedSection={selectedSection}
-          onSelectSection={selectSection}
-        />
+        {dataState.status === "loading" ? (
+          <div className="planner-data-state" role="status">
+            Loading maintenance and train data from FastAPI...
+          </div>
+        ) : null}
+        {dataState.status === "error" ? (
+          <div className="planner-data-state is-error" role="alert">
+            <div>
+              <strong>Planning data could not be loaded.</strong>
+              <span>{dataState.error?.message}</span>
+            </div>
+            <button type="button" onClick={retryDataLoad}>Retry</button>
+          </div>
+        ) : null}
 
-        <div className="planning-workspace-grid">
-          <MaintenanceTaskList
-            tasks={maintenanceTasks}
-            selectedTaskId={selectedTaskId}
-            onSelectTask={selectTask}
-          />
-
-          <MaintenanceTimeline
-            sectionId={selectedSection}
-            occupancy={sectionOccupancy}
-            selectedTask={selectedTask}
-            previewBlock={previewBlock}
-            optimizationStage={optimizationStage}
-          />
-
-          <aside className="planner-control-column">
-            <OptimizerControls
-              optimizationStage={optimizationStage}
-              onOptimize={runOptimizationPreview}
+        {dataReady ? (
+          <>
+            <PlannerCorridor
+              territory={dataState.territory}
+              selectedSection={selectedSection}
+              onSelectSection={selectSection}
             />
-            <BlockDetails block={generatedBlock} />
-          </aside>
-        </div>
+
+            <div className="planning-workspace-grid">
+              <MaintenanceTaskList
+                tasks={dataState.tasks}
+                sections={dataState.territory.sections}
+                selectedSection={selectedSection}
+                selectedTaskId={selectedTaskId}
+                scheduledTaskIds={scheduledTaskIds}
+                unscheduledTaskIds={unscheduledTaskIds}
+                onSelectSection={selectSection}
+                onSelectTask={selectTask}
+              />
+
+              <MaintenanceTimeline
+                sectionId={selectedSection}
+                occupancy={sectionOccupancy}
+                blocks={sectionBlocks}
+                horizon={horizon}
+                hasPlan={Boolean(plan)}
+                selectedBlockId={selectedBlockId}
+                onSelectBlock={setSelectedBlockId}
+              />
+
+              <aside className="planner-control-column">
+                <OptimizerControls
+                  optimizationStatus={optimizationStatus}
+                  optimizationError={optimizationError}
+                  plan={plan}
+                  horizon={horizon}
+                  onOptimize={runOptimization}
+                  canOptimize={dataReady}
+                />
+                <BlockDetails block={selectedBlock} tasks={dataState.tasks} />
+              </aside>
+            </div>
+          </>
+        ) : null}
       </main>
     </div>
   );

@@ -79,6 +79,14 @@ def get_dashboard(
     return {
         "status": "success",
         "territory_id": territory_id,
+        "display_name": territory.manifest.display_name,
+        "territory_status": territory.manifest.status,
+        "provenance": sorted(
+            {item["label"] for item in territory.manifest.provenance}
+        ),
+        "planning_horizon": territory.manifest.planning_horizon,
+        "stations": territory.stations,
+        "sections": territory.sections,
         "tasks_count": len(territory.maintenance_tasks),
         "trains_count": len(territory.train_occupancy),
         "recent_alerts": [],

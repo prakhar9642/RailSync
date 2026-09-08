@@ -1,8 +1,23 @@
-function formatTime(timestamp) {
-  return timestamp.split("T")[1].slice(0, 5);
+function formatTimestamp(timestamp) {
+  if (!timestamp) return "—";
+  const [date, time] = timestamp.split("T");
+  return `${date} ${time.slice(0, 5)}`;
 }
 
-export default function BlockDetails({ block }) {
+function durationMinutes(block) {
+  return Math.round((new Date(block.end_time) - new Date(block.start_time)) / 60_000);
+}
+
+function departmentLabel(department) {
+  return department === "ENGINEERING" ? "Engineering" : department;
+}
+
+export default function BlockDetails({ block, tasks }) {
+  const taskById = new Map(tasks.map((task) => [task.task_id, task]));
+  const departments = block
+    ? [...new Set(block.tasks.map((id) => taskById.get(id)?.department).filter(Boolean))]
+    : [];
+
   return (
     <section className="block-details" aria-labelledby="block-details-heading">
       <div className="workspace-column-heading">
@@ -14,37 +29,41 @@ export default function BlockDetails({ block }) {
 
       {block ? (
         <div className="block-details-content">
-          <div className="block-details-time">
-            <strong>{block.section_id}</strong>
-            <span>
-              {formatTime(block.start_time)} – {formatTime(block.end_time)}
-            </span>
-          </div>
+          <dl className="block-details-facts">
+            <div><dt>Block ID</dt><dd>{block.block_id}</dd></div>
+            <div><dt>Section</dt><dd>{block.section_id}</dd></div>
+            <div><dt>Start</dt><dd>{formatTimestamp(block.start_time)}</dd></div>
+            <div><dt>End</dt><dd>{formatTimestamp(block.end_time)}</dd></div>
+            <div><dt>Duration</dt><dd>{durationMinutes(block)} min</dd></div>
+            <div><dt>Integrated</dt><dd>{block.integrated ? "Yes" : "No"}</dd></div>
+          </dl>
 
           <div className="block-details-tasks">
-            <span>Tasks</span>
+            <span>Task IDs</span>
             <div>
-              {block.tasks.map((taskId) => (
-                <strong key={taskId}>{taskId}</strong>
-              ))}
+              {block.tasks.map((taskId) => <strong key={taskId}>{taskId}</strong>)}
             </div>
           </div>
 
-          <div className="block-details-why">
-            <span>Why this block?</span>
-            <ul>
-              {block.explanation.map((reason) => (
-                <li key={reason}>
-                  <span aria-hidden="true">✓</span>
-                  {reason}
-                </li>
-              ))}
-            </ul>
+          <div className="block-details-departments">
+            <span>Departments</span>
+            <p>{departments.map(departmentLabel).join(" + ") || "Not available"}</p>
           </div>
+
+          {block.explanation.length > 0 ? (
+            <div className="block-details-why">
+              <span>Optimizer output</span>
+              <ul>
+                {block.explanation.map((reason) => (
+                  <li key={reason}><span aria-hidden="true">✓</span>{reason}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       ) : (
         <p className="block-details-empty">
-          Run the planning preview to reveal a valid maintenance block.
+          Generate a plan and select an optimized possession to inspect it.
         </p>
       )}
     </section>
