@@ -1,13 +1,9 @@
-# Eastern HDN synthetic demonstration territory
+# Eastern HDN placeholder
 
-This fictional 10-station, 9-section territory is entirely synthetic. It is not
-live Indian Railways operational data and does not represent a production railway
-feed. It exists to prove that RailSync's corridor-independent loader can send a
-second corridor through the same canonical schema and unchanged optimizer.
+`eastern_hdn` is reserved for a future verified, public-data-backed territory.
+It currently has no stations, sections, train occupancy, or scenario datasets,
+and `load_territory("eastern_hdn")` rejects it as unpopulated.
 
-The six-hour snapshot contains 49 occupancy records for eight synthetic trains.
-Traffic is intentionally dense through the central sections and less dense near
-the corridor ends, producing both constrained and relatively open maintenance
-windows. Station, train, and section names are fictional identifiers.
-
-Provenance: `SYNTHETIC_PROTOTYPE`.
+No station names or train movements are asserted here. Once verified source data
+is available, its intended corridor/timetable provenance is
+`PUBLIC_TIMETABLE_DERIVED`.

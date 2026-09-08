@@ -1,0 +1,20 @@
+{
+  "territory_id": "eastern_hdn_test_fixture",
+  "display_name": "Eastern HDN Synthetic Test Fixture",
+  "description": "Deterministic fictional data used to test territory-independent optimization.",
+  "status": "POPULATED",
+  "provenance": [
+    {
+      "label": "TEST_FIXTURE",
+      "datasets": ["stations", "sections", "train_occupancy", "maintenance_tasks"],
+      "description": "All topology, names, movements, and maintenance demand are fictional deterministic test data."
+    }
+  ],
+  "datasets": {
+    "stations": {"adapter": "json_list", "path": "stations.json"},
+    "sections": {"adapter": "json_list", "path": "sections.json"},
+    "train_occupancy": {"adapter": "json_list", "path": "train_occupancy.json"},
+    "maintenance_tasks": {"adapter": "json_list", "path": "maintenance_tasks.json"}
+  },
+  "scenario_references": ["eastern_hdn_synthetic_demo_v1"]
+}

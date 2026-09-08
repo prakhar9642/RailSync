@@ -17,11 +17,23 @@ validation, operational rules, security controls, and acceptance testing.
 | `PUBLIC_TIMETABLE_DERIVED` | Frozen passenger timetable or corridor information derived from an identified public source. It is not live operational data. |
 | `SYNTHETIC_PROTOTYPE` | Manually constructed data used by the current prototype. |
 | `SYNTHETIC_SCENARIO` | Explicitly generated maintenance, resource, freight, or disruption inputs for scenario analysis. |
-| `TEST_FIXTURE` | Minimal deterministic data used only for automated tests. |
+| `TEST_FIXTURE` | Deterministic fictional data used only for tests and demonstrations. |
 
 Territory manifests record provenance per available dataset. A territory marked
 `PLACEHOLDER` has no loadable datasets or scenario references. The loader rejects
 it rather than returning an empty object that could be mistaken for verified data.
+
+## Current registrations
+
+| ID | Status | Meaning |
+| --- | --- | --- |
+| `delhi_agra` | `POPULATED` | Preserves its documented mixed public-derived corridor and synthetic occupancy provenance. |
+| `eastern_hdn` | `PLACEHOLDER` | Contains no data. Intended provenance is `PUBLIC_TIMETABLE_DERIVED` only after verified sources are supplied. |
+| `western_hdn` | `PLACEHOLDER` | Contains no data. Intended provenance is `PUBLIC_TIMETABLE_DERIVED` only after verified sources are supplied. |
+| `eastern_hdn_test_fixture` | `POPULATED` | All stations, sections, occupancy, and maintenance tasks are fictional `TEST_FIXTURE` data. |
+
+Fixture manifests live under `data/fixtures/` and require their explicit fixture
+ID. A real/future corridor ID never falls back to a fixture.
 
 ## Intended source split
 

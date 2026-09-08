@@ -12,6 +12,8 @@ from .adapters import ADAPTERS
 
 DATA_DIR = Path(__file__).resolve().parent
 CORRIDORS_DIR = DATA_DIR / "corridors"
+FIXTURES_DIR = DATA_DIR / "fixtures"
+MANIFEST_ROOTS = (CORRIDORS_DIR, FIXTURES_DIR)
 
 POPULATED = "POPULATED"
 PLACEHOLDER = "PLACEHOLDER"
@@ -205,11 +207,12 @@ def _manifest_from_path(path: Path) -> TerritoryManifest:
 
 def _registry() -> dict[str, Path]:
     registry: dict[str, Path] = {}
-    for path in sorted(CORRIDORS_DIR.glob("*/manifest.json")):
-        manifest = _manifest_from_path(path)
-        if manifest.territory_id in registry:
-            raise TerritoryError(f"Duplicate territory_id {manifest.territory_id!r}.")
-        registry[manifest.territory_id] = path
+    for root in MANIFEST_ROOTS:
+        for path in sorted(root.glob("*/manifest.json")):
+            manifest = _manifest_from_path(path)
+            if manifest.territory_id in registry:
+                raise TerritoryError(f"Duplicate territory_id {manifest.territory_id!r}.")
+            registry[manifest.territory_id] = path
     return registry
 
 
