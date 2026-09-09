@@ -7,7 +7,7 @@ import RiskControls, { RiskResult } from "../components/planning/RiskControls.js
 import { riskOptions } from "../utils/risk.js";
 import RecoveryTimeline from "../components/planning/RecoveryTimeline.jsx";
 import { reoptimizePlan } from "../services/api.js";
-import { proofLabel, sectionLabel, trainLabel } from "../utils/planningLabels.js";
+import { proofLabel, sectionLabel, trainFullLabel } from "../utils/planningLabels.js";
 import "./scenario/scenario.css";
 import "./analysis/analysis.css";
 
@@ -55,45 +55,77 @@ export default function ScenarioLab({ session, setSession, onNavigate, onHome })
       </section> : <>
         <form className="scenario-form" onSubmit={runScenario}>
           <div><span>Current base plan</span><strong>{plan.blocks.length} possessions · {proofLabel(plan.proof_state)}</strong><small>{territory.display_name}</small></div>
-          <label>Disruption<select disabled aria-label="Disruption type"><option>Train delay</option></select></label>
+          <div className="scenario-field-readonly"><span>Disruption</span><strong>Train delay</strong></div>
           <label>Train<select aria-label="Scenario train" value={trainId} disabled={busy} onChange={(event) => setTrainId(event.target.value)}>
-            {trainIds.map((id) => <option key={id} value={id}>{trainLabel(id,territory)} · {id}</option>)}
+            {trainIds.map((id) => <option key={id} value={id}>{trainFullLabel(id, territory)}</option>)}
           </select></label>
           <label>Delay (minutes)<input aria-label="Delay minutes" type="number" min="0" max="1440" step="1" required value={delay} disabled={busy} onChange={(event) => setDelay(event.target.value)} /></label>
           <Button type="submit" disabled={busy || !trainId} ariaBusy={busy}>{busy ? "Recovering plan…" : "Run Scenario"}</Button>
         </form>
-        <p className="scenario-note">Each run starts from the original Planning result. This is a full-horizon what-if simulation; it does not represent work already in progress or automatically approve a recovered plan.</p>
+        <p className="scenario-note">Simulation only — recovered changes are not automatically applied. Each run starts from the base plan.</p>
         <RiskControls config={riskConfig} onChange={(config) => setSession((current) => ({ ...current, riskConfig: config }))}
           trains={trains} territory={territory} disabled={busy} />
         {busy ? <p role="status">Recomputing protected train windows and solving minimum-change recovery…</p> : null}
         {error ? <div className="scenario-error" role="alert"><strong>Scenario failed</strong><p>{error.message}</p></div> : null}
         {recovery ? <>
           <section className="recovery-summary" aria-labelledby="recovery-heading">
-            <div className="scenario-section-heading"><div><span>Returned by CP-SAT</span><h2 id="recovery-heading">Recovery result</h2></div>
-              <strong>{proofLabel(recovery.recovered_plan.proof_state)}</strong></div>
-            {recovery.recovered_plan.proof_state !== "FULLY_OPTIMAL" ? <p>Valid bounded recovery; minimum change is not fully proven.</p> : null}
-            <p>{trainLabel(recovery.disruption.train_id,territory)} delayed by {recovery.disruption.delay_minutes} minutes. The original base plan remains available.</p>
-            <dl className="recovery-metrics">
-              {[["Unchanged possessions",metrics.retained_blocks],["Shifted possessions",metrics.shifted_blocks],["Cancelled groups",metrics.cancelled_blocks],
-                ["New groups",metrics.new_blocks],["Unchanged task starts",metrics.retained_tasks],["Shifted tasks",metrics.shifted_tasks],
-                ["Outstanding tasks",metrics.unscheduled_tasks_after_disruption],["Task displacement",`${metrics.total_shift_minutes} min`]].map(([label,value]) =>
-                <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
-            </dl>
-            <p className="scenario-note">Groups match by section and task membership, not block ID. A cancelled group can be regrouped without losing its work. Displacement sums absolute start changes for previously scheduled tasks still scheduled.</p>
-            <p>Affected sections: {recovery.affected_sections.map((id) => sectionLabel(territory,id)).join("; ")}</p>
-            <p>Newly unscheduled: {recovery.newly_unscheduled_task_ids.map((id) => names.get(id) ?? id).join(", ") || "None"}</p>
-            <RiskResult risk={recovery.risk} />
+            <div className="scenario-section-heading">
+              <div><span>CP-SAT minimum-change recovery</span><h2 id="recovery-heading">Recovery result</h2></div>
+              <strong>{proofLabel(recovery.recovered_plan.proof_state)}</strong>
+            </div>
+            {recovery.recovered_plan.proof_state !== "FULLY_OPTIMAL" ? <p className="recovery-proof-note">Valid bounded recovery; minimum change is not fully proven.</p> : null}
+            <p className="recovery-disruption-subhead">
+              <strong>{trainFullLabel(recovery.disruption.train_id, territory)}</strong> delayed by <strong>{recovery.disruption.delay_minutes} min</strong>. Original base plan remains preserved.
+            </p>
+            <div className="recovery-outcome-cards">
+              <div className="recovery-card card-retained">
+                <span>Unchanged</span>
+                <strong>{metrics.retained_blocks}</strong>
+                <small>possessions kept</small>
+              </div>
+              <div className="recovery-card card-shifted">
+                <span>Shifted</span>
+                <strong>{metrics.shifted_blocks}</strong>
+                <small>retimed windows</small>
+              </div>
+              <div className="recovery-card card-cancelled">
+                <span>Cancelled</span>
+                <strong>{metrics.cancelled_blocks}</strong>
+                <small>groups broken</small>
+              </div>
+              <div className="recovery-card card-new">
+                <span>New groups</span>
+                <strong>{metrics.new_blocks}</strong>
+                <small>rescheduled</small>
+              </div>
+            </div>
           </section>
           <RecoveryTimeline result={recovery} territory={territory} tasks={tasks} originalTrains={trains} />
-          <section className="recovery-findings"><h2>Why repair was needed</h2>
-            {recovery.invalidated_blocks.length ? <ul>{recovery.invalidated_blocks.map((b) => <li key={b.block_id}>
-              <strong>{b.task_ids.map((id) => names.get(id) ?? id).join(" + ")}</strong> · {b.block_id}: fails train protection after the injected delay.
-            </li>)}</ul> : <p>No original possession was invalidated by the supplied delay.</p>}
-          </section>
-          <OutstandingWork items={recovery.recovered_plan.unscheduled_diagnostics} territory={territory} />
+          <details className="recovery-technical-details">
+            <summary>View recovery technical details</summary>
+            <div className="recovery-technical-body">
+              <section className="recovery-findings">
+                <h3>Why repair was needed</h3>
+                {recovery.invalidated_blocks.length ? <ul>{recovery.invalidated_blocks.map((b) => <li key={b.block_id}>
+                  <strong>{b.task_ids.map((id) => names.get(id) ?? id).join(" + ")}</strong> ({b.block_id}): fails train protection after the injected delay.
+                </li>)}</ul> : <p>No original possession was invalidated by the supplied delay.</p>}
+              </section>
+              <dl className="recovery-metrics">
+                {[["Unchanged possessions",metrics.retained_blocks],["Shifted possessions",metrics.shifted_blocks],["Cancelled groups",metrics.cancelled_blocks],
+                  ["New groups",metrics.new_blocks],["Unchanged task starts",metrics.retained_tasks],["Shifted tasks",metrics.shifted_tasks],
+                  ["Outstanding tasks",metrics.unscheduled_tasks_after_disruption],["Total task displacement",`${metrics.total_shift_minutes} min`]].map(([label,value]) =>
+                  <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+              </dl>
+              <p className="scenario-note">Groups match by section and task membership, not block ID. A cancelled group can be regrouped without losing its work. Displacement sums absolute start changes for previously scheduled tasks still scheduled.</p>
+              <p className="recovery-affected-text"><strong>Affected sections:</strong> {recovery.affected_sections.map((id) => sectionLabel(territory,id)).join("; ") || "None"}</p>
+              <p className="recovery-unscheduled-text"><strong>Newly unscheduled:</strong> {recovery.newly_unscheduled_task_ids.map((id) => names.get(id) ?? id).join(", ") || "None"}</p>
+              <RiskResult risk={recovery.risk} />
+              <OutstandingWork items={recovery.recovered_plan.unscheduled_diagnostics} territory={territory} />
+            </div>
+          </details>
         </> : null}
       </>}
-      <DataAssumptions defaultOpen />
+      <DataAssumptions />
     </main>
   </div>;
 }

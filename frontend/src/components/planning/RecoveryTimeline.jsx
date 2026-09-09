@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { buildTicks, rangeStyle, timeLabel } from "../../utils/timeline.js";
-import { sectionLabel, trainLabel } from "../../utils/planningLabels.js";
+import { sectionLabel, trainLabel, canonicalTrainId } from "../../utils/planningLabels.js";
 
 export default function RecoveryTimeline({ result, territory, tasks, originalTrains }) {
   const [selected, setSelected] = useState("");
@@ -31,10 +31,12 @@ export default function RecoveryTimeline({ result, territory, tasks, originalTra
             const change = !lane.train && result.block_changes.find((item) => (lane.changed ? item.after_block_id : item.before_block_id) === row.block_id);
             const state = lane.train ? lane.changed && row.train_id === result.disruption.train_id ? "DISRUPTED" : "TRAIN" : change?.state ?? "UNKNOWN";
             const start = row.entry_time ?? row.start_time, end = row.exit_time ?? row.end_time;
-            const label = lane.train ? trainLabel(row.train_id,territory) : row.tasks.map((id) => names.get(id) ?? id).join(" + ");
+            const humanTrain = lane.train ? trainLabel(row.train_id, territory) : "";
+            const canonicalTrain = lane.train ? canonicalTrainId(row.train_id) : "";
+            const label = lane.train ? humanTrain : row.tasks.map((id) => names.get(id) ?? id).join(" + ");
             return <span key={`${row.train_id ?? row.block_id}-${index}`} className={`recovery-bar state-${state.toLowerCase()}`}
-              style={rangeStyle(start,end,horizon)} title={`${label}: ${start} – ${end} · ${state}`}>
-              {lane.train ? label : `${state === "RETAINED" ? "Unchanged" : state.toLowerCase()} · ${label}`}
+              style={rangeStyle(start,end,horizon)} title={lane.train ? `${humanTrain} (${canonicalTrain}): ${timeLabel(start)}–${timeLabel(end)}` : `${label}: ${timeLabel(start)}–${timeLabel(end)} · ${state}`}>
+              {lane.train ? (state === "DISRUPTED" ? `Delayed · ${humanTrain}` : humanTrain) : `${state === "RETAINED" ? "Unchanged" : state.toLowerCase()} · ${label}`}
             </span>;
           })}
         </div>

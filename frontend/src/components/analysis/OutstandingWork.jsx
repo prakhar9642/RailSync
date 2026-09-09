@@ -35,33 +35,51 @@ export default function OutstandingWork({ items, territory }) {
         <p className="analysis-empty-line">No outstanding maintenance in this plan.</p>
       ) : (
         <div className="outstanding-list">
-          {items.map((item) => (
-            <article key={item.task.task_id}>
-              <div>
-                <h3>{item.task.task_type}</h3>
-                <p>{departmentLabel(item.task.department)} · {item.task.task_id}</p>
-              </div>
-              <dl>
-                <div><dt>Section</dt><dd>{sectionLabel(territory, item.task.section_id)} <small>{item.task.section_id}</small></dd></div>
-                <div><dt>Priority</dt><dd>{priorityLabel(item.task)}</dd></div>
-                <div><dt>Crew check</dt><dd>{resourceStates(item.candidate_windows, "crew")}</dd></div>
-                <div><dt>Machine check</dt><dd>{resourceStates(item.candidate_windows, "machine")}</dd></div>
-                <div><dt>Power check</dt><dd>{resourceStates(item.candidate_windows, "power")}</dd></div>
-              </dl>
-              <div className="outstanding-reasons">
-                <strong>Factual candidate-window findings</strong>
-                {item.reason_codes.length > 0 ? (
-                  <ul>
-                    {item.reason_codes.map((reason) => (
-                      <li key={reason}>{reasonLabels[reason] ?? reason.replaceAll("_", " ").toLowerCase()}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No executable placement found under supplied constraints.</p>
-                )}
-              </div>
-            </article>
-          ))}
+          {items.map((item) => {
+            const highLevelReason = item.reason_codes.length > 0
+              ? (reasonLabels[item.reason_codes[0]] ?? item.reason_codes[0].replaceAll("_", " ").toLowerCase())
+              : (item.outcome || "No executable placement found under supplied constraints");
+
+            return (
+              <article key={item.task.task_id} className="outstanding-item-card">
+                <div className="outstanding-item-header">
+                  <div>
+                    <h3>{item.task.task_type}</h3>
+                    <p>{departmentLabel(item.task.department)} · Outstanding</p>
+                  </div>
+                  <span className="outstanding-reason-badge">{highLevelReason}</span>
+                </div>
+
+                <details className="outstanding-details" aria-label="Rejection details">
+                  <summary>
+                    <span>View rejection details</span>
+                  </summary>
+                  <div className="outstanding-details-body">
+                    <dl>
+                      <div><dt>Section</dt><dd>{sectionLabel(territory, item.task.section_id)} <small>({item.task.section_id})</small></dd></div>
+                      <div><dt>Canonical ID</dt><dd>{item.task.task_id}</dd></div>
+                      <div><dt>Priority</dt><dd>{priorityLabel(item.task)}</dd></div>
+                      <div><dt>Crew check</dt><dd>{resourceStates(item.candidate_windows, "crew")}</dd></div>
+                      <div><dt>Machine check</dt><dd>{resourceStates(item.candidate_windows, "machine")}</dd></div>
+                      <div><dt>Power check</dt><dd>{resourceStates(item.candidate_windows, "power")}</dd></div>
+                    </dl>
+                    <div className="outstanding-reasons">
+                      <strong>Factual candidate-window findings</strong>
+                      {item.reason_codes.length > 0 ? (
+                        <ul>
+                          {item.reason_codes.map((reason) => (
+                            <li key={reason}>{reasonLabels[reason] ?? reason.replaceAll("_", " ").toLowerCase()}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p>No executable placement found under supplied constraints.</p>
+                      )}
+                    </div>
+                  </div>
+                </details>
+              </article>
+            );
+          })}
         </div>
       )}
     </section>

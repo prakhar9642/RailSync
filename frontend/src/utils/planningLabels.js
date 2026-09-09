@@ -19,11 +19,26 @@ export function sectionLabel(territory, sectionId) {
   }`;
 }
 
-export function trainLabel(trainId, territory) {
-  if (territory?.provenance?.includes("TEST_FIXTURE")) {
-    return trainId.replace(/^EHDN_/, "");
+export function canonicalTrainId(trainId) {
+  if (!trainId) return "";
+  return trainId.replace(/^EHDN_/, "");
+}
+
+export function trainLabel(trainId, _territory) {
+  if (!trainId) return "";
+  const canonical = canonicalTrainId(trainId);
+  const match = canonical.match(/^TR(?:10?|0?)(\d+)$/i);
+  if (match) {
+    const num = match[1].padStart(2, "0");
+    return `Fixture Train ${num}`;
   }
-  return trainId;
+  return canonical;
+}
+
+export function trainFullLabel(trainId, _territory) {
+  const human = trainLabel(trainId, _territory);
+  const canonical = canonicalTrainId(trainId);
+  return human !== canonical ? `${human} (${canonical})` : canonical;
 }
 
 export function proofLabel(proofState) {

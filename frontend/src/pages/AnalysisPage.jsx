@@ -1,5 +1,5 @@
 import Navbar from "../components/layout/Navbar.jsx";
-import ComparisonSummary from "../components/analysis/ComparisonSummary.jsx";
+import ComparisonSummary, { ComparisonDetails } from "../components/analysis/ComparisonSummary.jsx";
 import DataAssumptions from "../components/analysis/DataAssumptions.jsx";
 import IntegrationGains from "../components/analysis/IntegrationGains.jsx";
 import OutstandingWork from "../components/analysis/OutstandingWork.jsx";
@@ -28,7 +28,7 @@ export default function AnalysisPage({ session, onNavigate, onHome }) {
       />
       <main className="analysis-main">
         <header className="analysis-hero">
-          <span>Plan analysis · Synthetic Test Fixture</span>
+          <span>Plan analysis</span>
           <h1>How coordination changed the plan</h1>
           <p>
             A factual comparison with the non-integrated CP-SAT ablation using the same inputs, constraints, priorities, and runtime budget.
@@ -54,6 +54,7 @@ export default function AnalysisPage({ session, onNavigate, onHome }) {
               tasks={tasks}
               horizon={horizon}
             />
+            <ComparisonDetails analysis={plan.analysis} />
             <IntegrationGains
               gains={plan.analysis.integrated_blocks}
               territory={territory}
@@ -73,7 +74,7 @@ export default function AnalysisPage({ session, onNavigate, onHome }) {
           </section>
         ) : null}
 
-        <DataAssumptions plan={plan} defaultOpen />
+        <DataAssumptions plan={plan} />
       </main>
     </div>
   );

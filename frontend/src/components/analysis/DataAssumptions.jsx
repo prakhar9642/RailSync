@@ -8,17 +8,17 @@ export default function DataAssumptions({ defaultOpen = false }) {
         <small>Provenance and prototype limits</small>
       </summary>
       <dl>
-        <div><dt>Territory</dt><dd>Synthetic Test Fixture</dd></div>
-        <div><dt>Train occupancy</dt><dd>Synthetic fixture</dd></div>
-        <div><dt>Maintenance</dt><dd>Synthetic prototype</dd></div>
+        <div><dt>Territory</dt><dd>Synthetic Test Fixture (Eastern HDN topology)</dd></div>
+        <div><dt>Train occupancy</dt><dd>Synthetic timetable fixture</dd></div>
+        <div><dt>Maintenance</dt><dd>Synthetic work orders and demands</dd></div>
         <div>
           <dt>Crew, machine, power</dt>
-          <dd>Synthetic fixture</dd>
+          <dd>Synthetic depot resource fixtures</dd>
         </div>
-        <div><dt>Solver</dt><dd>OR-Tools CP-SAT constraint optimization</dd></div>
-        <div><dt>Baseline</dt><dd>Non-integrated CP-SAT comparison</dd></div>
-        <div><dt>Safety margins</dt><dd>Configurable prototype assumption</dd></div>
-        <div><dt>Setup and release</dt><dd>Configurable prototype assumption</dd></div>
+        <div><dt>Solver</dt><dd>Real OR-Tools CP-SAT constraint optimization engine</dd></div>
+        <div><dt>Baseline</dt><dd>Independent non-integrated CP-SAT comparison</dd></div>
+        <div><dt>Safety margins</dt><dd>Configurable prototype policy</dd></div>
+        <div><dt>Setup and release</dt><dd>Configurable prototype policy</dd></div>
         <div><dt>Compatibility</dt><dd>Prototype policy; requires domain validation</dd></div>
         <div><dt>Historical risk model</dt><dd>Experimental public aggregate-delay estimate; substantial error, not individual-run forecasting</dd></div>
         <div><dt>Scenario inputs</dt><dd>Synthetic forecast experiment; explicit train delay or public-profile transfer</dd></div>
@@ -27,7 +27,7 @@ export default function DataAssumptions({ defaultOpen = false }) {
           <dd>Deterministic resilience heuristic; not a probability of successful execution</dd>
         </div>
       </dl>
-      <p>No live Indian Railways operational feed is connected.</p>
+      <p>No live Indian Railways operational feed is connected. Optimization and recovery computations run live via OR-Tools CP-SAT.</p>
     </details>
   );
 }

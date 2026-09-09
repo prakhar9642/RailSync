@@ -34,7 +34,7 @@ export default function PlannerCorridor({ territory, selectedSection, onSelectSe
     <section className="planner-corridor" aria-labelledby="corridor-heading">
       <div className="planner-corridor-heading">
         <div>
-          <span className="planner-kicker">Synthetic Test Fixture</span>
+          <span className="planner-kicker">Corridor alignment</span>
           <h2 id="corridor-heading">{territory.display_name}</h2>
         </div>
         <p>

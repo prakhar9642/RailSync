@@ -274,7 +274,7 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
 
         {dataState.status === "loading" ? (
           <div className="planner-data-state" role="status">
-            Loading maintenance and train data from FastAPI...
+            Loading maintenance and train timetable data...
           </div>
         ) : null}
         {dataState.status === "error" ? (
@@ -322,6 +322,7 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
                 selectedBlockId={selectedBlockId}
                 onSelectBlock={setSelectedBlockId}
                 territory={dataState.territory}
+                tasks={dataState.tasks}
               />
 
               <aside className="planner-control-column">

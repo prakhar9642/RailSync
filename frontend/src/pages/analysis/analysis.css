@@ -119,6 +119,95 @@
   font-size: 11px;
 }
 
+.analysis-outcome-card {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 22px 24px;
+  border: 1px solid rgba(45, 106, 79, 0.3);
+  border-left: 4px solid var(--confirm);
+  background: #f2f7f3;
+}
+
+.outcome-primary-stat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px 18px;
+}
+
+.outcome-duration-shift {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.outcome-saved-stat {
+  color: var(--confirm);
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 2.6vw, 32px);
+  line-height: 1;
+}
+
+.outcome-reduction-badge {
+  display: inline-flex;
+  padding: 3px 8px;
+  background: var(--confirm);
+  color: #fff;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.outcome-sub-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(45, 106, 79, 0.2);
+}
+
+.outcome-stat-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.outcome-stat-chip strong {
+  color: var(--navy);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.outcome-stat-chip span {
+  color: var(--muted);
+}
+
+.comparison-technical-details {
+  border: 1px solid var(--line);
+  background: var(--white);
+  margin-top: 24px;
+}
+
+.comparison-technical-details summary {
+  padding: 14px 18px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--navy);
+  background: #f8f7f3;
+}
+
+.comparison-technical-body {
+  padding: 20px;
+  border-top: 1px solid var(--line);
+}
+
 .analysis-outcome.is-neutral {
   border-left-color: var(--muted);
   background: #f7f6f2;
@@ -410,6 +499,43 @@
 
 .outstanding-list article {
   border-top-color: var(--critical);
+}
+
+.outstanding-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.outstanding-reason-badge {
+  padding: 4px 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: var(--critical);
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: var(--radius);
+}
+
+.outstanding-details {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.outstanding-details summary {
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--navy);
+}
+
+.outstanding-details-body {
+  margin-top: 10px;
 }
 
 .outstanding-list article > div:first-child p {
