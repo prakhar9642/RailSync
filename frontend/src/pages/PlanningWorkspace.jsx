@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "../components/layout/Navbar.jsx";
 import DataAssumptions from "../components/analysis/DataAssumptions.jsx";
+import RiskControls, { RiskResult } from "../components/planning/RiskControls.jsx";
+import { riskOptions } from "../utils/risk.js";
 import BlockDetails from "../components/planning/BlockDetails.jsx";
 import MaintenanceTaskList from "../components/planning/MaintenanceTaskList.jsx";
 import MaintenanceTimeline from "../components/planning/MaintenanceTimeline.jsx";
@@ -191,12 +193,14 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
       ...current,
       plan: null,
       optimizationError: null,
+      recovery: null,
     }));
     setSelectedBlockId("");
 
     try {
       const result = await optimizePlan(DEMO_TERRITORY_ID, {
         signal: controller.signal,
+        ...riskOptions(session.riskConfig),
       });
       if (requestId !== optimizeRequestId.current) return;
 
@@ -290,6 +294,11 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
               selectedSection={selectedSection}
               onSelectSection={selectSection}
             />
+
+            <RiskControls config={session.riskConfig}
+              onChange={(riskConfig) => setSession((current) => ({ ...current, riskConfig }))}
+              trains={dataState.trains} territory={dataState.territory} disabled={optimizationStatus === "loading"} />
+            <RiskResult risk={plan?.risk} />
 
             <div className="planning-workspace-grid">
               <MaintenanceTaskList

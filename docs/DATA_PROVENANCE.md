@@ -18,6 +18,8 @@ validation, operational rules, security controls, and acceptance testing.
 | `SYNTHETIC_PROTOTYPE` | Manually constructed data used by the current prototype. |
 | `SYNTHETIC_SCENARIO` | Explicitly generated maintenance, resource, freight, or disruption inputs for scenario analysis. |
 | `TEST_FIXTURE` | Deterministic fictional data used only for tests and demonstrations. |
+| `PUBLIC_HISTORICAL_DATA` | Frozen, attributed community train–station aggregate performance; not individual-run history or an official operational feed. |
+| `SYNTHETIC_FORECAST_SCENARIO` | Explicitly user-selected hypothetical delay or historical-profile transfer onto fictional planning inputs. |
 
 Territory manifests record provenance per available dataset. A territory marked
 `PLACEHOLDER` has no loadable datasets or scenario references. The loader rejects
@@ -38,6 +40,26 @@ ID. A real/future corridor ID never falls back to a fixture.
 The Eastern fixture manifest also fixes its six-hour planning horizon and points
 to a `TEST_FIXTURE` resource context. Crew capacities and power windows in that
 file are deterministic demonstration assumptions, not official Railway data.
+
+## Phase 7 historical-risk source
+
+`data/ml/raw` freezes Ankita Anand's public aggregate delay dataset at revision
+`eccd6cb773b33f5e990f5dc64793e079d2823b52` on 2026-09-09:
+https://github.com/ankitaanand28/DA323_IndianRailwayTrainDelayDatasets
+
+The source describes March 2023–March 2024 coverage. There are 1,479 train–station
+aggregate rows across 42 route files plus train metadata. Its README declares
+CC BY-NC-SA 4.0 and is retained with the snapshot; attribution and source-file
+SHA256 hashes are in `data/ml/provenance.json`. No synthetic targets were added.
+The processed target is observed aggregate average delay; only train type,
+station code and normalized route-row position enter the model. Delay severity
+and punctuality percentages do not enter features. Full split/evaluation and
+limitations are in [ML_RISK_MODEL.md](ML_RISK_MODEL.md).
+
+Historical data remains separate from the Eastern fixture's fictional occupancy,
+maintenance and resource data. A user may explicitly bind a public profile to a
+fixture train/section as a SYNTHETIC_FORECAST_SCENARIO; no identity equivalence or
+real-corridor validity is implied. The response preserves both provenance labels.
 
 ## Intended source split
 

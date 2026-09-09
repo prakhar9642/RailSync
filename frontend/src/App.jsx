@@ -2,6 +2,7 @@ import { useState } from "react";
 import AnalysisPage from "./pages/AnalysisPage.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
 import PlanningWorkspace from "./pages/PlanningWorkspace.jsx";
+import ScenarioLab from "./pages/ScenarioLab.jsx";
 
 function App() {
   const [view, setView] = useState("landing");
@@ -13,9 +14,15 @@ function App() {
     plan: null,
     dataError: null,
     optimizationError: null,
+    recovery: null,
+    riskConfig: { mode: "STATIC", target: "", profile: "" },
   });
 
   if (view === "workspace") {
+    if (workspaceView === "scenario") {
+      return <ScenarioLab session={planningSession} setSession={setPlanningSession}
+        onNavigate={setWorkspaceView} onHome={() => setView("landing")} />;
+    }
     if (workspaceView === "analysis") {
       return (
         <AnalysisPage

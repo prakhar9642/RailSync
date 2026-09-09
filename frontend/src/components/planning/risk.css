@@ -1,0 +1,11 @@
+.risk-controls { margin: 24px 0; padding: 16px 20px; border: 1px solid var(--line); background: var(--white); }
+.risk-controls summary { cursor: pointer; color: var(--navy); font-size: 13px; font-weight: 600; }
+.risk-controls summary small { margin-left: 12px; color: var(--muted); font-weight: 400; }
+.risk-controls p, .risk-result p { margin: 10px 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
+.risk-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.risk-bindings { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+.risk-bindings label { display: grid; gap: 6px; font-size: 12px; min-width: 0; }
+.risk-bindings select { width: 100%; padding: 10px; background: var(--white); border: 1px solid var(--line); }
+.risk-bindings p { grid-column: 1 / -1; }
+.risk-result { padding: 12px 0; font-size: 12px; }
+@media (max-width: 720px) { .risk-bindings { grid-template-columns: 1fr; } }

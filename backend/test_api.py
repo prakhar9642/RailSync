@@ -395,10 +395,10 @@ def test_synthetic_resource_context_is_passed_and_repeat_is_deterministic(
     assert optimized_response["planning_context"]["resource_provenance"] == "TEST_FIXTURE"
 
 
-def test_reoptimize_is_explicitly_not_implemented() -> None:
+def test_reoptimize_rejects_legacy_request_without_current_plan() -> None:
     response = client.post(
         "/api/reoptimize",
         json={"cancelled_blocks": ["BLK001"], "emergency_tasks": []},
     )
-    assert response.status_code == 501
-    assert response.json()["detail"]["code"] == "REOPTIMIZATION_NOT_IMPLEMENTED"
+    assert response.status_code == 422
+    assert any(item["loc"] == ["body", "current_plan"] for item in response.json()["detail"])

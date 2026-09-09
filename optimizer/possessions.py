@@ -113,6 +113,8 @@ def solve_priorities(
     deadline=None,
     clock=perf_counter,
     solver_factory=None,
+    stability_stages=(),
+    risk_stages=(),
 ):
     """Solve stages within one deadline and retain the last usable incumbent."""
     stages = []
@@ -126,8 +128,10 @@ def solve_priorities(
         stages.append((field, True, sum(weights)))
     stages += [
         ("task_count", True, sum(v["scheduled"] for v in variables.values())),
+        *stability_stages,
         ("possession_minutes", False, sum(b["size"] for b in blocks)),
         ("block_count", False, sum(b["present"] for b in blocks)),
+        *risk_stages,
         ("minimum_boundary_slack_minutes", True, slack_objectives[0]),
         ("total_boundary_slack_minutes", True, slack_objectives[1]),
         ("start_minutes", False, sum(v["start"] for v in variables.values())),
@@ -144,7 +148,7 @@ def solve_priorities(
             elapsed = now - run_started
             facts.extend(
                 _not_run(stage, "TIME_LIMIT", elapsed)
-                for stage in OBJECTIVE_STAGE_NAMES[index:]
+                for stage, _, _ in stages[index:]
             )
             return LexicographicSolveResult(
                 last_status,
@@ -197,7 +201,7 @@ def solve_priorities(
         # Never fix an unproven value or run a lower-priority objective.
         facts.extend(
             _not_run(stage, "HIGHER_STAGE_UNPROVEN", finished - run_started)
-            for stage in OBJECTIVE_STAGE_NAMES[index + 1 :]
+            for stage, _, _ in stages[index + 1 :]
         )
         if last_solver is not None:
             return LexicographicSolveResult(

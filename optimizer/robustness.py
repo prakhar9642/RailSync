@@ -13,9 +13,12 @@ def add_boundary_slack(model, blocks, windows_by_section, origin, horizon):
         after = model.NewIntVar(0, horizon, f"block_{index}_after_slack")
         slack = model.NewIntVar(0, horizon, f"block_{index}_boundary_slack")
         choices = []
+        block["slack_choices"] = []
+        block["before_slack"], block["after_slack"] = before, after
         for window in windows_by_section.get(block["section_id"], []):
             chosen = model.NewBoolVar(f"block_{index}_{window.window_id}_slack")
             choices.append(chosen)
+            block["slack_choices"].append((window, chosen))
             start = datetime_to_minutes(window.usable_start, origin)
             end = datetime_to_minutes(window.usable_end, origin)
             model.Add(before == block["start"] - start).OnlyEnforceIf(chosen)

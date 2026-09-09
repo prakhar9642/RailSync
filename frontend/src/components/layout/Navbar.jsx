@@ -43,7 +43,9 @@ export default function Navbar({
               </button>
             </li>
             <li>
-              <button type="button" disabled title="Available in a later phase">
+              <button type="button" className={activeWorkspaceView === "scenario" ? "active" : ""}
+                aria-current={activeWorkspaceView === "scenario" ? "page" : undefined}
+                onClick={() => onNavigateWorkspace?.("scenario")}>
                 Scenario Lab
               </button>
             </li>

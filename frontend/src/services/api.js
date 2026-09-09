@@ -1,7 +1,7 @@
 const DEFAULT_API_BASE_URL = "/api";
 
 export const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL
+  import.meta.env?.VITE_API_BASE_URL || DEFAULT_API_BASE_URL
 ).replace(/\/$/, "");
 
 export class ApiError extends Error {
@@ -68,11 +68,29 @@ export function getTrains(territoryId, { signal } = {}) {
   return request(`/trains${territoryQuery(territoryId)}`, { signal });
 }
 
-export function optimizePlan(territoryId, { signal } = {}) {
+export function optimizePlan(territoryId, { signal, risk_mode = "STATIC", risk_profiles = [] } = {}) {
   return request("/optimize", {
     method: "POST",
     signal,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ territory_id: territoryId }),
+    body: JSON.stringify({ territory_id: territoryId, risk_mode, risk_profiles }),
+  });
+}
+
+export function getMlStatus({ signal } = {}) {
+  return request("/ml/status", { signal });
+}
+
+export function reoptimizePlan(plan, disruption, { signal, risk_mode = "STATIC", risk_profiles = [] } = {}) {
+  return request("/reoptimize", {
+    method: "POST", signal,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      territory_id: plan.planning_context.territory_id,
+      horizon_start: plan.planning_context.horizon_start,
+      horizon_end: plan.planning_context.horizon_end,
+      current_plan: { blocks: plan.blocks, unscheduled_tasks: plan.unscheduled_tasks },
+      disruption, risk_mode, risk_profiles,
+    }),
   });
 }

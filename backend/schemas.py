@@ -1,5 +1,5 @@
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any, Literal
+from pydantic import BaseModel, Field, ConfigDict
 
 class MaintenanceTask(BaseModel):
     task_id: str
@@ -38,16 +38,44 @@ class OptimizeMetrics(BaseModel):
     optimized_affected_trains: int
     integrated_blocks: int
 
+class RiskProfileBinding(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    train_id: str
+    section_id: str
+    historical_train_id: str
+    historical_station_id: str
+
+
 class OptimizeRequest(BaseModel):
     profile: Optional[str] = "Availability First"
     territory_id: Optional[str] = None
     corridor_id: Optional[str] = None
     horizon_hours: Optional[int] = Field(default=None, gt=0)
+    risk_mode: Literal["STATIC", "ML_ASSISTED"] = "STATIC"
+    risk_profiles: List[RiskProfileBinding] = Field(default_factory=list, max_length=100)
+
+class TrainDelayScenario(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["TRAIN_DELAY"]
+    train_id: str = Field(min_length=1)
+    delay_minutes: int = Field(ge=0, le=1440, strict=True)
+
+
+class CurrentPlan(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    blocks: List[ScheduledBlock] = Field(max_length=500)
+    unscheduled_tasks: List[str]
+
 
 class ReoptimizeRequest(BaseModel):
-    cancelled_blocks: Optional[List[str]] = Field(default_factory=list)
-    emergency_tasks: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
-    delay_minutes: Optional[int] = 0
+    model_config = ConfigDict(extra="forbid")
+    territory_id: str
+    horizon_start: str
+    horizon_end: str
+    current_plan: CurrentPlan
+    disruption: TrainDelayScenario
+    risk_mode: Literal["STATIC", "ML_ASSISTED"] = "STATIC"
+    risk_profiles: List[RiskProfileBinding] = Field(default_factory=list, max_length=100)
 
 
 class ComparisonSummary(BaseModel):
@@ -192,3 +220,47 @@ class OptimizeResponse(BaseModel):
     comparison: ComparisonSummary
     planning_context: PlanningContext
     analysis: OptimizeAnalysis
+    risk: Dict[str, Any] = Field(default_factory=dict)
+
+
+class RecoveryMetrics(BaseModel):
+    retained_blocks: int
+    shifted_blocks: int
+    cancelled_blocks: int
+    new_blocks: int
+    retained_tasks: int
+    shifted_tasks: int
+    new_tasks: int
+    unscheduled_tasks_after_disruption: int
+    total_shift_minutes: int
+    total_block_shift_minutes: int
+
+
+class RecoveredPlan(BaseModel):
+    status: str
+    blocks: List[ScheduledBlock]
+    unscheduled_tasks: List[str]
+    metrics: OptimizeMetrics
+    proof_state: str
+    service_metrics: AnalysisPlanMetrics
+    block_diagnostics: List[BlockDiagnostic]
+    unscheduled_diagnostics: List[UnscheduledTaskDiagnostic]
+
+
+class ReoptimizeResponse(BaseModel):
+    status: str
+    territory_id: str
+    horizon_start: str
+    horizon_end: str
+    disruption: TrainDelayScenario
+    scenario_provenance: str
+    base_plan: CurrentPlan
+    recovered_plan: RecoveredPlan
+    recovery_metrics: RecoveryMetrics
+    block_changes: List[Dict[str, Any]]
+    task_changes: List[Dict[str, Any]]
+    newly_unscheduled_task_ids: List[str]
+    invalidated_blocks: List[Dict[str, Any]]
+    affected_sections: List[str]
+    train_occupancy: List[TrainOccupancy]
+    risk: Dict[str, Any]

@@ -20,6 +20,8 @@ export default function DataAssumptions({ defaultOpen = false }) {
         <div><dt>Safety margins</dt><dd>Configurable prototype assumption</dd></div>
         <div><dt>Setup and release</dt><dd>Configurable prototype assumption</dd></div>
         <div><dt>Compatibility</dt><dd>Prototype policy; requires domain validation</dd></div>
+        <div><dt>Historical risk model</dt><dd>Experimental public aggregate-delay estimate; substantial error, not individual-run forecasting</dd></div>
+        <div><dt>Scenario inputs</dt><dd>Synthetic forecast experiment; explicit train delay or public-profile transfer</dd></div>
         <div>
           <dt>Boundary slack</dt>
           <dd>Deterministic resilience heuristic; not a probability of successful execution</dd>

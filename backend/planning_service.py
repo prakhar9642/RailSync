@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Any
 
 from data import LoadedTerritory, load_territory
+from ml.inference import planning_risk
 from optimizer.candidate_windows import OperationalAllowances
 from optimizer.comparison import compare_plans
 from optimizer.feasibility import task_requirements
@@ -374,6 +375,8 @@ def optimize_registered_territory(
     *,
     profile: str = SUPPORTED_PROFILE,
     horizon_hours: int | None = None,
+    risk_mode: str = "STATIC",
+    risk_profiles=(),
 ) -> dict[str, Any]:
     """Run the existing fair comparison for one registered planning input."""
     if profile != SUPPORTED_PROFILE:
@@ -385,6 +388,10 @@ def optimize_registered_territory(
             f"Territory {territory_id!r} uses a fixed {configured_hours:g}-hour horizon."
         )
     _validate_resource_coverage(territory)
+    try:
+        penalties, risk = planning_risk(territory.train_occupancy, risk_mode, risk_profiles)
+    except ValueError as error:
+        raise InvalidPlanningRequest(str(error)) from error
 
     try:
         compared = compare_plans(
@@ -394,7 +401,8 @@ def optimize_registered_territory(
             resource_context=territory.resource_context,
             allowances=DEMO_ALLOWANCES,
             time_limit_seconds=DEMO_SOLVE_LIMIT_SECONDS,
+            risk_penalties=penalties,
         )
     except RuntimeError as error:
         raise PlanningExecutionError(str(error)) from error
-    return _response(territory, compared)
+    return dict(_response(territory, compared), risk=risk)

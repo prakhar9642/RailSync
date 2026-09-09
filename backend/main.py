@@ -7,8 +7,9 @@ import logging
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import planning_service
-from .schemas import OptimizeRequest, OptimizeResponse, ReoptimizeRequest
+from . import planning_service, recovery_service
+from .schemas import OptimizeRequest, OptimizeResponse, ReoptimizeRequest, ReoptimizeResponse
+from ml.inference import status as ml_status
 
 from data import TerritoryNotPopulatedError, UnknownTerritoryError
 
@@ -152,18 +153,21 @@ def run_optimization(request: OptimizeRequest | None = None):
             territory_id,
             profile=request.profile or planning_service.SUPPORTED_PROFILE,
             horizon_hours=request.horizon_hours,
+            risk_mode=request.risk_mode,
+            risk_profiles=[p.model_dump() for p in request.risk_profiles],
         )
     except Exception as error:
         raise _http_error(error) from error
 
 
-@app.post("/api/reoptimize")
-def run_reoptimization(request: ReoptimizeRequest | None = None):
-    _ = request
-    raise HTTPException(
-        status_code=501,
-        detail={
-            "code": "REOPTIMIZATION_NOT_IMPLEMENTED",
-            "message": "Real reoptimization is not implemented in this phase.",
-        },
-    )
+@app.post("/api/reoptimize", response_model=ReoptimizeResponse)
+def run_reoptimization(request: ReoptimizeRequest):
+    try:
+        return recovery_service.reoptimize(request)
+    except Exception as error:
+        raise _http_error(error) from error
+
+
+@app.get("/api/ml/status")
+def get_ml_status():
+    return ml_status()

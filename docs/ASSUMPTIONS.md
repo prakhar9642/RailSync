@@ -144,7 +144,8 @@
   CREW_CAPACITY_CONFLICT and MACHINE_CAPACITY_CONFLICT. The optimizer response
   shape remains; the backend adds proof, comparison and planning context fields.
 - POST /api/optimize now loads a registered territory and calls the existing fair
-  comparison pipeline. POST /api/reoptimize explicitly returns not implemented.
+  comparison pipeline. POST /api/reoptimize now supports the additive Phase 7
+  train-delay recovery mode described below.
 
 SOURCE/SCHEMA-BACKED: CONTRACTS.md contains department, compatibility_group,
 crew_type and requires_power_block fields. It supplies field names, not official
@@ -232,3 +233,20 @@ The authoritative backend demonstration uses `eastern_hdn_test_fixture` from
 2026-09-01T00:00:00 through 2026-09-01T06:00:00. Its one-unit crew capacities and
 section power windows are `TEST_FIXTURE` assumptions. The API labels its baseline
 `NON_INTEGRATED_CP_SAT_COMPARISON`; it is not current or manual Railway practice.
+
+## Phase 7 additions
+
+Normal STATIC optimization retains all nine original objectives and hard
+constraints. Optional ML_ASSISTED mode adds risk-reserve preferences after
+possession/block-count objectives. The model estimates historical aggregate
+average delay with substantial error; it does not predict an individual future
+train's arrival or certify safe maintenance. Fictional trains require explicit
+synthetic profile transfer. Missing model/profile data falls back to static.
+See [ML_RISK_MODEL.md](ML_RISK_MODEL.md) for exact mathematics and evaluation.
+
+Recovery shifts all supplied occupancies of one selected train by the injected
+delay, regenerates candidate windows, and adds exact stability stages after the
+four maintenance-service objectives. Group and task changes are measured
+separately. This full-horizon what-if mode does not freeze completed/in-progress
+work or model dispatch/knock-on delays. It is not live operational recovery.
+See [REOPTIMIZATION.md](REOPTIMIZATION.md) for validation, hierarchy and metrics.

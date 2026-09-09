@@ -17,6 +17,7 @@ def compare_plans(
     allowances=OperationalAllowances(), window_contexts=None, resource_context=None,
     compatibility_policy=CompatibilityPolicy(), time_limit_seconds=None,
     stage_time_limit_seconds=None,
+    risk_penalties=None,
 ):
     """Same solver/inputs/objectives; only possession sharing differs.
 
@@ -31,6 +32,7 @@ def compare_plans(
             compatibility_policy=compatibility_policy, allow_integration=allow_integration,
             diagnostics=diagnostics, time_limit_seconds=time_limit_seconds,
             stage_time_limit_seconds=stage_time_limit_seconds,
+            risk_penalties=risk_penalties,
         )
         if plan["status"] != "success":
             raise RuntimeError(f"{name} planning failed: {plan['status']}")

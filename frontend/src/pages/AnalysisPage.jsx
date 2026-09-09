@@ -5,6 +5,7 @@ import IntegrationGains from "../components/analysis/IntegrationGains.jsx";
 import OutstandingWork from "../components/analysis/OutstandingWork.jsx";
 import PairedPossessionTimeline from "../components/analysis/PairedPossessionTimeline.jsx";
 import Button from "../components/ui/Button.jsx";
+import { RiskResult } from "../components/planning/RiskControls.jsx";
 import "./analysis/analysis.css";
 
 export default function AnalysisPage({ session, onNavigate, onHome }) {
@@ -46,6 +47,7 @@ export default function AnalysisPage({ session, onNavigate, onHome }) {
         {plan?.analysis ? (
           <>
             <ComparisonSummary analysis={plan.analysis} />
+            <RiskResult risk={plan.risk} />
             <PairedPossessionTimeline
               analysis={plan.analysis}
               territory={territory}

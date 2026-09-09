@@ -20,6 +20,7 @@ try:
     from .resources import ResourceContext, add_capacity_constraints, validate_capacities
     from .possessions import build_possessions, solve_priorities
     from .robustness import add_boundary_slack
+    from .preferences import stability_objectives, risk_objectives
     from .metrics import summarize_plan
     from .runtime import PlanProofState, validate_time_limit
 except ImportError:  # Preserve direct-script and existing test imports.
@@ -30,6 +31,7 @@ except ImportError:  # Preserve direct-script and existing test imports.
     from resources import ResourceContext, add_capacity_constraints, validate_capacities
     from possessions import build_possessions, solve_priorities
     from robustness import add_boundary_slack
+    from preferences import stability_objectives, risk_objectives
     from metrics import summarize_plan
     from runtime import PlanProofState, validate_time_limit
 
@@ -253,6 +255,8 @@ def optimize_schedule(
     time_limit_seconds: float | None = None,
     # Backward-compatible internal alias; it now means one total run budget.
     stage_time_limit_seconds: float | None = None,
+    previous_blocks: list[dict[str, Any]] | None = None,
+    risk_penalties: dict[tuple[str, str], float] | None = None,
 ) -> dict[str, Any]:
     """Reserve setup/work/release in feasible windows; return full possession blocks."""
     planning_started = perf_counter()
@@ -385,11 +389,16 @@ def optimize_schedule(
         model, possession_variables, windows_by_section, horizon_start_dt, horizon_minutes,
     )
     add_capacity_constraints(model, maintenance_tasks, task_variables, resource_context)
+    stability_stages = stability_objectives(model, maintenance_tasks, task_variables,
+        possession_variables, previous_blocks, horizon_start_dt, horizon_minutes)
+    risk_stages = risk_objectives(model, possession_variables, windows_by_section,
+        train_occupancy, risk_penalties, horizon_minutes)
     solver = cp_model.CpSolver()
     solver.parameters.num_search_workers = 1
     solve_result = solve_priorities(
         model, solver, maintenance_tasks, task_variables, possession_variables,
         facts["priority_stages"], slack_objectives, deadline=deadline,
+        stability_stages=stability_stages, risk_stages=risk_stages,
     )
     solver_status = solve_result.solver_status
     solver = solve_result.solver
