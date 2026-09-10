@@ -1,4 +1,5 @@
 import Navbar from "../components/layout/Navbar.jsx";
+import Footer from "../components/layout/Footer.jsx";
 import ComparisonSummary, { ComparisonDetails } from "../components/analysis/ComparisonSummary.jsx";
 import DataAssumptions from "../components/analysis/DataAssumptions.jsx";
 import IntegrationGains from "../components/analysis/IntegrationGains.jsx";
@@ -77,6 +78,7 @@ export default function AnalysisPage({ session, onNavigate, onHome }) {
 
         <DataAssumptions plan={plan} territory={session.territory} />
       </main>
+      <Footer />
     </div>
   );
 }

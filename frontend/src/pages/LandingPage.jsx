@@ -6,6 +6,7 @@ import Footer from "../components/layout/Footer.jsx";
 import HeroSection from "../sections/HeroSection.jsx";
 import ProblemSection from "../sections/ProblemSection.jsx";
 import HowItWorks from "../sections/HowItWorks.jsx";
+import IntegratedPossessionSection from "../sections/IntegratedPossessionSection.jsx";
 import CorridorPreview from "../sections/CorridorPreview.jsx";
 import SolutionPreview from "../sections/SolutionPreview.jsx";
 import FinalCTA from "../sections/FinalCTA.jsx";
@@ -57,6 +58,7 @@ export default function LandingPage({ onLaunchPlanner, initialTerritoryId }) {
       </section>
       <ProblemSection />
       <HowItWorks />
+      <IntegratedPossessionSection />
       <CorridorPreview />
       <SolutionPreview />
       <FinalCTA onLaunchPlanner={() => onLaunchPlanner(territoryId)} />

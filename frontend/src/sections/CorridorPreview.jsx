@@ -194,7 +194,7 @@ export default function CorridorPreview({
           </svg>
 
           <div className="station-list">
-            {stations.map((station, index) => (
+            {stations.map((station) => (
               <motion.span
                 key={station.id}
                 className={`station-name ${active === station.id ? "is-active" : ""}`}

@@ -44,7 +44,7 @@ export function trainFullLabel(trainId, territory) {
 }
 
 export function proofLabel(proofState) {
-  if (proofState === "FULLY_OPTIMAL") return "Optimal plan proven";
+  if (proofState === "FULLY_OPTIMAL") return "Optimal solution";
   if (proofState === "FEASIBLE_BOUNDED") return "Valid bounded plan";
   return proofState ? proofState.replaceAll("_", " ").toLowerCase() : "Unavailable";
 }
@@ -52,7 +52,7 @@ export function proofLabel(proofState) {
 export function resourceStateLabel(state) {
   if (state === "PASSED") return "Passed";
   if (state === "FAILED") return "Failed";
-  if (state === "UNKNOWN") return "Unknown";
+  if (state === "UNKNOWN") return "Unconfirmed";
   if (state === "NOT_EVALUATED") return "Not evaluated";
   return "Unavailable";
 }
@@ -60,7 +60,7 @@ export function territoryLabel(territory) {
   const names = {
     saktigarh_memari_public_demo: "Eastern · Saktigarh → Memari",
     western_hdn: "Western · Virar → Dahanu Road",
-    delhi_agra: "Delhi / Northern · Hazrat Nizamuddin → Palwal",
+    delhi_agra: "Northern · Hazrat Nizamuddin → Palwal",
   };
   return names[territory?.territory_id] ?? territory?.display_name ?? "Corridor";
 }

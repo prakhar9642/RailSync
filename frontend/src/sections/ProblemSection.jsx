@@ -38,8 +38,8 @@ export default function ProblemSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.45 }}
               transition={{
-                duration: 0.55,
-                delay: reduceMotion ? 0 : index * 0.14,
+                duration: 0.35,
+                delay: reduceMotion ? 0 : index * 0.08,
                 ease: [0.22, 1, 0.36, 1],
               }}
             >

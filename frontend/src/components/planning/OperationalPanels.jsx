@@ -15,7 +15,19 @@ import {
 import { proofLabel } from "../../utils/planningLabels.js";
 import DataAssumptions from "../analysis/DataAssumptions.jsx";
 
-const readable = (value = "") => value.toLowerCase().replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
+const RAW_LABEL_MAP = {
+  OVERDUE_MAINTENANCE: "Maintenance overdue",
+  CRITICAL_TASK_PENDING: "Critical maintenance pending",
+  FULLY_OPTIMAL: "Optimal solution",
+  FEASIBLE_BOUNDED: "Valid bounded plan",
+  PUBLIC_TIMETABLE_DERIVED: "Public timetable-derived",
+  SYNTHETIC_PROTOTYPE: "Prototype scenario",
+  TEST_FIXTURE: "Test fixture",
+};
+
+const readable = (value = "") =>
+  RAW_LABEL_MAP[value] ??
+  value.toLowerCase().replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 
 const NEXT_STATE = { DRAFT: "REVIEWED", REVIEWED: "APPROVED", APPROVED: "PUBLISHED" };
 const NEXT_BLOCK_STATE = { DRAFT: "FROZEN", FROZEN: "IN_PROGRESS", IN_PROGRESS: "COMPLETED" };

@@ -70,16 +70,26 @@ export default function ComparisonSummary({ analysis }) {
     <section className="analysis-comparison" aria-labelledby="comparison-heading">
       <div className="analysis-section-heading">
         <span>Fair technical comparison</span>
-        <h2 id="comparison-heading">Did coordination reduce possession time?</h2>
+        <h2 id="comparison-heading">DID RAILSYNC IMPROVE THE PLAN?</h2>
         <p>{fairness.statement}</p>
       </div>
 
       {showSavings ? (
         <div className="analysis-outcome-card">
           <div className="outcome-primary-stat">
-            <div className="outcome-duration-shift"><div><small>Baseline</small><strong>{baseline.metrics.possession_minutes} <small>min</small></strong></div><span aria-hidden="true">→</span><div><small>RailSync</small><strong>{railsync.metrics.possession_minutes} <small>min</small></strong></div></div>
+            <div className="outcome-duration-shift">
+              <div>
+                <small>BASELINE</small>
+                <strong>{baseline.metrics.possession_minutes} <small>min</small></strong>
+              </div>
+              <span aria-hidden="true" className="outcome-shift-arrow">→</span>
+              <div>
+                <small>RAILSYNC</small>
+                <strong>{railsync.metrics.possession_minutes} <small>min</small></strong>
+              </div>
+            </div>
             <strong className="outcome-saved-stat">
-              {fairness.possession_saved_minutes} possession-minutes avoided
+              {fairness.possession_saved_minutes} minutes saved
             </strong>
             <span className="outcome-reduction-badge">
               {fairness.possession_reduction_percent.toFixed(1)}% reduction

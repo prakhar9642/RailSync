@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "../components/layout/Navbar.jsx";
+import Footer from "../components/layout/Footer.jsx";
 import RiskControls, { RiskResult } from "../components/planning/RiskControls.jsx";
 import { riskOptions } from "../utils/risk.js";
 import BlockDetails from "../components/planning/BlockDetails.jsx";
@@ -425,6 +426,7 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
           </>
         ) : null}
       </main>
+      <Footer />
     </div>
   );
 }

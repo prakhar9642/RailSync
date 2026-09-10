@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Navbar from "../components/layout/Navbar.jsx";
+import Footer from "../components/layout/Footer.jsx";
 import Button from "../components/ui/Button.jsx";
 import DataAssumptions from "../components/analysis/DataAssumptions.jsx";
 import OutstandingWork from "../components/analysis/OutstandingWork.jsx";
@@ -7,7 +8,7 @@ import RiskControls, { RiskResult } from "../components/planning/RiskControls.js
 import { riskOptions } from "../utils/risk.js";
 import RecoveryTimeline from "../components/planning/RecoveryTimeline.jsx";
 import { reoptimizePlan } from "../services/api.js";
-import { proofLabel, sectionLabel, trainFullLabel } from "../utils/planningLabels.js";
+import { proofLabel, sectionLabel, territoryLabel, trainFullLabel } from "../utils/planningLabels.js";
 import "./scenario/scenario.css";
 import "./analysis/analysis.css";
 
@@ -91,6 +92,13 @@ export default function ScenarioLab({ session, setSession, onNavigate, onHome })
         {error ? <div className="scenario-error" role="alert"><strong>Scenario failed</strong><p>{error.message}</p></div> : null}
         {recovery ? <>
           <section className="recovery-summary" aria-labelledby="recovery-heading">
+            <div className="scenario-flow" aria-label="Scenario recovery sequence">
+              <span>CURRENT PLAN</span>
+              <span aria-hidden="true">→</span>
+              <span>DISRUPTION</span>
+              <span aria-hidden="true">→</span>
+              <strong>RECOVERED PLAN</strong>
+            </div>
             <div className="scenario-section-heading">
               <div><span>CP-SAT minimum-change recovery</span><h2 id="recovery-heading">Recovery result</h2></div>
               <strong>{proofLabel(recovery.recovered_plan.proof_state)}</strong>
@@ -101,22 +109,22 @@ export default function ScenarioLab({ session, setSession, onNavigate, onHome })
             </p>
             <div className="recovery-outcome-cards">
               <div className="recovery-card card-retained">
-                <span>Unchanged</span>
+                <span className="recovery-card-label">UNCHANGED</span>
                 <strong>{metrics.retained_blocks}</strong>
                 <small>possessions kept</small>
               </div>
               <div className="recovery-card card-shifted">
-                <span>Shifted</span>
+                <span className="recovery-card-label">SHIFTED</span>
                 <strong>{metrics.shifted_blocks}</strong>
                 <small>retimed windows</small>
               </div>
               <div className="recovery-card card-cancelled">
-                <span>Cancelled</span>
+                <span className="recovery-card-label">CANCELLED</span>
                 <strong>{metrics.cancelled_blocks}</strong>
                 <small>groups broken</small>
               </div>
               <div className="recovery-card card-new">
-                <span>New groups</span>
+                <span className="recovery-card-label">NEW</span>
                 <strong>{metrics.new_blocks}</strong>
                 <small>rescheduled</small>
               </div>
@@ -150,6 +158,6 @@ export default function ScenarioLab({ session, setSession, onNavigate, onHome })
       </>}
       <DataAssumptions territory={session.territory} />
     </main>
+    <Footer />
   </div>;
 }
-import { territoryLabel } from "../utils/planningLabels.js";

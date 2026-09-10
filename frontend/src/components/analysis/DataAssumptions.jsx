@@ -1,7 +1,9 @@
 import "./dataAssumptions.css";
 
 export default function DataAssumptions({ defaultOpen = false, territory = null }) {
-  const publicTimetable = territory?.provenance?.includes("PUBLIC_TIMETABLE_DERIVED");
+  const publicTimetable = territory?.provenance?.some(
+    (p) => (typeof p === "string" ? p : p?.label) === "PUBLIC_TIMETABLE_DERIVED"
+  );
   const isHistoricalEastern = territory?.territory_id === "saktigarh_memari_public_demo";
   return (
     <details className="data-assumptions" open={defaultOpen}>

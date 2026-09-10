@@ -13,7 +13,7 @@ function formatHorizonText(horizon) {
 }
 
 function proofLabel(proofState) {
-  if (proofState === "FULLY_OPTIMAL") return "Optimal plan proven";
+  if (proofState === "FULLY_OPTIMAL") return "Optimal solution";
   if (proofState === "FEASIBLE_BOUNDED") return "Valid bounded plan";
   return proofState ? proofState.replaceAll("_", " ").toLowerCase() : "Plan generated";
 }

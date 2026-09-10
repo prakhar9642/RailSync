@@ -72,8 +72,10 @@ export default function BlockDetails({ block, diagnostic, tasks, territory }) {
 
         {/* Department & Sharing badge */}
         <div className="block-details-dept-pill">
-          <strong>{deptSummary}</strong>
-          <small>{block.integrated ? "Integrated possession" : "Individual possession"}</small>
+          <span className="block-pill-time">{timeLabel(block.start_time)}–{timeLabel(block.end_time)}</span>
+          <strong className="block-pill-dept">{deptSummary}</strong>
+          <span className="block-pill-tasks">{block.tasks.length} task{block.tasks.length === 1 ? "" : "s"}</span>
+          <small className="block-pill-integrated">{block.integrated ? "Integrated possession" : "Individual possession"}</small>
         </div>
 
         {/* Operational phase structure (SET | WORK | REL) */}
