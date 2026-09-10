@@ -1,0 +1,178 @@
+[
+  {
+    "section_id": "WR_SEC01",
+    "from_station": "VR",
+    "to_station": "VTN",
+    "capacity_mode": "EXPLICIT_DIRECTIONAL_TRACKS",
+    "capacity_resources": [
+      {
+        "capacity_resource_id": "WR_SEC01_NORTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "NORTHBOUND_MAIN"
+      },
+      {
+        "capacity_resource_id": "WR_SEC01_SOUTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "SOUTHBOUND_MAIN"
+      }
+    ],
+    "direction_capacity_mapping": {
+      "NORTHBOUND": "WR_SEC01_NORTHBOUND",
+      "SOUTHBOUND": "WR_SEC01_SOUTHBOUND"
+    }
+  },
+  {
+    "section_id": "WR_SEC02",
+    "from_station": "VTN",
+    "to_station": "SAH",
+    "capacity_mode": "EXPLICIT_DIRECTIONAL_TRACKS",
+    "capacity_resources": [
+      {
+        "capacity_resource_id": "WR_SEC02_NORTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "NORTHBOUND_MAIN"
+      },
+      {
+        "capacity_resource_id": "WR_SEC02_SOUTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "SOUTHBOUND_MAIN"
+      }
+    ],
+    "direction_capacity_mapping": {
+      "NORTHBOUND": "WR_SEC02_NORTHBOUND",
+      "SOUTHBOUND": "WR_SEC02_SOUTHBOUND"
+    }
+  },
+  {
+    "section_id": "WR_SEC03",
+    "from_station": "SAH",
+    "to_station": "KLV",
+    "capacity_mode": "EXPLICIT_DIRECTIONAL_TRACKS",
+    "capacity_resources": [
+      {
+        "capacity_resource_id": "WR_SEC03_NORTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "NORTHBOUND_MAIN"
+      },
+      {
+        "capacity_resource_id": "WR_SEC03_SOUTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "SOUTHBOUND_MAIN"
+      }
+    ],
+    "direction_capacity_mapping": {
+      "NORTHBOUND": "WR_SEC03_NORTHBOUND",
+      "SOUTHBOUND": "WR_SEC03_SOUTHBOUND"
+    }
+  },
+  {
+    "section_id": "WR_SEC04",
+    "from_station": "KLV",
+    "to_station": "PLG",
+    "capacity_mode": "EXPLICIT_DIRECTIONAL_TRACKS",
+    "capacity_resources": [
+      {
+        "capacity_resource_id": "WR_SEC04_NORTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "NORTHBOUND_MAIN"
+      },
+      {
+        "capacity_resource_id": "WR_SEC04_SOUTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "SOUTHBOUND_MAIN"
+      }
+    ],
+    "direction_capacity_mapping": {
+      "NORTHBOUND": "WR_SEC04_NORTHBOUND",
+      "SOUTHBOUND": "WR_SEC04_SOUTHBOUND"
+    }
+  },
+  {
+    "section_id": "WR_SEC05",
+    "from_station": "PLG",
+    "to_station": "UOI",
+    "capacity_mode": "EXPLICIT_DIRECTIONAL_TRACKS",
+    "capacity_resources": [
+      {
+        "capacity_resource_id": "WR_SEC05_NORTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "NORTHBOUND_MAIN"
+      },
+      {
+        "capacity_resource_id": "WR_SEC05_SOUTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "SOUTHBOUND_MAIN"
+      }
+    ],
+    "direction_capacity_mapping": {
+      "NORTHBOUND": "WR_SEC05_NORTHBOUND",
+      "SOUTHBOUND": "WR_SEC05_SOUTHBOUND"
+    }
+  },
+  {
+    "section_id": "WR_SEC06",
+    "from_station": "UOI",
+    "to_station": "BOR",
+    "capacity_mode": "EXPLICIT_DIRECTIONAL_TRACKS",
+    "capacity_resources": [
+      {
+        "capacity_resource_id": "WR_SEC06_NORTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "NORTHBOUND_MAIN"
+      },
+      {
+        "capacity_resource_id": "WR_SEC06_SOUTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "SOUTHBOUND_MAIN"
+      }
+    ],
+    "direction_capacity_mapping": {
+      "NORTHBOUND": "WR_SEC06_NORTHBOUND",
+      "SOUTHBOUND": "WR_SEC06_SOUTHBOUND"
+    }
+  },
+  {
+    "section_id": "WR_SEC07",
+    "from_station": "BOR",
+    "to_station": "VGN",
+    "capacity_mode": "EXPLICIT_DIRECTIONAL_TRACKS",
+    "capacity_resources": [
+      {
+        "capacity_resource_id": "WR_SEC07_NORTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "NORTHBOUND_MAIN"
+      },
+      {
+        "capacity_resource_id": "WR_SEC07_SOUTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "SOUTHBOUND_MAIN"
+      }
+    ],
+    "direction_capacity_mapping": {
+      "NORTHBOUND": "WR_SEC07_NORTHBOUND",
+      "SOUTHBOUND": "WR_SEC07_SOUTHBOUND"
+    }
+  },
+  {
+    "section_id": "WR_SEC08",
+    "from_station": "VGN",
+    "to_station": "DRD",
+    "capacity_mode": "EXPLICIT_DIRECTIONAL_TRACKS",
+    "capacity_resources": [
+      {
+        "capacity_resource_id": "WR_SEC08_NORTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "NORTHBOUND_MAIN"
+      },
+      {
+        "capacity_resource_id": "WR_SEC08_SOUTHBOUND",
+        "type": "RUNNING_LINE",
+        "track_id": "SOUTHBOUND_MAIN"
+      }
+    ],
+    "direction_capacity_mapping": {
+      "NORTHBOUND": "WR_SEC08_NORTHBOUND",
+      "SOUTHBOUND": "WR_SEC08_SOUTHBOUND"
+    }
+  }
+]

@@ -1,0 +1,265 @@
+[
+  {
+    "task_id": "NR_ENG001",
+    "department": "ENGINEERING",
+    "section_id": "NR_SEC01",
+    "section_ids": [
+      "NR_SEC01"
+    ],
+    "capacity_resource_ids": [
+      "NR_SEC01_SOUTHBOUND"
+    ],
+    "task_type": "Turnout geometry inspection",
+    "duration_minutes": 25,
+    "criticality": 10,
+    "urgency": 10,
+    "overdue_days": 16,
+    "deadline": "2026-09-10T12:15:00",
+    "requires_power_block": false,
+    "crew_type": "TRACK_CREW",
+    "compatibility_group": "NR_GRP_A",
+    "preferred_window": "OFF_PEAK",
+    "machine_type": "TAMPER"
+  },
+  {
+    "task_id": "NR_SNT001",
+    "department": "S&T",
+    "section_id": "NR_SEC01",
+    "section_ids": [
+      "NR_SEC01"
+    ],
+    "capacity_resource_ids": [
+      "NR_SEC01_SOUTHBOUND"
+    ],
+    "task_type": "Axle counter reset verification",
+    "duration_minutes": 15,
+    "criticality": 8,
+    "urgency": 8,
+    "overdue_days": 4,
+    "deadline": "2026-09-10T12:15:00",
+    "requires_power_block": false,
+    "crew_type": "SIGNAL_CREW",
+    "compatibility_group": "NR_GRP_A",
+    "preferred_window": "OFF_PEAK"
+  },
+  {
+    "task_id": "NR_TRD001",
+    "department": "TRD",
+    "section_id": "NR_SEC02",
+    "section_ids": [
+      "NR_SEC02"
+    ],
+    "capacity_resource_ids": [
+      "NR_SEC02_NORTHBOUND"
+    ],
+    "task_type": "OHE stagger measurement",
+    "duration_minutes": 20,
+    "criticality": 9,
+    "urgency": 9,
+    "overdue_days": 9,
+    "deadline": "2026-09-10T12:15:00",
+    "requires_power_block": true,
+    "crew_type": "OHE_CREW",
+    "compatibility_group": "NR_GRP_B",
+    "preferred_window": "OFF_PEAK",
+    "machine_type": "TOWER_WAGON",
+    "power_isolation_zone_id": "NR_PZ_NR_SEC02"
+  },
+  {
+    "task_id": "NR_ENG002",
+    "department": "ENGINEERING",
+    "section_id": "NR_SEC02",
+    "section_ids": [
+      "NR_SEC02"
+    ],
+    "capacity_resource_ids": [
+      "NR_SEC02_NORTHBOUND"
+    ],
+    "task_type": "Ultrasonic rail testing",
+    "duration_minutes": 25,
+    "criticality": 10,
+    "urgency": 9,
+    "overdue_days": 22,
+    "deadline": "2026-09-10T12:15:00",
+    "requires_power_block": false,
+    "crew_type": "TRACK_CREW",
+    "compatibility_group": "NR_GRP_B",
+    "preferred_window": "OFF_PEAK",
+    "machine_type": "USFD_TROLLEY"
+  },
+  {
+    "task_id": "NR_SNT002",
+    "department": "S&T",
+    "section_id": "NR_SEC03",
+    "section_ids": [
+      "NR_SEC03"
+    ],
+    "capacity_resource_ids": [
+      "NR_SEC03_SOUTHBOUND"
+    ],
+    "task_type": "Track circuit bonding inspection",
+    "duration_minutes": 20,
+    "criticality": 8,
+    "urgency": 7,
+    "overdue_days": 5,
+    "deadline": "2026-09-10T12:15:00",
+    "requires_power_block": false,
+    "crew_type": "SIGNAL_CREW",
+    "compatibility_group": "NR_GRP_C",
+    "preferred_window": "OFF_PEAK"
+  },
+  {
+    "task_id": "NR_TRD002",
+    "department": "TRD",
+    "section_id": "NR_SEC03",
+    "section_ids": [
+      "NR_SEC03"
+    ],
+    "capacity_resource_ids": [
+      "NR_SEC03_SOUTHBOUND"
+    ],
+    "task_type": "Neutral section inspection",
+    "duration_minutes": 20,
+    "criticality": 9,
+    "urgency": 8,
+    "overdue_days": 8,
+    "deadline": "2026-09-10T12:15:00",
+    "requires_power_block": true,
+    "crew_type": "OHE_CREW",
+    "compatibility_group": "NR_GRP_C",
+    "preferred_window": "OFF_PEAK",
+    "machine_type": "TOWER_WAGON",
+    "power_isolation_zone_id": "NR_PZ_NR_SEC03"
+  },
+  {
+    "task_id": "NR_ENG003",
+    "department": "ENGINEERING",
+    "section_id": "NR_SEC04",
+    "section_ids": [
+      "NR_SEC04"
+    ],
+    "capacity_resource_ids": [
+      "NR_SEC04_NORTHBOUND"
+    ],
+    "task_type": "Rail weld examination",
+    "duration_minutes": 20,
+    "criticality": 8,
+    "urgency": 8,
+    "overdue_days": 6,
+    "deadline": "2026-09-10T12:15:00",
+    "requires_power_block": false,
+    "crew_type": "TRACK_CREW",
+    "compatibility_group": "NR_GRP_D",
+    "preferred_window": "OFF_PEAK"
+  },
+  {
+    "task_id": "NR_SNT003",
+    "department": "S&T",
+    "section_id": "NR_SEC05",
+    "section_ids": [
+      "NR_SEC05"
+    ],
+    "capacity_resource_ids": [
+      "NR_SEC05_NORTHBOUND"
+    ],
+    "task_type": "Point machine condition test",
+    "duration_minutes": 20,
+    "criticality": 9,
+    "urgency": 8,
+    "overdue_days": 11,
+    "deadline": "2026-09-10T12:15:00",
+    "requires_power_block": false,
+    "crew_type": "SIGNAL_CREW",
+    "compatibility_group": "NR_GRP_E",
+    "preferred_window": "OFF_PEAK"
+  },
+  {
+    "task_id": "NR_TRD003",
+    "department": "TRD",
+    "section_id": "NR_SEC06",
+    "section_ids": [
+      "NR_SEC06"
+    ],
+    "capacity_resource_ids": [
+      "NR_SEC06_SOUTHBOUND"
+    ],
+    "task_type": "Contact wire visual inspection",
+    "duration_minutes": 20,
+    "criticality": 8,
+    "urgency": 7,
+    "overdue_days": 3,
+    "deadline": "2026-09-10T12:15:00",
+    "requires_power_block": true,
+    "crew_type": "OHE_CREW",
+    "compatibility_group": "NR_GRP_F",
+    "preferred_window": "OFF_PEAK",
+    "machine_type": "TOWER_WAGON",
+    "power_isolation_zone_id": "NR_PZ_NR_SEC06"
+  },
+  {
+    "task_id": "NR_ENG004",
+    "department": "ENGINEERING",
+    "section_id": "NR_SEC07",
+    "section_ids": [
+      "NR_SEC07"
+    ],
+    "capacity_resource_ids": [
+      "NR_SEC07_NORTHBOUND"
+    ],
+    "task_type": "Ballast profile inspection",
+    "duration_minutes": 20,
+    "criticality": 7,
+    "urgency": 6,
+    "overdue_days": 2,
+    "deadline": "2026-09-10T12:15:00",
+    "requires_power_block": false,
+    "crew_type": "TRACK_CREW",
+    "compatibility_group": "NR_GRP_G",
+    "preferred_window": "OFF_PEAK"
+  },
+  {
+    "task_id": "NR_SNT004",
+    "department": "S&T",
+    "section_id": "NR_SEC07",
+    "section_ids": [
+      "NR_SEC07"
+    ],
+    "capacity_resource_ids": [
+      "NR_SEC07_NORTHBOUND"
+    ],
+    "task_type": "Signal cable insulation test",
+    "duration_minutes": 15,
+    "criticality": 7,
+    "urgency": 7,
+    "overdue_days": 4,
+    "deadline": "2026-09-10T12:15:00",
+    "requires_power_block": false,
+    "crew_type": "SIGNAL_CREW",
+    "compatibility_group": "NR_GRP_G",
+    "preferred_window": "OFF_PEAK"
+  },
+  {
+    "task_id": "NR_MULTI001",
+    "department": "ENGINEERING",
+    "section_id": "NR_SEC04",
+    "section_ids": [
+      "NR_SEC04",
+      "NR_SEC05"
+    ],
+    "capacity_resource_ids": [
+      "NR_SEC04_SOUTHBOUND",
+      "NR_SEC05_SOUTHBOUND"
+    ],
+    "task_type": "Two-section track geometry survey",
+    "duration_minutes": 30,
+    "criticality": 10,
+    "urgency": 10,
+    "overdue_days": 25,
+    "deadline": "2026-09-10T12:15:00",
+    "requires_power_block": false,
+    "crew_type": "TRACK_CREW",
+    "compatibility_group": "NR_MULTI",
+    "preferred_window": "OFF_PEAK",
+    "machine_type": "TRACK_TROLLEY"
+  }
+]

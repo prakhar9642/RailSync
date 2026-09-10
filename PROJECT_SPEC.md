@@ -1,58 +1,22 @@
-# RailSync - SIH26027
+# RailSync v2 product specification
 
 ## Goal
 
-RailSync is a railway maintenance block planning prototype.
+Evolve the maintenance-block demonstration into a credible planning product while preserving the CP-SAT optimizer, comparison workflow, Planning/Analysis/Scenario views, recovery, provenance, and deterministic tests.
 
-It combines train timetable / section occupancy information with maintenance requirements from Engineering, S&T and TRD.
+## Public product flow
 
-The system uses constraint optimization to generate maintenance block plans that aim to reduce maintenance-induced railway asset downtime while respecting operational constraints.
+1. Select one of three public timetable territories.
+2. Review monthly demand, weekly coordination, and the solver-generated day-of plan.
+3. Inspect stations, train paths, tasks, possessions, and capacity footprints in a time–distance view.
+4. Compare the non-integrated CP-SAT baseline with the integrated plan on the same task set and constraints.
+5. Explain decisions, run temporary what-if changes, review resources/alerts, export results, and advance the lifecycle.
+6. Inject disruptions, keep elapsed/frozen work immutable, and explicitly apply a recovery.
 
-## Prototype Scope
+## Safety and truthfulness
 
-- One railway corridor
-- Around 10 stations
-- 30-40 trains
-- 40-60 maintenance tasks
-- Engineering, S&T and TRD departments
-- Weekly planning horizon
+RailSync is decision support, not signalling, dispatching, or operating authority. Public schedules are snapshots. Maintenance, resource, and disruption data are synthetic. Direction is descriptive unless a section declares an explicit direction-to-capacity mapping. Unknown capacity is protected conservatively.
 
-## Core Flow
+## Completion criteria
 
-Train timetable
-+
-Maintenance requirements
-→
-Priority calculation
-→
-CP-SAT optimization
-→
-Integrated maintenance blocks
-→
-FastAPI backend
-→
-React web application
-
-## Core Features
-
-1. Baseline maintenance scheduler
-2. OR-Tools CP-SAT optimizer
-3. Train-section occupancy constraints
-4. Engineering / S&T / TRD integrated block planning
-5. Baseline vs optimized comparison
-6. Explainable scheduling decisions
-7. Scenario simulation
-8. Dynamic re-optimization
-
-## Application Views
-
-1. Command Center
-2. Planning Workspace
-3. Optimization Analysis
-4. Scenario Lab
-
-## Data
-
-Where feasible, public timetable-derived train data will be used.
-
-Maintenance demand will use synthetic/sample data based on documented maintenance categories and clearly stated assumptions.
+Canonical data validates, backend tests and frontend tests/build pass, and manual browser flows cover landing → planning → analysis → scenario → recovery for all public territories.

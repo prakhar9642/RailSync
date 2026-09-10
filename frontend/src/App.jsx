@@ -45,7 +45,14 @@ function App() {
 
   return (
     <LandingPage
-      onLaunchPlanner={() => {
+      initialTerritoryId={planningSession.territoryId}
+      onLaunchPlanner={(territoryId = planningSession.territoryId) => {
+        if (territoryId !== planningSession.territoryId) {
+          setPlanningSession((current) => ({
+            ...current, territoryId, territory: null, tasks: [], trains: [], plan: null,
+            recovery: null, dataError: null, optimizationError: null,
+          }));
+        }
         setWorkspaceView("planning");
         setView("workspace");
       }}

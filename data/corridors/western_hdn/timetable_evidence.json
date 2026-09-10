@@ -1,0 +1,23 @@
+{
+  "provenance": "PUBLIC_TIMETABLE_DERIVED",
+  "accessed_at": "2026-09-10",
+  "corridor_context_sources": [
+    "https://wr.indianrailways.gov.in/view_section.jsp?id=0,1,263,296,307&lang=0",
+    "https://wr.indianrailways.gov.in/cris/uploads/files/1565340119369-DRD%20UP.pdf",
+    "https://mrvc.indianrailways.gov.in/mrvc/notice/1565425828445_CBTCTOR090918.pdf"
+  ],
+  "service_sources": [
+    "https://www.ixigo.com/trains/93001",
+    "https://www.ixigo.com/trains/93002",
+    "https://www.ixigo.com/trains/93003",
+    "https://www.ixigo.com/trains/93004",
+    "https://www.ixigo.com/trains/93005",
+    "https://www.ixigo.com/trains/93006",
+    "https://www.ixigo.com/trains/93007",
+    "https://www.ixigo.com/trains/93008",
+    "https://www.ixigo.com/trains/93009",
+    "https://www.ixigo.com/trains/93010"
+  ],
+  "transformation": "Each physical section occupancy starts at published departure from the first station and ends at published arrival at the next station in the service direction.",
+  "limitations": "Demonstration slice only; not a complete timetable, live feed, working timetable, or authority."
+}

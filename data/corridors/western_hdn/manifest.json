@@ -1,9 +1,20 @@
 {
   "territory_id": "western_hdn",
-  "display_name": "Western HDN (Placeholder)",
-  "description": "Registered dataset identifier only; no verified corridor or timetable data is present.",
-  "status": "PLACEHOLDER",
-  "provenance": [],
-  "datasets": {},
-  "scenario_references": []
+  "display_name": "Western HDN · Virar–Dahanu Road",
+  "description": "Public Western Railway suburban timetable corridor with explicitly synthetic prototype maintenance demand and resources.",
+  "status": "POPULATED",
+  "provenance": [
+    {"label": "PUBLIC_TIMETABLE_DERIVED", "datasets": ["stations", "sections", "train_occupancy", "train_services"], "description": "Station sequence and public passenger schedules are derived from published Western Railway timetable material and public schedule pages; accessed 2026-09-10, not a live control feed."},
+    {"label": "SYNTHETIC_PROTOTYPE", "datasets": ["maintenance_tasks"], "description": "Maintenance tasks, resource pools, power windows, and planning assumptions are synthetic decision-support inputs."}
+  ],
+  "datasets": {
+    "stations": {"adapter": "json_list", "path": "stations.json"},
+    "sections": {"adapter": "json_list", "path": "sections.json"},
+    "train_occupancy": {"adapter": "json_list", "path": "train_occupancy.json"},
+    "train_services": {"adapter": "json_list", "path": "train_services.json"},
+    "maintenance_tasks": {"adapter": "json_list", "path": "maintenance_tasks.json"}
+  },
+  "scenario_references": ["../../scenarios/western_hdn/README.md"],
+  "planning_horizon": {"start_time": "2026-09-10T04:30:00", "end_time": "2026-09-10T10:30:00"},
+  "resource_context": {"adapter": "resource_context_json", "path": "resource_context.json"}
 }

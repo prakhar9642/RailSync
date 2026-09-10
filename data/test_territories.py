@@ -31,29 +31,18 @@ def test_multiple_territories_are_registered() -> None:
     }
 
 
-def test_delhi_agra_loads_existing_files_through_adapter() -> None:
+def test_delhi_agra_loads_public_planning_corridor() -> None:
     territory = load_territory("delhi_agra")
 
-    assert len(territory.stations) == 9
-    assert len(territory.sections) == 8
-    assert len(territory.train_occupancy) == 21
-    assert territory.maintenance_tasks == []
-    assert territory.resource_context is None
+    assert len(territory.stations) == 8
+    assert len(territory.sections) == 7
+    assert len(territory.train_occupancy) == 56
+    assert len(territory.train_services) == 8
+    assert len(territory.maintenance_tasks) == 12
+    assert territory.resource_context is not None
     assert set(territory.stations[0]) == {"station_id", "station_name", "order"}
-    assert set(territory.sections[0]) == {
-        "section_id",
-        "from_station",
-        "to_station",
-    }
-    assert set(territory.train_occupancy[0]) == {
-        "train_id",
-        "section_id",
-        "entry_time",
-        "exit_time",
-    }
-    assert territory.stations == json.loads(
-        (Path(__file__).parent / "stations.json").read_text(encoding="utf-8")
-    )
+    assert {"section_id", "from_station", "to_station", "capacity_resources"} <= set(territory.sections[0])
+    assert {"train_id", "section_id", "entry_time", "exit_time", "direction"} <= set(territory.train_occupancy[0])
 
 
 def test_unknown_territory_fails_clearly() -> None:
@@ -106,7 +95,7 @@ def test_manifest_metadata_is_excluded_and_does_not_change_optimizer_semantics()
     assert result["status"] == "success"
 
 
-@pytest.mark.parametrize("territory_id", ["eastern_hdn", "western_hdn"])
+@pytest.mark.parametrize("territory_id", ["eastern_hdn"])
 def test_future_hdn_placeholder_cannot_load(territory_id: str) -> None:
     manifest = get_territory_manifest(territory_id)
     assert manifest.status == PLACEHOLDER
@@ -120,10 +109,10 @@ def test_future_hdn_placeholder_cannot_load(territory_id: str) -> None:
 def test_eastern_fixture_manifest_is_explicitly_synthetic() -> None:
     manifest = get_territory_manifest("eastern_hdn_test_fixture")
     assert manifest.status == "POPULATED"
-    assert set(manifest.available_datasets) == set(CANONICAL_FIELDS)
+    assert set(manifest.available_datasets) == set(CANONICAL_FIELDS) - {"train_services"}
     assert manifest.scenario_references == ("eastern_hdn_synthetic_demo_v1",)
     assert {item["label"] for item in manifest.provenance} == {"TEST_FIXTURE"}
-    assert set(manifest.provenance[0]["datasets"]) == set(CANONICAL_FIELDS)
+    assert set(manifest.provenance[0]["datasets"]) == set(CANONICAL_FIELDS) - {"train_services"}
     assert manifest.planning_horizon == {
         "start_time": "2026-09-01T00:00:00",
         "end_time": "2026-09-01T06:00:00",
@@ -210,9 +199,20 @@ def test_public_timetable_demo_loads_canonical_historical_data() -> None:
         if item["label"] == "PUBLIC_TIMETABLE_DERIVED"
     )
     assert set(public_record["datasets"]) == {
-        "stations", "sections", "train_occupancy"
+        "stations", "sections", "train_occupancy", "train_services"
     }
+    assert len(territory.train_services) == 5
     assert territory.resource_provenance == "SYNTHETIC_PROTOTYPE"
+
+
+@pytest.mark.parametrize("territory_id", ["western_hdn", "delhi_agra"])
+def test_additional_public_territories_are_planning_ready(territory_id: str) -> None:
+    territory = load_territory(territory_id)
+    assert territory.manifest.status == "POPULATED"
+    assert len(territory.train_services) >= 8
+    assert len(territory.maintenance_tasks) >= 10
+    assert territory.resource_provenance == "SYNTHETIC_PROTOTYPE"
+    assert any(len(task.get("section_ids", [])) > 1 for task in territory.maintenance_tasks)
 
 
 def test_public_timetable_demo_runs_unchanged_optimizer_and_fair_comparison() -> None:

@@ -14,7 +14,8 @@ from ortools.sat.python import cp_model
 
 try:
     from .time_utils import parse_datetime, datetime_to_minutes, minutes_to_datetime
-    from .candidate_windows import CandidateWindow, OperationalAllowances, generate_candidate_windows
+    from .candidate_windows import CandidateWindow, OperationalAllowances, generate_footprint_windows
+    from .capacity import movement_capacity_resources, normalize_tasks, section_index, track_ids_for_resources
     from .feasibility import FeasibilityContext, evaluate_task_in_window, task_requirements
     from .compatibility import CompatibilityPolicy, evaluate_compatibility
     from .resources import ResourceContext, add_capacity_constraints, validate_capacities
@@ -25,7 +26,8 @@ try:
     from .runtime import PlanProofState, validate_time_limit
 except ImportError:  # Preserve direct-script and existing test imports.
     from time_utils import parse_datetime, datetime_to_minutes, minutes_to_datetime
-    from candidate_windows import CandidateWindow, OperationalAllowances, generate_candidate_windows
+    from candidate_windows import CandidateWindow, OperationalAllowances, generate_footprint_windows
+    from capacity import movement_capacity_resources, normalize_tasks, section_index, track_ids_for_resources
     from feasibility import FeasibilityContext, evaluate_task_in_window, task_requirements
     from compatibility import CompatibilityPolicy, evaluate_compatibility
     from resources import ResourceContext, add_capacity_constraints, validate_capacities
@@ -125,11 +127,18 @@ def _affected_train_ids(
     start_time: datetime,
     end_time: datetime,
     train_occupancy: list[dict[str, Any]],
+    *,
+    section_ids: tuple[str, ...] | list[str] | None = None,
+    capacity_resource_ids: tuple[str, ...] | list[str] | None = None,
+    sections: list[dict[str, Any]] | None = None,
 ) -> list[str]:
-    """Calculate train IDs whose occupancy overlaps a block on its section."""
+    """Calculate train IDs whose movement footprint overlaps a possession."""
     affected: set[str] = set()
+    by_section = section_index(sections or [])
+    required = set(capacity_resource_ids or section_ids or (section_id,))
     for occupancy in train_occupancy:
-        if occupancy["section_id"] != section_id:
+        movement_resources = set(movement_capacity_resources(occupancy, by_section))
+        if not required.intersection(movement_resources):
             continue
         if _intervals_overlap(
             start_time,
@@ -150,9 +159,15 @@ def validate_solution(
     *,
     allowances: OperationalAllowances = OperationalAllowances(),
     compatibility_policy: CompatibilityPolicy = CompatibilityPolicy(),
+    sections: list[dict[str, Any]] | None = None,
 ) -> None:
     """Raise a clear error if any generated Day 1 block is invalid."""
-    task_by_id = {task["task_id"]: task for task in maintenance_tasks}
+    normalized_tasks = (
+        maintenance_tasks
+        if all("_footprint_id" in task for task in maintenance_tasks)
+        else normalize_tasks(maintenance_tasks, sections or [])
+    )
+    task_by_id = {task["task_id"]: task for task in normalized_tasks}
     horizon_start_dt = parse_datetime(horizon_start)
     horizon_end_dt = parse_datetime(horizon_end)
     scheduled_task_ids: set[str] = set()
@@ -186,11 +201,18 @@ def validate_solution(
         expected = max(task_requirements(task, allowances).required_minutes for task in members)
         if actual_duration != expected:
             raise ValueError(f"{block_id} duration does not match synchronized possession.")
-        if any(block["section_id"] != task["section_id"] for task in members):
-            raise ValueError(f"{block_id} has mismatched task sections.")
+        expected_sections = tuple(members[0].get("_section_ids", (members[0]["section_id"],)))
+        expected_resources = tuple(members[0].get("_capacity_resource_ids", (members[0]["section_id"],)))
+        if any(tuple(task.get("_section_ids", (task["section_id"],))) != expected_sections for task in members):
+            raise ValueError(f"{block_id} has mismatched possession sections.")
+        if any(tuple(task.get("_capacity_resource_ids", (task["section_id"],))) != expected_resources for task in members):
+            raise ValueError(f"{block_id} has mismatched capacity footprints.")
 
         affected_trains = _affected_train_ids(
-            block["section_id"], start_time, end_time, train_occupancy
+            block["section_id"], start_time, end_time, train_occupancy,
+            section_ids=expected_sections,
+            capacity_resource_ids=expected_resources,
+            sections=sections,
         )
         if affected_trains:
             raise ValueError(
@@ -200,7 +222,9 @@ def validate_solution(
 
     for index, (block, start_time, end_time) in enumerate(parsed_blocks):
         for other_block, other_start, other_end in parsed_blocks[index + 1 :]:
-            if block["section_id"] != other_block["section_id"]:
+            block_resources = set(block.get("capacity_resource_ids") or (block["section_id"],))
+            other_resources = set(other_block.get("capacity_resource_ids") or (other_block["section_id"],))
+            if not block_resources.intersection(other_resources):
                 continue
             if _intervals_overlap(start_time, end_time, other_start, other_end):
                 raise ValueError(
@@ -256,6 +280,7 @@ def optimize_schedule(
     # Backward-compatible internal alias; it now means one total run budget.
     stage_time_limit_seconds: float | None = None,
     previous_blocks: list[dict[str, Any]] | None = None,
+    fixed_task_starts: dict[str, str] | None = None,
     risk_penalties: dict[tuple[str, str], float] | None = None,
 ) -> dict[str, Any]:
     """Reserve setup/work/release in feasible windows; return full possession blocks."""
@@ -279,6 +304,12 @@ def optimize_schedule(
     if not allow_integration:
         compatibility_policy = replace(compatibility_policy, allow_same_group=False)
     maintenance_tasks, train_occupancy = _validate_input_data(data)
+    sections = data.get("sections", [])
+    maintenance_tasks = normalize_tasks(maintenance_tasks, sections)
+    fixed_task_starts = fixed_task_starts or {}
+    unknown_fixed_tasks = sorted(set(fixed_task_starts) - {task["task_id"] for task in maintenance_tasks})
+    if unknown_fixed_tasks:
+        raise ValueError(f"Fixed plan references unknown tasks: {unknown_fixed_tasks}.")
     horizon_start_dt = parse_datetime(horizon_start)
     horizon_end_dt = parse_datetime(horizon_end)
     horizon_minutes = datetime_to_minutes(horizon_end_dt, horizon_start_dt)
@@ -289,16 +320,20 @@ def optimize_schedule(
         resource_context.validate_times(horizon_start_dt)
     facts = diagnostics if diagnostics is not None else {}
     facts.update(pair_checks=[], task_windows=[], priority_stages=[], outcomes={})
-    windows = generate_candidate_windows(
-        train_occupancy,
-        {task["section_id"] for task in maintenance_tasks}
-        | {row["section_id"] for row in train_occupancy}
-        | {section["section_id"] for section in data.get("sections", [])},
-        horizon_start_dt, horizon_end_dt, allowances,
+    footprints = [
+        {
+            "section_id": task["section_id"],
+            "section_ids": task["_section_ids"],
+            "capacity_resource_ids": task["_capacity_resource_ids"],
+        }
+        for task in maintenance_tasks
+    ]
+    windows = generate_footprint_windows(
+        train_occupancy, footprints, sections, horizon_start_dt, horizon_end_dt, allowances
     )
     windows_by_section: dict[str, list[CandidateWindow]] = {}
     for window in windows:
-        windows_by_section.setdefault(window.section_id, []).append(window)
+        windows_by_section.setdefault(window.footprint_id or window.section_id, []).append(window)
     window_contexts = window_contexts or {}
     model = cp_model.CpModel()
     task_variables: dict[str, dict[str, Any]] = {}
@@ -328,7 +363,7 @@ def optimize_schedule(
         }
 
         choices = []
-        for window in windows_by_section.get(task["section_id"], []):
+        for window in windows_by_section.get(task["_footprint_id"], []):
             feasibility = evaluate_task_in_window(
                 task, window, window_contexts.get(window.window_id), allowances,
                 resource_context=resource_context,
@@ -348,9 +383,18 @@ def optimize_schedule(
                 model.Add(start >= earliest).OnlyEnforceIf(chosen)
                 model.Add(start <= latest).OnlyEnforceIf(chosen)
         model.Add(sum(choices) == scheduled)
+        if task_id in fixed_task_starts:
+            fixed_start = datetime_to_minutes(fixed_task_starts[task_id], horizon_start_dt)
+            if not 0 <= fixed_start <= horizon_minutes:
+                raise ValueError(f"Fixed start for {task_id!r} is outside the horizon.")
+            model.Add(scheduled == 1)
+            model.Add(start == fixed_start)
 
+        by_section = section_index(sections)
         for train_index, occupancy in enumerate(train_occupancy):
-            if occupancy["section_id"] != task["section_id"]:
+            if not set(task["_capacity_resource_ids"]).intersection(
+                movement_capacity_resources(occupancy, by_section)
+            ):
                 continue
 
             train_entry = datetime_to_minutes(
@@ -440,19 +484,52 @@ def optimize_schedule(
         start_time = minutes_to_datetime(start, horizon_start_dt)
         end_time = minutes_to_datetime(end, horizon_start_dt)
         departments = {t.get("department") for t in members if t.get("department")}
-        blocks.append(dict(
+        block = dict(
             block_id=f"BLK{index:03d}", section_id=section,
             start_time=start_time, end_time=end_time,
             tasks=sorted(t["task_id"] for t in members), integrated=len(departments) >= 2,
-            affected_trains=_affected_train_ids(section, parse_datetime(start_time),
-                                               parse_datetime(end_time), train_occupancy),
-            explanation=["Scheduled outside protected train occupancy"],
-        ))
+            affected_trains=_affected_train_ids(
+                section, parse_datetime(start_time), parse_datetime(end_time), train_occupancy,
+                section_ids=members[0].get("_section_ids", (section,)),
+                capacity_resource_ids=members[0].get("_capacity_resource_ids", (section,)),
+                sections=sections,
+            ),
+            explanation=[
+                "Scheduled inside a safety-adjusted window available across the full capacity footprint",
+                "Tasks share one synchronized possession" if len(members) > 1 else "Single-task possession",
+            ],
+        )
+        if any(member.get("_rich_footprint") for member in members):
+            explicit_tracks = [
+                track_id
+                for member in members
+                for track_id in (
+                    member.get("possession_footprint", {}).get("track_ids", [])
+                    if isinstance(member.get("possession_footprint"), dict)
+                    else member.get("track_ids", [])
+                )
+            ]
+            block.update(
+                footprint_id=members[0].get("_footprint_id"),
+                section_ids=list(members[0].get("_section_ids", (section,))),
+                capacity_resource_ids=list(members[0].get("_capacity_resource_ids", (section,))),
+                track_ids=list(dict.fromkeys([
+                    *track_ids_for_resources(
+                        sections, members[0].get("_capacity_resource_ids", ())
+                    ),
+                    *explicit_tracks,
+                ])),
+                power_isolation_zone_id=next(
+                    (member.get("power_isolation_zone_id") for member in members if member.get("power_isolation_zone_id")),
+                    None,
+                ),
+            )
+        blocks.append(block)
         for task in members:
             legal = any(evaluate_task_in_window(
                 task, window, window_contexts.get(window.window_id), allowances,
                 reservation_start=start_time, resource_context=resource_context,
-            ).feasible for window in windows_by_section[section])
+            ).feasible for window in windows_by_section[task["_footprint_id"]])
             if not legal:
                 raise ValueError(f"Infeasible reservation for {task['task_id']}.")
             reservations.append((task, start, start + task_requirements(task, allowances).required_minutes))
@@ -476,6 +553,7 @@ def optimize_schedule(
         horizon_end_dt,
         allowances=allowances,
         compatibility_policy=compatibility_policy,
+        sections=sections,
     )
     facts["service_metrics"] = summarize_plan(maintenance_tasks, blocks, windows, allowances)
     for key, expression in zip(

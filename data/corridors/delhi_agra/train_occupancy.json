@@ -1,0 +1,450 @@
+[
+  {
+    "train_id": "64076",
+    "section_id": "NR_SEC01",
+    "entry_time": "2026-09-10T00:30:00",
+    "exit_time": "2026-09-10T00:37:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64076",
+    "section_id": "NR_SEC02",
+    "entry_time": "2026-09-10T00:37:00",
+    "exit_time": "2026-09-10T00:45:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64076",
+    "section_id": "NR_SEC03",
+    "entry_time": "2026-09-10T00:45:00",
+    "exit_time": "2026-09-10T00:56:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64076",
+    "section_id": "NR_SEC04",
+    "entry_time": "2026-09-10T00:56:00",
+    "exit_time": "2026-09-10T01:01:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64076",
+    "section_id": "NR_SEC05",
+    "entry_time": "2026-09-10T01:01:00",
+    "exit_time": "2026-09-10T01:06:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64076",
+    "section_id": "NR_SEC06",
+    "entry_time": "2026-09-10T01:06:00",
+    "exit_time": "2026-09-10T01:15:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64076",
+    "section_id": "NR_SEC07",
+    "entry_time": "2026-09-10T01:15:00",
+    "exit_time": "2026-09-10T01:35:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64074",
+    "section_id": "NR_SEC01",
+    "entry_time": "2026-09-10T04:32:00",
+    "exit_time": "2026-09-10T04:39:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64074",
+    "section_id": "NR_SEC02",
+    "entry_time": "2026-09-10T04:39:00",
+    "exit_time": "2026-09-10T04:47:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64074",
+    "section_id": "NR_SEC03",
+    "entry_time": "2026-09-10T04:47:00",
+    "exit_time": "2026-09-10T04:58:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64074",
+    "section_id": "NR_SEC04",
+    "entry_time": "2026-09-10T04:58:00",
+    "exit_time": "2026-09-10T05:05:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64074",
+    "section_id": "NR_SEC05",
+    "entry_time": "2026-09-10T05:05:00",
+    "exit_time": "2026-09-10T05:10:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64074",
+    "section_id": "NR_SEC06",
+    "entry_time": "2026-09-10T05:10:00",
+    "exit_time": "2026-09-10T05:19:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64074",
+    "section_id": "NR_SEC07",
+    "entry_time": "2026-09-10T05:19:00",
+    "exit_time": "2026-09-10T05:38:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64062",
+    "section_id": "NR_SEC01",
+    "entry_time": "2026-09-10T06:32:00",
+    "exit_time": "2026-09-10T06:38:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64062",
+    "section_id": "NR_SEC02",
+    "entry_time": "2026-09-10T06:38:00",
+    "exit_time": "2026-09-10T06:45:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64062",
+    "section_id": "NR_SEC03",
+    "entry_time": "2026-09-10T06:45:00",
+    "exit_time": "2026-09-10T06:54:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64062",
+    "section_id": "NR_SEC04",
+    "entry_time": "2026-09-10T06:54:00",
+    "exit_time": "2026-09-10T06:59:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64062",
+    "section_id": "NR_SEC05",
+    "entry_time": "2026-09-10T06:59:00",
+    "exit_time": "2026-09-10T07:04:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64062",
+    "section_id": "NR_SEC06",
+    "entry_time": "2026-09-10T07:04:00",
+    "exit_time": "2026-09-10T07:13:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64062",
+    "section_id": "NR_SEC07",
+    "entry_time": "2026-09-10T07:13:00",
+    "exit_time": "2026-09-10T07:38:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64078",
+    "section_id": "NR_SEC01",
+    "entry_time": "2026-09-10T09:00:00",
+    "exit_time": "2026-09-10T09:07:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64078",
+    "section_id": "NR_SEC02",
+    "entry_time": "2026-09-10T09:07:00",
+    "exit_time": "2026-09-10T09:15:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64078",
+    "section_id": "NR_SEC03",
+    "entry_time": "2026-09-10T09:15:00",
+    "exit_time": "2026-09-10T09:26:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64078",
+    "section_id": "NR_SEC04",
+    "entry_time": "2026-09-10T09:26:00",
+    "exit_time": "2026-09-10T09:31:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64078",
+    "section_id": "NR_SEC05",
+    "entry_time": "2026-09-10T09:31:00",
+    "exit_time": "2026-09-10T09:36:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64078",
+    "section_id": "NR_SEC06",
+    "entry_time": "2026-09-10T09:36:00",
+    "exit_time": "2026-09-10T09:45:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64078",
+    "section_id": "NR_SEC07",
+    "entry_time": "2026-09-10T09:45:00",
+    "exit_time": "2026-09-10T10:10:00",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64077",
+    "section_id": "NR_SEC07",
+    "entry_time": "2026-09-10T07:50:00",
+    "exit_time": "2026-09-10T07:59:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64077",
+    "section_id": "NR_SEC06",
+    "entry_time": "2026-09-10T07:59:00",
+    "exit_time": "2026-09-10T08:08:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64077",
+    "section_id": "NR_SEC05",
+    "entry_time": "2026-09-10T08:08:00",
+    "exit_time": "2026-09-10T08:13:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64077",
+    "section_id": "NR_SEC04",
+    "entry_time": "2026-09-10T08:13:00",
+    "exit_time": "2026-09-10T08:28:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64077",
+    "section_id": "NR_SEC03",
+    "entry_time": "2026-09-10T08:28:00",
+    "exit_time": "2026-09-10T08:42:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64077",
+    "section_id": "NR_SEC02",
+    "entry_time": "2026-09-10T08:42:00",
+    "exit_time": "2026-09-10T08:50:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64077",
+    "section_id": "NR_SEC01",
+    "entry_time": "2026-09-10T08:50:00",
+    "exit_time": "2026-09-10T08:59:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04921",
+    "section_id": "NR_SEC07",
+    "entry_time": "2026-09-10T07:55:00",
+    "exit_time": "2026-09-10T08:04:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04921",
+    "section_id": "NR_SEC06",
+    "entry_time": "2026-09-10T08:04:00",
+    "exit_time": "2026-09-10T08:13:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04921",
+    "section_id": "NR_SEC05",
+    "entry_time": "2026-09-10T08:13:00",
+    "exit_time": "2026-09-10T08:18:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04921",
+    "section_id": "NR_SEC04",
+    "entry_time": "2026-09-10T08:18:00",
+    "exit_time": "2026-09-10T08:23:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04921",
+    "section_id": "NR_SEC03",
+    "entry_time": "2026-09-10T08:23:00",
+    "exit_time": "2026-09-10T08:32:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04921",
+    "section_id": "NR_SEC02",
+    "entry_time": "2026-09-10T08:32:00",
+    "exit_time": "2026-09-10T08:39:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04921",
+    "section_id": "NR_SEC01",
+    "entry_time": "2026-09-10T08:39:00",
+    "exit_time": "2026-09-10T08:48:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04913",
+    "section_id": "NR_SEC07",
+    "entry_time": "2026-09-10T08:05:00",
+    "exit_time": "2026-09-10T08:14:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04913",
+    "section_id": "NR_SEC06",
+    "entry_time": "2026-09-10T08:14:00",
+    "exit_time": "2026-09-10T08:23:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04913",
+    "section_id": "NR_SEC05",
+    "entry_time": "2026-09-10T08:23:00",
+    "exit_time": "2026-09-10T08:28:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04913",
+    "section_id": "NR_SEC04",
+    "entry_time": "2026-09-10T08:28:00",
+    "exit_time": "2026-09-10T08:33:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04913",
+    "section_id": "NR_SEC03",
+    "entry_time": "2026-09-10T08:33:00",
+    "exit_time": "2026-09-10T08:42:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04913",
+    "section_id": "NR_SEC02",
+    "entry_time": "2026-09-10T08:42:00",
+    "exit_time": "2026-09-10T08:49:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "04913",
+    "section_id": "NR_SEC01",
+    "entry_time": "2026-09-10T08:49:00",
+    "exit_time": "2026-09-10T08:56:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64057",
+    "section_id": "NR_SEC07",
+    "entry_time": "2026-09-10T10:55:00",
+    "exit_time": "2026-09-10T11:03:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64057",
+    "section_id": "NR_SEC06",
+    "entry_time": "2026-09-10T11:03:00",
+    "exit_time": "2026-09-10T11:12:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64057",
+    "section_id": "NR_SEC05",
+    "entry_time": "2026-09-10T11:12:00",
+    "exit_time": "2026-09-10T11:17:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64057",
+    "section_id": "NR_SEC04",
+    "entry_time": "2026-09-10T11:17:00",
+    "exit_time": "2026-09-10T11:22:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64057",
+    "section_id": "NR_SEC03",
+    "entry_time": "2026-09-10T11:22:00",
+    "exit_time": "2026-09-10T11:33:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64057",
+    "section_id": "NR_SEC02",
+    "entry_time": "2026-09-10T11:33:00",
+    "exit_time": "2026-09-10T11:43:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  },
+  {
+    "train_id": "64057",
+    "section_id": "NR_SEC01",
+    "entry_time": "2026-09-10T11:43:00",
+    "exit_time": "2026-09-10T11:55:00",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE"
+  }
+]

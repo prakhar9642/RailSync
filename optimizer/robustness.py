@@ -15,7 +15,8 @@ def add_boundary_slack(model, blocks, windows_by_section, origin, horizon):
         choices = []
         block["slack_choices"] = []
         block["before_slack"], block["after_slack"] = before, after
-        for window in windows_by_section.get(block["section_id"], []):
+        window_key = block.get("footprint_id", block["section_id"])
+        for window in windows_by_section.get(window_key, []):
             chosen = model.NewBoolVar(f"block_{index}_{window.window_id}_slack")
             choices.append(chosen)
             block["slack_choices"].append((window, chosen))
@@ -48,7 +49,10 @@ def add_boundary_slack(model, blocks, windows_by_section, origin, horizon):
 def measure_boundary_slack(block, windows):
     """Independently measure the full public possession against usable bounds."""
     for window in windows:
-        if window.section_id != block["section_id"]:
+        if "footprint_id" in block:
+            if (window.footprint_id or window.section_id) != block["footprint_id"]:
+                continue
+        elif window.section_id != block["section_id"]:
             continue
         before = datetime_to_minutes(block["start_time"], window.usable_start)
         after = datetime_to_minutes(window.usable_end, block["end_time"])

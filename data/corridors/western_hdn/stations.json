@@ -1,0 +1,47 @@
+[
+  {
+    "station_id": "VR",
+    "station_name": "Virar",
+    "order": 1
+  },
+  {
+    "station_id": "VTN",
+    "station_name": "Vaitarna",
+    "order": 2
+  },
+  {
+    "station_id": "SAH",
+    "station_name": "Saphale",
+    "order": 3
+  },
+  {
+    "station_id": "KLV",
+    "station_name": "Kelva Road",
+    "order": 4
+  },
+  {
+    "station_id": "PLG",
+    "station_name": "Palghar",
+    "order": 5
+  },
+  {
+    "station_id": "UOI",
+    "station_name": "Umroli",
+    "order": 6
+  },
+  {
+    "station_id": "BOR",
+    "station_name": "Boisar",
+    "order": 7
+  },
+  {
+    "station_id": "VGN",
+    "station_name": "Vangaon",
+    "order": 8
+  },
+  {
+    "station_id": "DRD",
+    "station_name": "Dahanu Road",
+    "order": 9
+  }
+]

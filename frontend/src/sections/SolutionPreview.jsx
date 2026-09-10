@@ -3,7 +3,7 @@ import { useRef } from "react";
 import SectionHeading from "../components/ui/SectionHeading.jsx";
 
 const ease = [0.22, 1, 0.36, 1];
-const hours = ["01:00", "02:00", "03:00", "04:00", "05:00"];
+const hours = ["03:30", "04:38", "05:45", "06:53", "08:00"];
 
 export default function SolutionPreview() {
   const reduceMotion = useReducedMotion();
@@ -22,15 +22,15 @@ export default function SolutionPreview() {
         <div className="timeline" ref={ref}>
           <div className="timeline-meta">
             <div>
-              <strong>SEC03 · Palwal — Kosi Kalan</strong>
+              <strong>SKM_SEC01 · Saktigarh — Palsit</strong>
               Planning section
             </div>
             <div>
-              <strong>01:00 — 05:00</strong>
+              <strong>03:30 — 08:00</strong>
               Horizon
             </div>
             <div>
-              <strong>ENG017 · 120 min</strong>
+              <strong>SKM_ENG001 · 10 min</strong>
               Rail Weld Inspection
             </div>
           </div>
@@ -46,21 +46,21 @@ export default function SolutionPreview() {
             <div className="lane-track">
               <motion.div
                 className="block train"
-                style={{ left: "0%", width: "26%" }}
+                style={{ left: "5.6%", width: "2%" }}
                 initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={play ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
                 transition={{ duration: 0.55, ease, delay: reduceMotion ? 0 : 0.05 }}
               >
-                TR104
+                37786
               </motion.div>
               <motion.div
                 className="block train"
-                style={{ left: "74%", width: "26%" }}
+                style={{ left: "17%", width: "2%" }}
                 initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={play ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
                 transition={{ duration: 0.55, ease, delay: reduceMotion ? 0 : 0.18 }}
               >
-                TR118
+                37814
               </motion.div>
             </div>
           </div>
@@ -70,12 +70,12 @@ export default function SolutionPreview() {
             <div className="lane-track">
               <motion.div
                 className="block demand"
-                style={{ left: "4%", width: "28%" }}
+                style={{ left: "28%", width: "9.3%" }}
                 initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={play ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
                 transition={{ duration: 0.5, ease, delay: reduceMotion ? 0 : 0.7 }}
               >
-                ENG017
+                SKM_ENG001
               </motion.div>
             </div>
           </div>
@@ -85,7 +85,7 @@ export default function SolutionPreview() {
             <div className="lane-track">
               <motion.div
                 className="block window"
-                style={{ left: "28%", width: "44%" }}
+                style={{ left: "19%", width: "33%" }}
                 initial={reduceMotion ? false : { opacity: 0 }}
                 animate={play ? { opacity: 1 } : { opacity: 0 }}
                 transition={{ duration: 0.5, ease, delay: reduceMotion ? 0 : 1.2 }}
@@ -100,7 +100,7 @@ export default function SolutionPreview() {
             <div className="lane-track">
               <motion.div
                 className="block placed"
-                style={{ left: "30%", width: "40%" }}
+                style={{ left: "28%", width: "9.3%" }}
                 initial={
                   reduceMotion
                     ? { opacity: 1, x: 0, backgroundColor: "#2d6a4f" }
@@ -124,7 +124,7 @@ export default function SolutionPreview() {
                   times: reduceMotion ? undefined : [0, 0.55, 1],
                 }}
               >
-                ENG017 + SNT004
+                SKM_ENG001 + SKM_SNT001
               </motion.div>
             </div>
           </div>

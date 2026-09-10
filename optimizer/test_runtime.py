@@ -8,6 +8,8 @@ from ortools.sat.python import cp_model
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import optimizer as optimizer_module
+if hasattr(optimizer_module, "__path__"):
+    from optimizer import optimizer as optimizer_module
 from comparison import compare_plans
 from optimizer import optimize_schedule
 from possessions import solve_priorities

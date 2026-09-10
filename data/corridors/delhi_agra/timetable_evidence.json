@@ -1,0 +1,20 @@
+{
+  "provenance": "PUBLIC_TIMETABLE_DERIVED",
+  "accessed_at": "2026-09-10",
+  "corridor_context_sources": [
+    "https://nr.indianrailways.gov.in/uploads/files/1750745196307-Table1_NR%20SYS%20MAP_2025.pdf",
+    "https://nr.indianrailways.gov.in/uploads/files/1750745168518-NR%20MAP%202025%20%28A4%29.pdf"
+  ],
+  "service_sources": [
+    "https://www.ixigo.com/trains/64076",
+    "https://www.ixigo.com/trains/64074",
+    "https://www.ixigo.com/trains/64062",
+    "https://www.ixigo.com/trains/64078",
+    "https://www.ixigo.com/trains/64077",
+    "https://www.ixigo.com/trains/04921",
+    "https://www.ixigo.com/trains/04913",
+    "https://www.ixigo.com/trains/64057"
+  ],
+  "transformation": "Each section occupancy starts at the public departure time at one corridor station and ends at the public arrival time at the next station in travel order.",
+  "limitations": "Demonstration slice only; not a complete timetable, live feed, working timetable, or authority."
+}

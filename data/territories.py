@@ -28,6 +28,16 @@ CANONICAL_FIELDS = {
     "stations": {"station_id", "station_name", "order"},
     "sections": {"section_id", "from_station", "to_station"},
     "train_occupancy": {"train_id", "section_id", "entry_time", "exit_time"},
+    "train_services": {
+        "train_id",
+        "service_number",
+        "service_name",
+        "origin_station_id",
+        "destination_station_id",
+        "direction",
+        "traffic_type",
+        "source_url",
+    },
     "maintenance_tasks": {
         "task_id",
         "department",
@@ -84,6 +94,7 @@ class LoadedTerritory:
     stations: list[dict[str, Any]]
     sections: list[dict[str, Any]]
     train_occupancy: list[dict[str, Any]]
+    train_services: list[dict[str, Any]]
     maintenance_tasks: list[dict[str, Any]]
     resource_context: Any | None = None
     resource_provenance: str | None = None
@@ -304,6 +315,7 @@ def load_territory(territory_id: str) -> LoadedTerritory:
         stations=loaded["stations"],
         sections=loaded["sections"],
         train_occupancy=loaded["train_occupancy"],
+        train_services=loaded["train_services"],
         maintenance_tasks=loaded["maintenance_tasks"],
         resource_context=resource_context,
         resource_provenance=resource_provenance,

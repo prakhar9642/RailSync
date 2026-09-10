@@ -18,7 +18,7 @@ export default function PairedPossessionTimeline({ analysis, territory, tasks, h
   const availableSections = useMemo(
     () => territory.sections.filter((section) =>
       [...analysis.baseline.blocks, ...analysis.railsync.blocks].some(
-        (block) => block.section_id === section.section_id,
+        (block) => (block.section_ids?.length ? block.section_ids : [block.section_id]).includes(section.section_id),
       ),
     ),
     [analysis, territory.sections],
@@ -58,7 +58,7 @@ export default function PairedPossessionTimeline({ analysis, territory, tasks, h
           <div>{ticks.map((tick) => <time key={tick.key}>{tick.label}</time>)}</div>
         </div>
         {planners.map(([label, allBlocks, className]) => {
-          const blocks = allBlocks.filter((block) => block.section_id === sectionId);
+          const blocks = allBlocks.filter((block) => (block.section_ids?.length ? block.section_ids : [block.section_id]).includes(sectionId));
           return (
             <div className="paired-lane" key={label}>
               <div className="paired-lane-label">

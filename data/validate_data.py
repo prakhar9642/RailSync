@@ -68,10 +68,12 @@ def validate_records(
             )
 
     for task in maintenance_tasks:
-        if task["section_id"] not in section_ids:
+        referenced_sections = task.get("section_ids", [task["section_id"]])
+        unknown_sections = [item for item in referenced_sections if item not in section_ids]
+        if unknown_sections:
             errors.append(
                 f"{prefix}maintenance_tasks: {task['task_id']} references unknown "
-                f"section_id {task['section_id']}"
+                f"section_id(s) {', '.join(unknown_sections)}"
             )
 
     by_train: dict[str, list[dict]] = {}
@@ -92,9 +94,9 @@ def validate_records(
             prev_section = previous["section_id"]
             curr_section = current["section_id"]
             if prev_section in section_endpoints and curr_section in section_endpoints:
-                _, prev_to = section_endpoints[prev_section]
-                curr_from, _ = section_endpoints[curr_section]
-                if prev_to != curr_from:
+                previous_ends = set(section_endpoints[prev_section])
+                current_ends = set(section_endpoints[curr_section])
+                if not previous_ends.intersection(current_ends):
                     errors.append(
                         f"{prefix}train_occupancy: {train_id} jumps from "
                         f"{prev_section} to non-adjacent {curr_section}"

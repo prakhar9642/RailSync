@@ -27,7 +27,8 @@ export default function MaintenanceTaskList({
       tasks.filter((task) => {
         const departmentMatch = department === "ALL" || task.department === department;
         const priorityMatch = priority === "ALL" || priorityLabel(task) === priority;
-        return task.section_id === selectedSection && departmentMatch && priorityMatch;
+        const sectionMatch = (task.section_ids?.length ? task.section_ids : [task.section_id]).includes(selectedSection);
+        return sectionMatch && departmentMatch && priorityMatch;
       }),
     [department, priority, selectedSection, tasks],
   );
@@ -92,7 +93,7 @@ export default function MaintenanceTaskList({
                     {unscheduled ? <em className="task-plan-state is-unscheduled">Unscheduled</em> : null}
                     {scheduled ? <em className="task-plan-state is-scheduled">Scheduled</em> : null}
                   </span>
-                  <small>{sectionLabel(territory, task.section_id)} · {task.task_id}</small>
+                  <small>{(task.section_ids?.length ? task.section_ids : [task.section_id]).map((id) => sectionLabel(territory, id)).join(" + ")} · {task.task_id}</small>
                 </span>
                 <span className="planner-task-meta" data-label="Department">{departmentLabel(task.department)}</span>
                 <span className="planner-task-meta" data-label="Duration">{task.duration_minutes} min</span>

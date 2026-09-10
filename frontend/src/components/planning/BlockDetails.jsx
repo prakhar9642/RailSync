@@ -51,6 +51,7 @@ export default function BlockDetails({ block, diagnostic, tasks, territory }) {
   const departments = [...new Set(blockTasks.map((t) => departmentLabel(t.department)))];
   const deptSummary = departments.length > 0 ? departments.join(" + ") : "Maintenance";
   const totalDuration = durationMinutes(block.start_time, block.end_time);
+  const protectedSections = block.section_ids?.length ? block.section_ids : [block.section_id];
 
   // High-level feasibility checks from diagnostic
   const sectionPassed = diagnostic?.feasibility?.section_match === "PASSED";
@@ -75,10 +76,11 @@ export default function BlockDetails({ block, diagnostic, tasks, territory }) {
       <div className="block-details-content">
         {/* Header & Location */}
         <div className="block-details-location">
-          <strong>{sectionLabel(territory, block.section_id)}</strong>
+          <strong>{protectedSections.map((id) => sectionLabel(territory, id)).join(" · ")}</strong>
           <span>
             {timeLabel(block.start_time)}–{timeLabel(block.end_time)} · Total possession: {totalDuration} min
           </span>
+          <span>Capacity: {(block.capacity_resource_ids?.length ? block.capacity_resource_ids : protectedSections).join(" + ")}{block.track_ids?.length ? ` · Track ${block.track_ids.join(" + ")}` : " · Conservative whole-section protection"}</span>
         </div>
 
         {/* Department & Sharing badge */}
@@ -163,6 +165,10 @@ export default function BlockDetails({ block, diagnostic, tasks, territory }) {
             <dl className="block-details-facts">
               <div><dt>Canonical block</dt><dd>{block.block_id}</dd></div>
               <div><dt>Canonical section</dt><dd>{block.section_id}</dd></div>
+              <div><dt>Physical footprint</dt><dd>{protectedSections.join(" + ")}</dd></div>
+              <div><dt>Capacity resources</dt><dd>{(block.capacity_resource_ids?.length ? block.capacity_resource_ids : protectedSections).join(" + ")}</dd></div>
+              <div><dt>Track allocation</dt><dd>{block.track_ids?.length ? block.track_ids.join(" + ") : "Conservative / not separately identified"}</dd></div>
+              <div><dt>Power isolation zone</dt><dd>{block.power_isolation_zone_id ?? "Not required"}</dd></div>
               <div><dt>Possession start</dt><dd>{formatTimestamp(block.start_time)}</dd></div>
               <div><dt>Possession end</dt><dd>{formatTimestamp(block.end_time)}</dd></div>
               <div><dt>Total possession</dt><dd>{totalDuration} min</dd></div>

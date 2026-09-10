@@ -1,0 +1,42 @@
+[
+  {
+    "station_id": "NZM",
+    "station_name": "Hazrat Nizamuddin",
+    "order": 1
+  },
+  {
+    "station_id": "OKA",
+    "station_name": "Okhla",
+    "order": 2
+  },
+  {
+    "station_id": "TKD",
+    "station_name": "Tuglakabad",
+    "order": 3
+  },
+  {
+    "station_id": "FDB",
+    "station_name": "Faridabad",
+    "order": 4
+  },
+  {
+    "station_id": "FDN",
+    "station_name": "Faridabad New Town",
+    "order": 5
+  },
+  {
+    "station_id": "BVH",
+    "station_name": "Ballabhgarh",
+    "order": 6
+  },
+  {
+    "station_id": "AST",
+    "station_name": "Asaoti",
+    "order": 7
+  },
+  {
+    "station_id": "PWL",
+    "station_name": "Palwal",
+    "order": 8
+  }
+]

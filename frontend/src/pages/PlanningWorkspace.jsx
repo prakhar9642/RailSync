@@ -5,7 +5,8 @@ import RiskControls, { RiskResult } from "../components/planning/RiskControls.js
 import { riskOptions } from "../utils/risk.js";
 import BlockDetails from "../components/planning/BlockDetails.jsx";
 import MaintenanceTaskList from "../components/planning/MaintenanceTaskList.jsx";
-import MaintenanceTimeline from "../components/planning/MaintenanceTimeline.jsx";
+import TimeDistanceDiagram from "../components/planning/TimeDistanceDiagram.jsx";
+import OperationalPanels from "../components/planning/OperationalPanels.jsx";
 import OptimizerControls from "../components/planning/OptimizerControls.jsx";
 import PlannerCorridor from "../components/planning/PlannerCorridor.jsx";
 import {
@@ -161,16 +162,6 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
     [plan, selectedBlockId],
   );
 
-  const sectionOccupancy = useMemo(
-    () => dataState.trains.filter((train) => train.section_id === selectedSection),
-    [dataState.trains, selectedSection],
-  );
-
-  const sectionBlocks = useMemo(
-    () => plan?.blocks.filter((block) => block.section_id === selectedSection) ?? [],
-    [plan, selectedSection],
-  );
-
   const scheduledTaskIds = useMemo(
     () => new Set(plan?.blocks.flatMap((block) => block.tasks) ?? []),
     [plan],
@@ -191,8 +182,8 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
   }, [dataState.territory, plan]);
 
   const selectSection = (sectionId) => {
-    const firstTask = dataState.tasks.find((task) => task.section_id === sectionId);
-    const firstBlock = plan?.blocks.find((block) => block.section_id === sectionId);
+    const firstTask = dataState.tasks.find((task) => (task.section_ids?.length ? task.section_ids : [task.section_id]).includes(sectionId));
+    const firstBlock = plan?.blocks.find((block) => (block.section_ids?.length ? block.section_ids : [block.section_id]).includes(sectionId));
     selectedSectionRef.current = sectionId;
     setSelectedSection(sectionId);
     setSelectedTaskId(firstTask?.task_id ?? "");
@@ -200,7 +191,7 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
   };
 
   const selectTask = (task) => {
-    const firstBlock = plan?.blocks.find((block) => block.section_id === task.section_id);
+    const firstBlock = plan?.blocks.find((block) => (block.section_ids?.length ? block.section_ids : [block.section_id]).includes(task.section_id));
     selectedSectionRef.current = task.section_id;
     setSelectedTaskId(task.task_id);
     setSelectedSection(task.section_id);
@@ -233,7 +224,7 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
       if (requestId !== optimizeRequestId.current) return;
 
       const firstBlockForSection = result.blocks.find(
-        (block) => block.section_id === selectedSectionRef.current,
+        (block) => (block.section_ids?.length ? block.section_ids : [block.section_id]).includes(selectedSectionRef.current),
       );
       const initialBlock = firstBlockForSection ?? result.blocks[0] ?? null;
       setPlan(result);
@@ -370,19 +361,17 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
               trains={dataState.trains} territory={dataState.territory} disabled={optimizationStatus === "loading"} />
             <RiskResult risk={plan?.risk} />
 
-            <div className="planning-workspace-grid">
-              <MaintenanceTimeline
-                sectionId={selectedSection}
-                occupancy={sectionOccupancy}
-                blocks={sectionBlocks}
-                horizon={horizon}
-                hasPlan={Boolean(plan)}
-                selectedBlockId={selectedBlockId}
-                onSelectBlock={setSelectedBlockId}
-                territory={dataState.territory}
-                tasks={dataState.tasks}
-              />
+            <TimeDistanceDiagram
+              territory={dataState.territory}
+              occupancy={dataState.trains}
+              blocks={plan?.blocks ?? []}
+              horizon={horizon}
+              selectedSection={selectedSection}
+              selectedBlockId={selectedBlockId}
+              onSelectBlock={setSelectedBlockId}
+            />
 
+            <div className="planning-workspace-grid">
               <MaintenanceTaskList
                 tasks={dataState.tasks}
                 sections={dataState.territory.sections}
@@ -412,6 +401,25 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
               diagnostic={selectedBlockDiagnostic}
               tasks={dataState.tasks}
               territory={dataState.territory}
+            />
+            <OperationalPanels
+              key={plan?.plan_identity?.plan_id ?? "operations"}
+              territory={dataState.territory}
+              plan={plan}
+              tasks={dataState.tasks}
+              selectedTaskId={selectedTaskId}
+              selectedBlock={selectedBlock}
+              onApplyPlan={(nextPlan) => {
+                setPlan(nextPlan);
+                setSession((current) => ({ ...current, plan: nextPlan, recovery: null }));
+                setOptimizationStatus("success");
+                setSelectedBlockId(nextPlan.blocks[0]?.block_id ?? "");
+              }}
+              onUpdateBlock={(updatedBlock) => {
+                const update = (currentPlan) => currentPlan ? { ...currentPlan, blocks: currentPlan.blocks.map((block) => block.block_id === updatedBlock.block_id ? { ...block, ...updatedBlock } : block) } : currentPlan;
+                setPlan(update);
+                setSession((current) => ({ ...current, plan: update(current.plan) }));
+              }}
             />
             <DataAssumptions plan={plan} territory={dataState.territory} />
           </>

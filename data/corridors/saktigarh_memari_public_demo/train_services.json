@@ -1,0 +1,92 @@
+[
+  {
+    "train_id": "37786",
+    "service_number": "37786",
+    "service_name": "Barddhaman–Howrah local service",
+    "origin_station_id": "BWN",
+    "destination_station_id": "HWH",
+    "direction": "DOWN",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://er.indianrailways.gov.in/cris/uploads/files/1509538037080-Suburban%20Time%20Table.pdf",
+    "timetable_validity": "2017-11-01 to 2018-06-30",
+    "station_sequence": [
+      "SKG",
+      "PLAE",
+      "RSLR",
+      "NMF",
+      "MYM"
+    ]
+  },
+  {
+    "train_id": "37814",
+    "service_number": "37814",
+    "service_name": "Barddhaman–Howrah local service",
+    "origin_station_id": "BWN",
+    "destination_station_id": "HWH",
+    "direction": "DOWN",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://er.indianrailways.gov.in/cris/uploads/files/1509538037080-Suburban%20Time%20Table.pdf",
+    "timetable_validity": "2017-11-01 to 2018-06-30",
+    "station_sequence": [
+      "SKG",
+      "PLAE",
+      "RSLR",
+      "NMF",
+      "MYM"
+    ]
+  },
+  {
+    "train_id": "37818",
+    "service_number": "37818",
+    "service_name": "Barddhaman–Howrah local service",
+    "origin_station_id": "BWN",
+    "destination_station_id": "HWH",
+    "direction": "DOWN",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://er.indianrailways.gov.in/cris/uploads/files/1509538037080-Suburban%20Time%20Table.pdf",
+    "timetable_validity": "2017-11-01 to 2018-06-30",
+    "station_sequence": [
+      "SKG",
+      "PLAE",
+      "RSLR",
+      "NMF",
+      "MYM"
+    ]
+  },
+  {
+    "train_id": "37782",
+    "service_number": "37782",
+    "service_name": "Barddhaman–Howrah local service",
+    "origin_station_id": "BWN",
+    "destination_station_id": "HWH",
+    "direction": "DOWN",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://er.indianrailways.gov.in/cris/uploads/files/1509538037080-Suburban%20Time%20Table.pdf",
+    "timetable_validity": "2017-11-01 to 2018-06-30",
+    "station_sequence": [
+      "SKG",
+      "PLAE",
+      "RSLR",
+      "NMF",
+      "MYM"
+    ]
+  },
+  {
+    "train_id": "37824",
+    "service_number": "37824",
+    "service_name": "Barddhaman–Howrah local service",
+    "origin_station_id": "BWN",
+    "destination_station_id": "HWH",
+    "direction": "DOWN",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://er.indianrailways.gov.in/cris/uploads/files/1509538037080-Suburban%20Time%20Table.pdf",
+    "timetable_validity": "2017-11-01 to 2018-06-30",
+    "station_sequence": [
+      "SKG",
+      "PLAE",
+      "RSLR",
+      "NMF",
+      "MYM"
+    ]
+  }
+]

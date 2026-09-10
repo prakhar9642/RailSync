@@ -88,13 +88,13 @@ def test_health_check_still_works() -> None:
     assert response.json() == {
         "status": "healthy",
         "service": "RailSync Backend",
-        "default_territory_id": FIXTURE_ID,
+        "default_territory_id": PUBLIC_DEMO_ID,
     }
 
 
 def test_dashboard_uses_authoritative_territory() -> None:
     territory = load_territory(FIXTURE_ID)
-    response = client.get("/api/dashboard")
+    response = client.get(f"/api/dashboard?territory_id={FIXTURE_ID}")
     assert response.status_code == 200
     dashboard = response.json()
     assert dashboard["territory_id"] == FIXTURE_ID
@@ -108,18 +108,20 @@ def test_dashboard_uses_authoritative_territory() -> None:
     assert dashboard["trains_count"] == 49
 
 
-def test_territory_discovery_exposes_both_runnable_demos() -> None:
+def test_territory_discovery_exposes_three_public_runnable_territories() -> None:
     response = client.get("/api/territories")
     assert response.status_code == 200
     by_id = {
         item["territory_id"]: item for item in response.json()["territories"]
     }
-    assert by_id[FIXTURE_ID]["planning_ready"] is True
+    assert set(by_id) == {"delhi_agra", PUBLIC_DEMO_ID, "western_hdn"}
     assert by_id[PUBLIC_DEMO_ID]["planning_ready"] is True
     assert by_id[PUBLIC_DEMO_ID]["provenance"] == [
         "PUBLIC_TIMETABLE_DERIVED", "SYNTHETIC_PROTOTYPE"
     ]
-    assert by_id["eastern_hdn"]["planning_ready"] is False
+    assert all(item["planning_ready"] for item in by_id.values())
+    with_test = client.get("/api/territories?include_test=true").json()["territories"]
+    assert any(item["territory_id"] == FIXTURE_ID for item in with_test)
 
 
 def test_public_timetable_demo_optimizes_through_public_api() -> None:
@@ -136,8 +138,8 @@ def test_public_timetable_demo_optimizes_through_public_api() -> None:
 
 def test_tasks_and_trains_come_from_territory_loader() -> None:
     territory = load_territory(FIXTURE_ID)
-    tasks = client.get("/api/tasks").json()
-    trains = client.get("/api/trains").json()
+    tasks = client.get(f"/api/tasks?territory_id={FIXTURE_ID}").json()
+    trains = client.get(f"/api/trains?territory_id={FIXTURE_ID}").json()
     assert tasks == {
         "territory_id": FIXTURE_ID,
         "provenance": ["TEST_FIXTURE"],
@@ -147,6 +149,7 @@ def test_tasks_and_trains_come_from_territory_loader() -> None:
         "territory_id": FIXTURE_ID,
         "provenance": ["TEST_FIXTURE"],
         "trains": territory.train_occupancy,
+        "services": [],
     }
 
 
@@ -164,7 +167,7 @@ def test_optimize_invokes_real_solver_and_removes_old_mock_block(
     assert optimized_response["planning_context"]["territory_id"] == FIXTURE_ID
 
 
-@pytest.mark.parametrize("territory_id", ["eastern_hdn", "western_hdn"])
+@pytest.mark.parametrize("territory_id", ["eastern_hdn"])
 def test_placeholder_territories_are_rejected(territory_id: str) -> None:
     response = client.post("/api/optimize", json={"territory_id": territory_id})
     assert response.status_code == 409
@@ -410,7 +413,11 @@ def test_synthetic_resource_context_is_passed_and_repeat_is_deterministic(
     monkeypatch.setattr(planning_service, "compare_plans", capture)
     repeated = client.post("/api/optimize", json={"territory_id": FIXTURE_ID})
     assert repeated.status_code == 200
-    assert repeated.json() == optimized_response
+    repeated_payload = repeated.json()
+    assert {key: value for key, value in repeated_payload.items() if key != "plan_identity"} == {
+        key: value for key, value in optimized_response.items() if key != "plan_identity"
+    }
+    assert repeated_payload["plan_identity"]["version"] > optimized_response["plan_identity"]["version"]
     context = captured[0]
     assert context.crew_capacities == {
         "TRACK_CREW": 1,

@@ -68,11 +68,12 @@ def risk_objectives(model, blocks, windows_by_section, occupancy, penalties, hor
         before = model.NewIntVar(-maximum, horizon, f"risk_before_{index}")
         after = model.NewIntVar(-maximum, horizon, f"risk_after_{index}")
         for window, chosen in block["slack_choices"]:
+            window_sections = set(window.section_ids or (window.section_id,))
             previous = max((math.ceil(penalties.get((r["train_id"],r["section_id"]),0)) for r in occupancy
-                            if r["section_id"] == window.section_id and window.margin_before_minutes > 0
+                            if r["section_id"] in window_sections and window.margin_before_minutes > 0
                             and parse_datetime(r["exit_time"]) == parse_datetime(window.nominal_start)), default=0)
             following = max((math.ceil(penalties.get((r["train_id"],r["section_id"]),0)) for r in occupancy
-                             if r["section_id"] == window.section_id and window.margin_after_minutes > 0
+                             if r["section_id"] in window_sections and window.margin_after_minutes > 0
                              and parse_datetime(r["entry_time"]) == parse_datetime(window.nominal_end)), default=0)
             model.Add(before == block["before_slack"] - previous).OnlyEnforceIf(chosen)
             model.Add(after == block["after_slack"] - following).OnlyEnforceIf(chosen)

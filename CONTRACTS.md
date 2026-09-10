@@ -1,74 +1,27 @@
-# RailSync Shared Contracts
+# RailSync v2 shared contracts
 
-Do not rename shared fields or endpoints without team discussion.
+Fields from v1 remain valid. Rich capacity fields are additive.
 
-## Maintenance Task
+## Maintenance task
 
-```json
-{
-  "task_id": "ENG017",
-  "department": "ENGINEERING",
-  "section_id": "SEC03",
-  "task_type": "Rail Weld Inspection",
-  "duration_minutes": 120,
-  "criticality": 9,
-  "urgency": 8,
-  "overdue_days": 12,
-  "deadline": "2026-09-02T05:00:00",
-  "requires_power_block": false,
-  "crew_type": "TRACK_CREW",
-  "compatibility_group": "LINE_BLOCK_A"
-}
-```
+section_id is the primary legacy section. section_ids describes a multi-section possession. capacity_resource_ids names the exact protected infrastructure; when absent, every configured resource on each required section is protected conservatively.
 
-## Train Section Occupancy
+Required legacy fields remain task_id, department, section_id, task_type, duration_minutes, criticality, urgency, overdue_days, deadline, requires_power_block, crew_type, and compatibility_group. Optional fields include section_ids, capacity_resource_ids, machine_type, preferred_window, and power_isolation_zone_id.
 
-```json
-{
-  "train_id": "TR104",
-  "section_id": "SEC03",
-  "entry_time": "2026-09-01T01:20:00",
-  "exit_time": "2026-09-01T01:37:00"
-}
-```
+## Train occupancy
 
-## Scheduled Block
+Required fields remain train_id, section_id, entry_time, and exit_time. direction, traffic_type, track_id, and capacity_resource_ids are optional. Direction selects capacity only when the section supplies direction_capacity_mapping; it never implies a track by itself.
 
-```json
-{
-  "block_id": "BLK001",
-  "section_id": "SEC03",
-  "start_time": "2026-09-01T02:00:00",
-  "end_time": "2026-09-01T04:00:00",
-  "tasks": ["ENG017", "SNT004"],
-  "integrated": true,
-  "affected_trains": [],
-  "explanation": []
-}
-```
+## Scheduled block
 
-## API Endpoints
+Blocks retain v1 fields and may add footprint_id, section_ids, capacity_resource_ids, track_ids, power_isolation_zone_id, and operational status.
 
-- GET /health
-- GET /api/tasks
-- GET /api/trains
-- GET /api/dashboard
-- POST /api/optimize
-- POST /api/reoptimize
+## Primary endpoints
 
-## Optimize Response
+- GET /api/territories, /dashboard, /tasks, /trains
+- POST /api/optimize, /api/reoptimize, /api/what-if
+- GET /api/rolling-plan, /resources, /alerts, /data-sources, /plans/history
+- POST /api/plans/{plan_id}/transition, /explain, /copilot
+- POST /api/import/tasks/validate, /export/blocks.csv, /export/print
 
-```json
-{
-  "status": "success",
-  "blocks": [],
-  "unscheduled_tasks": [],
-  "metrics": {
-    "baseline_block_hours": 0,
-    "optimized_block_hours": 0,
-    "baseline_affected_trains": 0,
-    "optimized_affected_trains": 0,
-    "integrated_blocks": 0
-  }
-}
-```
+A plan identity contains plan_id, integer version, lifecycle state, created_at, and optional parent_plan_id. What-if and recovery never replace a plan without an explicit apply action.

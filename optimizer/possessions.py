@@ -42,7 +42,7 @@ def build_possessions(model, tasks, variables, horizon, allowances, policy, fact
                           status=decision.status.value, reasons=reasons))
     assignments = {i: [] for i in range(len(tasks))}
     blocks = []
-    section_intervals = {}
+    capacity_intervals = {}
     for anchor, task in enumerate(tasks):
         start = model.NewIntVar(0, horizon, f"block_{anchor}_start")
         end = model.NewIntVar(0, horizon, f"block_{anchor}_end")
@@ -66,12 +66,18 @@ def build_possessions(model, tasks, variables, horizon, allowances, policy, fact
         model.Add(end == start + size)
         model.Add(start == 0).OnlyEnforceIf(present.Not())
         interval = model.NewOptionalIntervalVar(start, size, end, present, f"block_{anchor}_interval")
-        section_intervals.setdefault(task["section_id"], []).append(interval)
+        capacity_resources = tuple(task.get("_capacity_resource_ids", (task["section_id"],)))
+        section_ids = tuple(task.get("_section_ids", (task["section_id"],)))
+        for capacity_resource_id in capacity_resources:
+            capacity_intervals.setdefault(capacity_resource_id, []).append(interval)
         blocks.append(dict(start=start, end=end, size=size, present=present,
-                           section_id=task["section_id"], members=members))
+                           section_id=task["section_id"], section_ids=section_ids,
+                           capacity_resource_ids=capacity_resources,
+                           footprint_id=task.get("_footprint_id", task["section_id"]),
+                           members=members))
     for i, task in enumerate(tasks):
         model.Add(sum(assignments[i]) == variables[task["task_id"]]["scheduled"])
-    for intervals in section_intervals.values():
+    for intervals in capacity_intervals.values():
         model.AddNoOverlap(intervals)
     return blocks
 

@@ -67,7 +67,7 @@ def test_disruption_can_remove_work_without_calling_it_saved_closure(base_plan):
     assert "closure_saved_minutes" not in result
 
 
-@pytest.mark.parametrize("territory,status",[("missing",404),("eastern_hdn",409),("western_hdn",409)])
+@pytest.mark.parametrize("territory,status",[("missing",404),("eastern_hdn",409)])
 def test_invalid_territory(base_plan,territory,status):
     request=payload(base_plan);request["territory_id"]=territory
     assert client.post("/api/reoptimize",json=request).status_code == status

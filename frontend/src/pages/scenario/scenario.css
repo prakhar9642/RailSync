@@ -54,3 +54,5 @@
 .recovery-affected-text, .recovery-unscheduled-text { font-size: 13px; line-height: 1.5; }
 @media (max-width: 1000px) { .scenario-form { grid-template-columns: repeat(2,1fr); }.scenario-form > div { grid-column: 1 / -1; } }
 @media (max-width: 720px) { .scenario-page { padding-top: 108px; }.scenario-main { padding: 28px 16px; }.scenario-section-heading, .recovery-change-list > div { align-items: flex-start; flex-direction: column; }.recovery-metrics, .recovery-outcome-cards { grid-template-columns: 1fr 1fr; }.recovery-timeline, .recovery-summary { padding: 16px; }.scenario-form { padding: 16px; grid-template-columns: 1fr; } }
+.scenario-apply-row { display:flex; align-items:center; gap:16px; margin:16px 0; padding:14px; border:1px solid var(--line); background:#fff; }
+.scenario-apply-row strong { color:var(--critical); font-size:11px; }

@@ -33,6 +33,22 @@ def load_resource_context(path: Path) -> tuple[ResourceContext, str]:
         if not isinstance(raw[field_name], dict):
             raise ValueError(f"Resource context {field_name} must be an object.")
 
+    def parse_windows(mapping, label):
+        parsed_mapping: dict[str, tuple[PowerWindow, ...]] = {}
+        for resource_id, windows in mapping.items():
+            if not isinstance(resource_id, str) or not resource_id or not isinstance(windows, list):
+                raise ValueError(f"{label} must map resource IDs to lists.")
+            parsed = []
+            for window in windows:
+                if not isinstance(window, dict) or not all(
+                    isinstance(window.get(field), str) and window[field]
+                    for field in ("start_time", "end_time")
+                ):
+                    raise ValueError(f"Invalid {label} for {resource_id!r}.")
+                parsed.append(PowerWindow(window["start_time"], window["end_time"]))
+            parsed_mapping[resource_id] = tuple(parsed)
+        return parsed_mapping
+
     power_windows: dict[str, tuple[PowerWindow, ...]] = {}
     for section_id, windows in raw["power_windows"].items():
         if not isinstance(section_id, str) or not section_id or not isinstance(windows, list):
@@ -47,11 +63,17 @@ def load_resource_context(path: Path) -> tuple[ResourceContext, str]:
             parsed.append(PowerWindow(window["start_time"], window["end_time"]))
         power_windows[section_id] = tuple(parsed)
 
+    for optional in ("crew_windows", "machine_windows"):
+        if optional in raw and not isinstance(raw[optional], dict):
+            raise ValueError(f"Resource context {optional} must be an object.")
+
     return (
         ResourceContext(
             crew_capacities=raw["crew_capacities"],
             machine_capacities=raw["machine_capacities"],
             power_windows=power_windows,
+            crew_windows=parse_windows(raw.get("crew_windows", {}), "crew windows"),
+            machine_windows=parse_windows(raw.get("machine_windows", {}), "machine windows"),
         ),
         provenance,
     )

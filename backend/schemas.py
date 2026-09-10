@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any, Literal
+from typing import List, Optional, Dict, Any, Literal, Union, Annotated
 from pydantic import BaseModel, Field, ConfigDict
 
 class MaintenanceTask(BaseModel):
@@ -14,12 +14,20 @@ class MaintenanceTask(BaseModel):
     requires_power_block: bool
     crew_type: str
     compatibility_group: str
+    section_ids: Optional[List[str]] = None
+    capacity_resource_ids: Optional[List[str]] = None
+    machine_type: Optional[str] = None
+    preferred_window: Optional[str] = None
+    power_isolation_zone_id: Optional[str] = None
 
 class TrainOccupancy(BaseModel):
     train_id: str
     section_id: str
     entry_time: str
     exit_time: str
+    direction: Optional[str] = None
+    traffic_type: Optional[str] = None
+    capacity_resource_ids: Optional[List[str]] = None
 
 class ScheduledBlock(BaseModel):
     block_id: str
@@ -30,6 +38,12 @@ class ScheduledBlock(BaseModel):
     integrated: bool
     affected_trains: List[str] = Field(default_factory=list)
     explanation: List[str] = Field(default_factory=list)
+    footprint_id: Optional[str] = None
+    section_ids: Optional[List[str]] = None
+    capacity_resource_ids: Optional[List[str]] = None
+    track_ids: List[str] = Field(default_factory=list)
+    power_isolation_zone_id: Optional[str] = None
+    status: Literal["DRAFT", "FROZEN", "IN_PROGRESS", "COMPLETED", "CANCELLED"] = "DRAFT"
 
 class OptimizeMetrics(BaseModel):
     baseline_block_hours: float
@@ -59,6 +73,75 @@ class TrainDelayScenario(BaseModel):
     type: Literal["TRAIN_DELAY"]
     train_id: str = Field(min_length=1)
     delay_minutes: int = Field(ge=0, le=1440, strict=True)
+    effective_time: Optional[str] = None
+
+
+class TrainDelaysScenario(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["TRAIN_DELAYS"]
+    delays: List[TrainDelayScenario] = Field(min_length=1, max_length=50)
+    effective_time: Optional[str] = None
+
+
+class CrewUnavailableScenario(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["CREW_UNAVAILABLE"]
+    crew_type: str
+    effective_time: Optional[str] = None
+
+
+class MachineUnavailableScenario(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["MACHINE_UNAVAILABLE"]
+    machine_type: str
+    effective_time: Optional[str] = None
+
+
+class PowerCancelledScenario(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["POWER_ISOLATION_CANCELLED"]
+    section_ids: List[str] = Field(min_length=1)
+    effective_time: Optional[str] = None
+
+
+class SectionUnavailableScenario(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["SECTION_UNAVAILABLE"]
+    section_id: str
+    start_time: str
+    end_time: str
+    capacity_resource_ids: List[str] = Field(default_factory=list)
+    effective_time: Optional[str] = None
+
+
+class EmergencyWorkScenario(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["EMERGENCY_WORK"]
+    task: MaintenanceTask
+    effective_time: Optional[str] = None
+
+
+class WeatherRestrictionScenario(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["WEATHER_RESTRICTION"]
+    delay_minutes: int = Field(ge=0, le=1440, strict=True)
+    train_ids: List[str] = Field(default_factory=list)
+    effective_time: Optional[str] = None
+
+
+DisruptionScenario = Annotated[
+    Union[
+        TrainDelayScenario,
+        TrainDelaysScenario,
+        CrewUnavailableScenario,
+        MachineUnavailableScenario,
+        PowerCancelledScenario,
+        SectionUnavailableScenario,
+        EmergencyWorkScenario,
+        WeatherRestrictionScenario,
+    ],
+    Field(discriminator="type"),
+]
 
 
 class CurrentPlan(BaseModel):
@@ -73,7 +156,7 @@ class ReoptimizeRequest(BaseModel):
     horizon_start: str
     horizon_end: str
     current_plan: CurrentPlan
-    disruption: TrainDelayScenario
+    disruption: DisruptionScenario
     risk_mode: Literal["STATIC", "ML_ASSISTED"] = "STATIC"
     risk_profiles: List[RiskProfileBinding] = Field(default_factory=list, max_length=100)
 
@@ -97,6 +180,16 @@ class PlanningContext(BaseModel):
     resource_context_applied: bool
     resource_provenance: Optional[str] = None
     solver_time_limit_seconds_per_plan: float
+    public_data_notice: str = "Timetable-derived public data; not a live operational feed."
+    prototype_data_notice: str = "Maintenance demand, resources, and scenarios are synthetic prototype inputs."
+
+
+class PlanIdentity(BaseModel):
+    plan_id: str
+    version: int
+    state: Literal["DRAFT", "REVIEWED", "APPROVED", "PUBLISHED"]
+    created_at: str
+    parent_plan_id: Optional[str] = None
 
 
 class AnalysisPlanMetrics(BaseModel):
@@ -221,6 +314,8 @@ class OptimizeResponse(BaseModel):
     planning_context: PlanningContext
     analysis: OptimizeAnalysis
     risk: Dict[str, Any] = Field(default_factory=dict)
+    plan_identity: PlanIdentity
+    alternatives: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class RecoveryMetrics(BaseModel):
@@ -252,7 +347,7 @@ class ReoptimizeResponse(BaseModel):
     territory_id: str
     horizon_start: str
     horizon_end: str
-    disruption: TrainDelayScenario
+    disruption: DisruptionScenario
     scenario_provenance: str
     base_plan: CurrentPlan
     recovered_plan: RecoveredPlan
@@ -264,3 +359,5 @@ class ReoptimizeResponse(BaseModel):
     affected_sections: List[str]
     train_occupancy: List[TrainOccupancy]
     risk: Dict[str, Any]
+    immutable_task_ids: List[str] = Field(default_factory=list)
+    escalation_required: bool = False

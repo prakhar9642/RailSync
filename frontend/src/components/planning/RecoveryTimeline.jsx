@@ -9,6 +9,11 @@ export default function RecoveryTimeline({ result, territory, tasks, originalTra
   const horizon = { start_time: result.horizon_start, end_time: result.horizon_end };
   const ticks = buildTicks(horizon);
   const names = new Map(tasks.map((t) => [t.task_id, t.task_type]));
+  const disruptedTrainIds = new Set([
+    result.disruption.train_id,
+    ...(result.disruption.delays ?? []).map((item) => item.train_id),
+    ...(result.disruption.train_ids ?? []),
+  ].filter(Boolean));
   const lanes = [
     { label: "Original trains", rows: originalTrains, train: true },
     { label: "Disrupted trains", rows: result.train_occupancy, train: true, changed: true },
@@ -27,9 +32,9 @@ export default function RecoveryTimeline({ result, territory, tasks, originalTra
       {lanes.map((lane) => <div className="recovery-lane" key={lane.label}>
         <strong>{lane.label}</strong><div className="recovery-track">
           {ticks.map((tick) => <i key={tick.key} style={{ left: tick.left }} />)}
-          {lane.rows.filter((row) => row.section_id === sectionId).map((row,index) => {
+          {lane.rows.filter((row) => (row.section_ids?.length ? row.section_ids : [row.section_id]).includes(sectionId)).map((row,index) => {
             const change = !lane.train && result.block_changes.find((item) => (lane.changed ? item.after_block_id : item.before_block_id) === row.block_id);
-            const state = lane.train ? lane.changed && row.train_id === result.disruption.train_id ? "DISRUPTED" : "TRAIN" : change?.state ?? "UNKNOWN";
+            const state = lane.train ? lane.changed && disruptedTrainIds.has(row.train_id) ? "DISRUPTED" : "TRAIN" : change?.state ?? "UNKNOWN";
             const start = row.entry_time ?? row.start_time, end = row.exit_time ?? row.end_time;
             const humanTrain = lane.train ? trainLabel(row.train_id, territory) : "";
             const canonicalTrain = lane.train ? canonicalTrainId(row.train_id) : "";
@@ -43,9 +48,16 @@ export default function RecoveryTimeline({ result, territory, tasks, originalTra
       </div>)}
     </div>
     <p className="recovery-legend"><span className="retained">Unchanged</span><span className="shifted">Shifted</span><span className="new">New group</span><span className="cancelled">Cancelled group</span><span className="disrupted">Delayed train</span></p>
-    <p className="scenario-note">Train intervals shift by {result.disruption.delay_minutes} minutes; their duration is preserved. Possessions include setup, work and release. Safety buffers are enforced but are not drawn as occupancy.</p>
+    <p className="scenario-note">{result.disruption.delay_minutes != null
+      ? `Train intervals shift by ${result.disruption.delay_minutes} minutes; their duration is preserved. `
+      : "The selected resource or infrastructure input is changed for this recovery run. "}
+      Possessions include setup, work and release. Safety buffers are enforced but are not drawn as occupancy.</p>
     <div className="recovery-change-list">
-      {result.block_changes.filter((item) => item.section_id === sectionId).map((item,index) => {
+      {result.block_changes.filter((item) => {
+        const block = result.base_plan.blocks.find((b) => b.block_id === item.before_block_id)
+          ?? result.recovered_plan.blocks.find((b) => b.block_id === item.after_block_id);
+        return (block?.section_ids?.length ? block.section_ids : [item.section_id]).includes(sectionId);
+      }).map((item,index) => {
         const before = result.base_plan.blocks.find((b) => b.block_id === item.before_block_id);
         const after = result.recovered_plan.blocks.find((b) => b.block_id === item.after_block_id);
         return <div key={index}><strong>{item.task_ids.map((id) => names.get(id) ?? id).join(" + ")}</strong>

@@ -6,7 +6,7 @@
   "provenance": [
     {
       "label": "PUBLIC_TIMETABLE_DERIVED",
-      "datasets": ["stations", "sections", "train_occupancy"],
+      "datasets": ["stations", "sections", "train_occupancy", "train_services"],
       "description": "Station sequence and train occupancy were transcribed from the official Eastern Railway Combined Suburban Time Table No. 10; this is historical public information, not a live operational feed."
     },
     {
@@ -19,6 +19,7 @@
     "stations": {"adapter": "json_list", "path": "stations.json"},
     "sections": {"adapter": "json_list", "path": "sections.json"},
     "train_occupancy": {"adapter": "json_list", "path": "train_occupancy.json"},
+    "train_services": {"adapter": "json_list", "path": "train_services.json"},
     "maintenance_tasks": {"adapter": "json_list", "path": "maintenance_tasks.json"}
   },
   "scenario_references": [],

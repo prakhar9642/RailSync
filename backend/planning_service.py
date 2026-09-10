@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime
 from typing import Any
 
@@ -11,8 +12,9 @@ from optimizer.candidate_windows import OperationalAllowances
 from optimizer.comparison import compare_plans
 from optimizer.feasibility import task_requirements
 from optimizer.runtime import DEMO_SOLVE_LIMIT_SECONDS
+from .operations_service import register_plan
 
-DEFAULT_TERRITORY_ID = "eastern_hdn_test_fixture"
+DEFAULT_TERRITORY_ID = "saktigarh_memari_public_demo"
 BASELINE_LABEL = "NON_INTEGRATED_CP_SAT_COMPARISON"
 SUPPORTED_PROFILE = "Availability First"
 DEMO_ALLOWANCES = OperationalAllowances()
@@ -54,9 +56,10 @@ def _validate_resource_coverage(territory: LoadedTerritory) -> None:
     required_crews = {task.get("crew_type") for task in territory.maintenance_tasks}
     required_machines = {task.get("machine_type") for task in territory.maintenance_tasks}
     required_power_sections = {
-        task["section_id"]
+        section_id
         for task in territory.maintenance_tasks
         if task.get("requires_power_block") or task.get("requires_power_isolation")
+        for section_id in task.get("section_ids", [task["section_id"]])
     }
     missing_crews = sorted(
         item for item in required_crews if item and item not in context.crew_capacities
@@ -319,7 +322,12 @@ def _analysis(
     }
 
 
-def _response(territory: LoadedTerritory, compared: dict[str, Any]) -> dict[str, Any]:
+def _response(
+    territory: LoadedTerritory,
+    compared: dict[str, Any],
+    *,
+    parent_plan_id: str | None = None,
+) -> dict[str, Any]:
     baseline = compared["baseline"]
     optimized = compared["optimized"]
     plan = optimized["plan"]
@@ -330,7 +338,7 @@ def _response(territory: LoadedTerritory, compared: dict[str, Any]) -> dict[str,
         )
 
     horizon = territory.manifest.planning_horizon
-    return {
+    response = {
         "status": plan["status"],
         "blocks": plan["blocks"],
         "unscheduled_tasks": plan["unscheduled_tasks"],
@@ -367,7 +375,31 @@ def _response(territory: LoadedTerritory, compared: dict[str, Any]) -> dict[str,
             "solver_time_limit_seconds_per_plan": DEMO_SOLVE_LIMIT_SECONDS,
         },
         "analysis": _analysis(territory, compared),
+        "alternatives": [
+            {
+                "alternative_id": "rail-separate",
+                "label": "Separate departmental possessions",
+                "solver_backed": True,
+                "proof_state": baseline["proof_state"],
+                "blocks": baseline["plan"]["blocks"],
+                "metrics": _analysis_plan(baseline)["metrics"],
+                "tradeoff": "Preserves department separation but consumes more possession minutes when tasks can safely share.",
+            },
+            {
+                "alternative_id": "railsync-coordinated",
+                "label": "Coordinated RailSync plan",
+                "solver_backed": True,
+                "proof_state": optimized["proof_state"],
+                "blocks": plan["blocks"],
+                "metrics": _analysis_plan(optimized)["metrics"],
+                "tradeoff": "Integrates compatible work while retaining every hard capacity, train, deadline, power, crew, and machine constraint.",
+            },
+        ],
     }
+    response["plan_identity"] = register_plan(
+        territory.manifest.territory_id, response, parent_plan_id
+    )
+    return response
 
 
 def optimize_registered_territory(
@@ -377,11 +409,31 @@ def optimize_registered_territory(
     horizon_hours: int | None = None,
     risk_mode: str = "STATIC",
     risk_profiles=(),
+    task_overrides: list[dict[str, Any]] | None = None,
+    parent_plan_id: str | None = None,
 ) -> dict[str, Any]:
     """Run the existing fair comparison for one registered planning input."""
     if profile != SUPPORTED_PROFILE:
         raise InvalidPlanningRequest(f"Unsupported planning profile {profile!r}.")
     territory = load_planning_territory(territory_id)
+    if task_overrides:
+        tasks = {task["task_id"]: dict(task) for task in territory.maintenance_tasks}
+        allowed = {
+            "duration_minutes", "deadline", "criticality", "urgency", "overdue_days",
+            "requires_power_block", "crew_type", "machine_type", "preferred_window",
+            "section_id", "section_ids", "capacity_resource_ids",
+        }
+        for override in task_overrides:
+            task_id = override.get("task_id")
+            if task_id not in tasks:
+                raise InvalidPlanningRequest(f"Unknown task override: {task_id}")
+            unexpected = sorted(set(override) - allowed - {"task_id"})
+            if unexpected:
+                raise InvalidPlanningRequest(
+                    f"Unsupported task override fields: {', '.join(unexpected)}"
+                )
+            tasks[task_id].update({key: value for key, value in override.items() if key != "task_id"})
+        territory = replace(territory, maintenance_tasks=list(tasks.values()))
     start_time, end_time, configured_hours = _horizon(territory)
     if horizon_hours is not None and horizon_hours != configured_hours:
         raise InvalidPlanningRequest(
@@ -405,4 +457,4 @@ def optimize_registered_territory(
         )
     except RuntimeError as error:
         raise PlanningExecutionError(str(error)) from error
-    return dict(_response(territory, compared), risk=risk)
+    return dict(_response(territory, compared, parent_plan_id=parent_plan_id), risk=risk)

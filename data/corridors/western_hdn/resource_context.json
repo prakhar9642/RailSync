@@ -1,0 +1,75 @@
+{
+  "provenance": "SYNTHETIC_PROTOTYPE",
+  "crew_capacities": {
+    "TRACK_CREW": 2,
+    "SIGNAL_CREW": 2,
+    "OHE_CREW": 1
+  },
+  "machine_capacities": {
+    "TAMPER": 1,
+    "TOWER_WAGON": 1,
+    "USFD_TROLLEY": 1,
+    "TRACK_TROLLEY": 1
+  },
+  "crew_windows": {
+    "TRACK_CREW": [{"start_time": "2026-09-10T04:30:00", "end_time": "2026-09-10T10:30:00"}],
+    "SIGNAL_CREW": [{"start_time": "2026-09-10T04:30:00", "end_time": "2026-09-10T10:30:00"}],
+    "OHE_CREW": [{"start_time": "2026-09-10T04:30:00", "end_time": "2026-09-10T10:30:00"}]
+  },
+  "machine_windows": {
+    "TAMPER": [{"start_time": "2026-09-10T04:30:00", "end_time": "2026-09-10T10:30:00"}],
+    "TOWER_WAGON": [{"start_time": "2026-09-10T04:30:00", "end_time": "2026-09-10T10:30:00"}],
+    "USFD_TROLLEY": [{"start_time": "2026-09-10T04:30:00", "end_time": "2026-09-10T10:30:00"}],
+    "TRACK_TROLLEY": [{"start_time": "2026-09-10T04:30:00", "end_time": "2026-09-10T10:30:00"}]
+  },
+  "power_windows": {
+    "WR_SEC01": [
+      {
+        "start_time": "2026-09-10T04:30:00",
+        "end_time": "2026-09-10T10:30:00"
+      }
+    ],
+    "WR_SEC02": [
+      {
+        "start_time": "2026-09-10T04:30:00",
+        "end_time": "2026-09-10T10:30:00"
+      }
+    ],
+    "WR_SEC03": [
+      {
+        "start_time": "2026-09-10T04:30:00",
+        "end_time": "2026-09-10T10:30:00"
+      }
+    ],
+    "WR_SEC04": [
+      {
+        "start_time": "2026-09-10T04:30:00",
+        "end_time": "2026-09-10T10:30:00"
+      }
+    ],
+    "WR_SEC05": [
+      {
+        "start_time": "2026-09-10T04:30:00",
+        "end_time": "2026-09-10T10:30:00"
+      }
+    ],
+    "WR_SEC06": [
+      {
+        "start_time": "2026-09-10T04:30:00",
+        "end_time": "2026-09-10T10:30:00"
+      }
+    ],
+    "WR_SEC07": [
+      {
+        "start_time": "2026-09-10T04:30:00",
+        "end_time": "2026-09-10T10:30:00"
+      }
+    ],
+    "WR_SEC08": [
+      {
+        "start_time": "2026-09-10T04:30:00",
+        "end_time": "2026-09-10T10:30:00"
+      }
+    ]
+  }
+}

@@ -1704,6 +1704,59 @@
   }
 }
 
+.time-distance-card {
+  margin-top: 16px;
+  padding: 22px 24px 18px;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--train);
+  background: var(--white);
+  box-shadow: 0 10px 28px rgba(12, 29, 50, 0.07);
+}
+
+.time-distance-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.time-distance-heading h2 { margin: 3px 0 0; }
+.time-distance-heading p { max-width: 520px; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.time-distance-legend { display: flex; flex-wrap: wrap; gap: 18px; margin: 12px 0; color: var(--muted); font-size: 10px; }
+.time-distance-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.time-distance-legend i { width: 24px; height: 4px; display: inline-block; border-radius: 4px; }
+.time-distance-legend .td-train { background: #1d5b86; }
+.time-distance-legend .td-block { height: 10px; background: rgba(45, 106, 79, .7); }
+.time-distance-legend .td-selected { height: 10px; border: 2px solid #cb7d20; background: transparent; }
+.time-distance-scroll { overflow-x: auto; border: 1px solid #d8dce0; background: #f8fafb; }
+.time-distance-svg { display: block; width: 100%; min-width: 820px; height: auto; }
+.td-grid-time { stroke: #dce2e6; stroke-width: 1; stroke-dasharray: 3 4; }
+.td-grid-station { stroke: #c7d0d6; stroke-width: 1; }
+.td-time-label, .td-station-label, .td-scope-label { fill: #59636d; font: 600 10px system-ui, sans-serif; }
+.td-station-label { fill: #142f45; font-size: 11px; }
+.td-scope-label { font-size: 9px; }
+.td-train-path { fill: none; stroke: rgba(29, 91, 134, .68); stroke-width: 2.2; vector-effect: non-scaling-stroke; }
+.td-train-path:hover { stroke: #0b4f7d; stroke-width: 4; }
+.td-possession { cursor: pointer; }
+.td-possession rect { fill: rgba(45, 106, 79, .62); stroke: #245d45; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.td-possession text { fill: white; font: 700 9px system-ui, sans-serif; pointer-events: none; }
+.td-possession.is-selected rect { fill: rgba(203, 125, 32, .72); stroke: #9f5b0c; stroke-width: 3; }
+
+.operations-shell { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; margin-top: 16px; }
+.operations-card { border: 1px solid var(--line); background: var(--white); padding: 18px 20px; }
+.operations-card h2, .operations-card h3 { margin: 0 0 8px; color: var(--navy); }
+.operations-card p { color: var(--muted); font-size: 11px; line-height: 1.5; }
+.operations-tabs, .operations-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.operations-tabs button, .operations-actions button { padding: 7px 10px; border: 1px solid var(--line); background: #f7f8f6; color: var(--navy); cursor: pointer; }
+.operations-tabs button.is-active { border-color: var(--train); color: var(--train); background: #eef5f9; }
+.operations-list { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.operations-list li { padding: 9px 10px; border-left: 3px solid var(--line); background: #f8f9f7; font-size: 10px; line-height: 1.45; }
+.copilot-form { display: flex; gap: 7px; }
+.copilot-form input { flex: 1; min-width: 0; padding: 9px 10px; border: 1px solid var(--line); }
+.copilot-answer { margin-top: 10px; padding: 10px; border-left: 3px solid var(--confirm); background: #f1f7f3; }
+.lifecycle-badge { display: inline-block; padding: 3px 7px; border-radius: 999px; background: #eef5f9; color: var(--train); font-size: 9px; font-weight: 700; }
+@media (max-width: 860px) { .operations-shell { grid-template-columns: 1fr; } .time-distance-heading { align-items: flex-start; flex-direction: column; } }
+
 @media (max-width: 560px) {
   .planning-workspace-main {
     padding: 24px 14px 40px;
@@ -1786,9 +1839,7 @@
 
 .planning-workspace-grid {
   grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.75fr);
-  grid-template-areas:
-    "timeline timeline"
-    "tasks controls";
+  grid-template-areas: "tasks controls";
   gap: 16px;
   margin-top: 16px;
   border: 0;
@@ -2200,7 +2251,7 @@
 @media (max-width: 980px) {
   .planning-workspace-grid {
     grid-template-columns: 1fr;
-    grid-template-areas: "timeline" "tasks" "controls";
+    grid-template-areas: "tasks" "controls";
   }
 
   .planner-task-column,

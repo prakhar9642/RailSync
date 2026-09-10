@@ -1,0 +1,265 @@
+[
+  {
+    "task_id": "WR_ENG001",
+    "department": "ENGINEERING",
+    "section_id": "WR_SEC01",
+    "section_ids": [
+      "WR_SEC01"
+    ],
+    "capacity_resource_ids": [
+      "WR_SEC01_NORTHBOUND"
+    ],
+    "task_type": "Turnout geometry inspection",
+    "duration_minutes": 20,
+    "criticality": 9,
+    "urgency": 9,
+    "overdue_days": 12,
+    "deadline": "2026-09-10T10:15:00",
+    "requires_power_block": false,
+    "crew_type": "TRACK_CREW",
+    "compatibility_group": "WR_GRP_A",
+    "preferred_window": "EARLY_MORNING",
+    "machine_type": "TAMPER"
+  },
+  {
+    "task_id": "WR_SNT001",
+    "department": "S&T",
+    "section_id": "WR_SEC01",
+    "section_ids": [
+      "WR_SEC01"
+    ],
+    "capacity_resource_ids": [
+      "WR_SEC01_NORTHBOUND"
+    ],
+    "task_type": "Axle counter functional test",
+    "duration_minutes": 15,
+    "criticality": 8,
+    "urgency": 8,
+    "overdue_days": 5,
+    "deadline": "2026-09-10T10:15:00",
+    "requires_power_block": false,
+    "crew_type": "SIGNAL_CREW",
+    "compatibility_group": "WR_GRP_A",
+    "preferred_window": "EARLY_MORNING"
+  },
+  {
+    "task_id": "WR_TRD001",
+    "department": "TRD",
+    "section_id": "WR_SEC02",
+    "section_ids": [
+      "WR_SEC02"
+    ],
+    "capacity_resource_ids": [
+      "WR_SEC02_NORTHBOUND"
+    ],
+    "task_type": "OHE cantilever inspection",
+    "duration_minutes": 20,
+    "criticality": 9,
+    "urgency": 8,
+    "overdue_days": 7,
+    "deadline": "2026-09-10T10:15:00",
+    "requires_power_block": true,
+    "crew_type": "OHE_CREW",
+    "compatibility_group": "WR_GRP_B",
+    "preferred_window": "EARLY_MORNING",
+    "machine_type": "TOWER_WAGON",
+    "power_isolation_zone_id": "WR_PZ_WR_SEC02"
+  },
+  {
+    "task_id": "WR_ENG002",
+    "department": "ENGINEERING",
+    "section_id": "WR_SEC02",
+    "section_ids": [
+      "WR_SEC02"
+    ],
+    "capacity_resource_ids": [
+      "WR_SEC02_NORTHBOUND"
+    ],
+    "task_type": "Ultrasonic rail testing",
+    "duration_minutes": 25,
+    "criticality": 10,
+    "urgency": 9,
+    "overdue_days": 18,
+    "deadline": "2026-09-10T10:15:00",
+    "requires_power_block": false,
+    "crew_type": "TRACK_CREW",
+    "compatibility_group": "WR_GRP_B",
+    "preferred_window": "EARLY_MORNING",
+    "machine_type": "USFD_TROLLEY"
+  },
+  {
+    "task_id": "WR_SNT002",
+    "department": "S&T",
+    "section_id": "WR_SEC03",
+    "section_ids": [
+      "WR_SEC03"
+    ],
+    "capacity_resource_ids": [
+      "WR_SEC03_SOUTHBOUND"
+    ],
+    "task_type": "Signal cable insulation test",
+    "duration_minutes": 20,
+    "criticality": 7,
+    "urgency": 7,
+    "overdue_days": 3,
+    "deadline": "2026-09-10T10:15:00",
+    "requires_power_block": false,
+    "crew_type": "SIGNAL_CREW",
+    "compatibility_group": "WR_GRP_C",
+    "preferred_window": "MORNING"
+  },
+  {
+    "task_id": "WR_TRD002",
+    "department": "TRD",
+    "section_id": "WR_SEC03",
+    "section_ids": [
+      "WR_SEC03"
+    ],
+    "capacity_resource_ids": [
+      "WR_SEC03_SOUTHBOUND"
+    ],
+    "task_type": "Section insulator inspection",
+    "duration_minutes": 20,
+    "criticality": 9,
+    "urgency": 9,
+    "overdue_days": 9,
+    "deadline": "2026-09-10T10:15:00",
+    "requires_power_block": true,
+    "crew_type": "OHE_CREW",
+    "compatibility_group": "WR_GRP_C",
+    "preferred_window": "MORNING",
+    "machine_type": "TOWER_WAGON",
+    "power_isolation_zone_id": "WR_PZ_WR_SEC03"
+  },
+  {
+    "task_id": "WR_ENG003",
+    "department": "ENGINEERING",
+    "section_id": "WR_SEC04",
+    "section_ids": [
+      "WR_SEC04"
+    ],
+    "capacity_resource_ids": [
+      "WR_SEC04_NORTHBOUND"
+    ],
+    "task_type": "Rail weld examination",
+    "duration_minutes": 20,
+    "criticality": 8,
+    "urgency": 7,
+    "overdue_days": 6,
+    "deadline": "2026-09-10T10:15:00",
+    "requires_power_block": false,
+    "crew_type": "TRACK_CREW",
+    "compatibility_group": "WR_GRP_D",
+    "preferred_window": "EARLY_MORNING"
+  },
+  {
+    "task_id": "WR_SNT003",
+    "department": "S&T",
+    "section_id": "WR_SEC05",
+    "section_ids": [
+      "WR_SEC05"
+    ],
+    "capacity_resource_ids": [
+      "WR_SEC05_SOUTHBOUND"
+    ],
+    "task_type": "Track circuit bonding inspection",
+    "duration_minutes": 15,
+    "criticality": 7,
+    "urgency": 8,
+    "overdue_days": 2,
+    "deadline": "2026-09-10T10:15:00",
+    "requires_power_block": false,
+    "crew_type": "SIGNAL_CREW",
+    "compatibility_group": "WR_GRP_E",
+    "preferred_window": "MORNING"
+  },
+  {
+    "task_id": "WR_TRD003",
+    "department": "TRD",
+    "section_id": "WR_SEC06",
+    "section_ids": [
+      "WR_SEC06"
+    ],
+    "capacity_resource_ids": [
+      "WR_SEC06_NORTHBOUND"
+    ],
+    "task_type": "Contact wire visual inspection",
+    "duration_minutes": 20,
+    "criticality": 8,
+    "urgency": 8,
+    "overdue_days": 4,
+    "deadline": "2026-09-10T10:15:00",
+    "requires_power_block": true,
+    "crew_type": "OHE_CREW",
+    "compatibility_group": "WR_GRP_F",
+    "preferred_window": "EARLY_MORNING",
+    "machine_type": "TOWER_WAGON",
+    "power_isolation_zone_id": "WR_PZ_WR_SEC06"
+  },
+  {
+    "task_id": "WR_ENG004",
+    "department": "ENGINEERING",
+    "section_id": "WR_SEC07",
+    "section_ids": [
+      "WR_SEC07"
+    ],
+    "capacity_resource_ids": [
+      "WR_SEC07_SOUTHBOUND"
+    ],
+    "task_type": "Ballast profile inspection",
+    "duration_minutes": 20,
+    "criticality": 6,
+    "urgency": 6,
+    "overdue_days": 1,
+    "deadline": "2026-09-10T10:15:00",
+    "requires_power_block": false,
+    "crew_type": "TRACK_CREW",
+    "compatibility_group": "WR_GRP_G",
+    "preferred_window": "MORNING"
+  },
+  {
+    "task_id": "WR_SNT004",
+    "department": "S&T",
+    "section_id": "WR_SEC08",
+    "section_ids": [
+      "WR_SEC08"
+    ],
+    "capacity_resource_ids": [
+      "WR_SEC08_NORTHBOUND"
+    ],
+    "task_type": "Point machine condition test",
+    "duration_minutes": 20,
+    "criticality": 9,
+    "urgency": 8,
+    "overdue_days": 10,
+    "deadline": "2026-09-10T10:15:00",
+    "requires_power_block": false,
+    "crew_type": "SIGNAL_CREW",
+    "compatibility_group": "WR_GRP_H",
+    "preferred_window": "EARLY_MORNING"
+  },
+  {
+    "task_id": "WR_MULTI001",
+    "department": "ENGINEERING",
+    "section_id": "WR_SEC04",
+    "section_ids": [
+      "WR_SEC04",
+      "WR_SEC05"
+    ],
+    "capacity_resource_ids": [
+      "WR_SEC04_NORTHBOUND",
+      "WR_SEC05_NORTHBOUND"
+    ],
+    "task_type": "Two-section rail corridor survey",
+    "duration_minutes": 30,
+    "criticality": 10,
+    "urgency": 10,
+    "overdue_days": 20,
+    "deadline": "2026-09-10T10:15:00",
+    "requires_power_block": false,
+    "crew_type": "TRACK_CREW",
+    "compatibility_group": "WR_MULTI",
+    "preferred_window": "EARLY_MORNING",
+    "machine_type": "TRACK_TROLLEY"
+  }
+]

@@ -1,0 +1,222 @@
+[
+  {
+    "train_id": "93001",
+    "service_number": "93001",
+    "service_name": "Virar–Dahanu Road Slow Local",
+    "origin_station_id": "VR",
+    "destination_station_id": "DRD",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://www.ixigo.com/trains/93001",
+    "timetable_validity": "Public schedule accessed 2026-09-10",
+    "station_sequence": [
+      "VR",
+      "VTN",
+      "SAH",
+      "KLV",
+      "PLG",
+      "UOI",
+      "BOR",
+      "VGN",
+      "DRD"
+    ]
+  },
+  {
+    "train_id": "93003",
+    "service_number": "93003",
+    "service_name": "Virar–Dahanu Road Slow Local",
+    "origin_station_id": "VR",
+    "destination_station_id": "DRD",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://www.ixigo.com/trains/93003",
+    "timetable_validity": "Public schedule accessed 2026-09-10",
+    "station_sequence": [
+      "VR",
+      "VTN",
+      "SAH",
+      "KLV",
+      "PLG",
+      "UOI",
+      "BOR",
+      "VGN",
+      "DRD"
+    ]
+  },
+  {
+    "train_id": "93005",
+    "service_number": "93005",
+    "service_name": "Churchgate–Dahanu Road Fast Local",
+    "origin_station_id": "VR",
+    "destination_station_id": "DRD",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://www.ixigo.com/trains/93005",
+    "timetable_validity": "Public schedule accessed 2026-09-10",
+    "station_sequence": [
+      "VR",
+      "VTN",
+      "SAH",
+      "KLV",
+      "PLG",
+      "UOI",
+      "BOR",
+      "VGN",
+      "DRD"
+    ]
+  },
+  {
+    "train_id": "93007",
+    "service_number": "93007",
+    "service_name": "Virar–Dahanu Road Slow Local",
+    "origin_station_id": "VR",
+    "destination_station_id": "DRD",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://www.ixigo.com/trains/93007",
+    "timetable_validity": "Public schedule accessed 2026-09-10",
+    "station_sequence": [
+      "VR",
+      "VTN",
+      "SAH",
+      "KLV",
+      "PLG",
+      "UOI",
+      "BOR",
+      "VGN",
+      "DRD"
+    ]
+  },
+  {
+    "train_id": "93009",
+    "service_number": "93009",
+    "service_name": "Virar–Dahanu Road Slow Local",
+    "origin_station_id": "VR",
+    "destination_station_id": "DRD",
+    "direction": "NORTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://www.ixigo.com/trains/93009",
+    "timetable_validity": "Public schedule accessed 2026-09-10",
+    "station_sequence": [
+      "VR",
+      "VTN",
+      "SAH",
+      "KLV",
+      "PLG",
+      "UOI",
+      "BOR",
+      "VGN",
+      "DRD"
+    ]
+  },
+  {
+    "train_id": "93002",
+    "service_number": "93002",
+    "service_name": "Dahanu Road–Churchgate Fast Local",
+    "origin_station_id": "DRD",
+    "destination_station_id": "VR",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://www.ixigo.com/trains/93002",
+    "timetable_validity": "Public schedule accessed 2026-09-10",
+    "station_sequence": [
+      "DRD",
+      "VGN",
+      "BOR",
+      "UOI",
+      "PLG",
+      "KLV",
+      "SAH",
+      "VTN",
+      "VR"
+    ]
+  },
+  {
+    "train_id": "93004",
+    "service_number": "93004",
+    "service_name": "Dahanu Road–Virar Slow Local",
+    "origin_station_id": "DRD",
+    "destination_station_id": "VR",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://www.ixigo.com/trains/93004",
+    "timetable_validity": "Public schedule accessed 2026-09-10",
+    "station_sequence": [
+      "DRD",
+      "VGN",
+      "BOR",
+      "UOI",
+      "PLG",
+      "KLV",
+      "SAH",
+      "VTN",
+      "VR"
+    ]
+  },
+  {
+    "train_id": "93006",
+    "service_number": "93006",
+    "service_name": "Dahanu Road–Virar Slow Local",
+    "origin_station_id": "DRD",
+    "destination_station_id": "VR",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://www.ixigo.com/trains/93006",
+    "timetable_validity": "Public schedule accessed 2026-09-10",
+    "station_sequence": [
+      "DRD",
+      "VGN",
+      "BOR",
+      "UOI",
+      "PLG",
+      "KLV",
+      "SAH",
+      "VTN",
+      "VR"
+    ]
+  },
+  {
+    "train_id": "93008",
+    "service_number": "93008",
+    "service_name": "Dahanu Road–Virar Slow Local",
+    "origin_station_id": "DRD",
+    "destination_station_id": "VR",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://www.ixigo.com/trains/93008",
+    "timetable_validity": "Public schedule accessed 2026-09-10",
+    "station_sequence": [
+      "DRD",
+      "VGN",
+      "BOR",
+      "UOI",
+      "PLG",
+      "KLV",
+      "SAH",
+      "VTN",
+      "VR"
+    ]
+  },
+  {
+    "train_id": "93010",
+    "service_number": "93010",
+    "service_name": "Dahanu Road–Virar Slow Local",
+    "origin_station_id": "DRD",
+    "destination_station_id": "VR",
+    "direction": "SOUTHBOUND",
+    "traffic_type": "PASSENGER_TIMETABLE",
+    "source_url": "https://www.ixigo.com/trains/93010",
+    "timetable_validity": "Public schedule accessed 2026-09-10",
+    "station_sequence": [
+      "DRD",
+      "VGN",
+      "BOR",
+      "UOI",
+      "PLG",
+      "KLV",
+      "SAH",
+      "VTN",
+      "VR"
+    ]
+  }
+]

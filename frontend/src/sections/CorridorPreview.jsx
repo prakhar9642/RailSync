@@ -2,27 +2,19 @@ import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import SectionHeading from "../components/ui/SectionHeading.jsx";
 
-export const CORRIDOR_STATIONS = [
-  { id: "NDLS", name: "New Delhi" },
+const CORRIDOR_STATIONS = [
   { id: "NZM", name: "Hazrat Nizamuddin" },
+  { id: "OKA", name: "Okhla" },
+  { id: "TKD", name: "Tuglakabad" },
   { id: "FDB", name: "Faridabad" },
+  { id: "FDN", name: "Faridabad New Town" },
+  { id: "BVH", name: "Ballabhgarh" },
+  { id: "AST", name: "Asaoti" },
   { id: "PWL", name: "Palwal" },
-  { id: "KSV", name: "Kosi Kalan" },
-  { id: "MTJ", name: "Mathura Junction" },
-  { id: "CHT", name: "Chata" },
-  { id: "RKM", name: "Raja Ki Mandi" },
-  { id: "AGC", name: "Agra Cantt" },
 ];
 
-export const CORRIDOR_SECTIONS = [
-  "SEC01",
-  "SEC02",
-  "SEC03",
-  "SEC04",
-  "SEC05",
-  "SEC06",
-  "SEC07",
-  "SEC08",
+const CORRIDOR_SECTIONS = [
+  "NR_SEC01", "NR_SEC02", "NR_SEC03", "NR_SEC04", "NR_SEC05", "NR_SEC06", "NR_SEC07",
 ];
 
 function StationNode({ x, y, active, terminus }) {
@@ -67,9 +59,9 @@ export default function CorridorPreview({
   return (
     <section className="section corridor" id="corridor">
       <div className="section-inner">
-        <SectionHeading eyebrow="Corridor" title="One planning corridor">
-          A single Delhi–Agra alignment. Stations and section IDs can later be
-          replaced with timetable-backed data.
+        <SectionHeading eyebrow="Corridor" title="Public route structure">
+          A representative New Delhi–Palwal planning slice. Choose this Northern
+          territory, Western HDN, or the historical Eastern demo above.
         </SectionHeading>
 
         <div className="corridor-track">
@@ -77,7 +69,7 @@ export default function CorridorPreview({
             className="corridor-svg"
             viewBox={`0 0 ${width} 150`}
             role="img"
-            aria-label="Rail corridor from New Delhi to Agra Cantt"
+            aria-label="Rail corridor from Hazrat Nizamuddin to Palwal"
           >
             {sleepers.map((x) => (
               <line

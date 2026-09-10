@@ -23,6 +23,10 @@ class ResourceContext:
     machine_capacities: Mapping[str, int] = field(default_factory=dict)
     # Absent section = unknown; present empty sequence = explicitly unavailable.
     power_windows: Mapping[str, tuple[PowerWindow, ...]] = field(default_factory=dict)
+    # Optional roster/availability calendars. Missing pools remain unknown and
+    # therefore capacity-only; explicitly empty calendars make the pool unavailable.
+    crew_windows: Mapping[str, tuple[PowerWindow, ...]] = field(default_factory=dict)
+    machine_windows: Mapping[str, tuple[PowerWindow, ...]] = field(default_factory=dict)
 
     def __post_init__(self):
         for pools in (self.crew_capacities, self.machine_capacities):
@@ -35,17 +39,19 @@ class ResourceContext:
     def validate_times(self, origin):
         for section in self.power_windows:
             power_intervals(self, section, origin)
+        for calendars in (self.crew_windows, self.machine_windows):
+            for windows in calendars.values():
+                _merge_windows(windows, origin)
 
 
-def power_intervals(context, section, origin):
-    """Union touching/overlapping availability before testing full reservations."""
+def _merge_windows(windows, origin):
     merged = []
     intervals = []
-    for window in context.power_windows.get(section, ()):
+    for window in windows:
         start = datetime_to_minutes(window.start_time, origin)
         end = datetime_to_minutes(window.end_time, origin)
         if start >= end:
-            raise ValueError("Power window must start before it ends.")
+            raise ValueError("Resource window must start before it ends.")
         intervals.append((start, end))
     for start, end in sorted(intervals):
         if merged and start <= merged[-1][1]:
@@ -55,18 +61,68 @@ def power_intervals(context, section, origin):
     return merged
 
 
-def power_start_ranges(task, duration, earliest, latest, origin, context):
-    """Inclusive legal start ranges, relative to origin; all overhead needs power."""
-    if earliest > latest:
-        return []
-    required = task.get("requires_power_block", False) or task.get("requires_power_isolation", False)
-    if not required or context is None or task["section_id"] not in context.power_windows:
-        return [(earliest, latest)]
+def power_intervals(context, section, origin):
+    """Union touching/overlapping availability before testing full reservations."""
+    return _merge_windows(context.power_windows.get(section, ()), origin)
+
+
+def _intersect_start_ranges(ranges, windows, duration):
     return [
-        (max(earliest, start), min(latest, end - duration))
-        for start, end in power_intervals(context, task["section_id"], origin)
-        if max(earliest, start) <= min(latest, end - duration)
+        (max(left, start), min(right, end - duration))
+        for left, right in ranges
+        for start, end in windows
+        if max(left, start) <= min(right, end - duration)
     ]
+
+
+def power_start_ranges(task, duration, earliest, latest, origin, context):
+    """Inclusive legal reservation starts across power, roster, and machine calendars."""
+    return reservation_start_ranges(
+        task, duration, earliest, latest, origin, context
+    )[0]
+
+
+def reservation_start_ranges(task, duration, earliest, latest, origin, context):
+    """Return legal starts plus resource-specific calendar availability facts."""
+    if earliest > latest:
+        if context is None:
+            return [], {}
+        checks = {}
+        sections = task.get("_section_ids") or task.get("section_ids") or [task["section_id"]]
+        required = task.get("requires_power_block", False) or task.get("requires_power_isolation", False)
+        if required and any(section in context.power_windows for section in sections):
+            checks["power"] = False
+        if task.get("crew_type") in context.crew_windows:
+            checks["crew"] = False
+        if task.get("machine_type") in context.machine_windows:
+            checks["machine"] = False
+        return [], checks
+    if context is None:
+        return [(earliest, latest)], {}
+    ranges = [(earliest, latest)]
+    checks = {}
+    required = task.get("requires_power_block", False) or task.get("requires_power_isolation", False)
+    if required:
+        power_configured = False
+        for section in task.get("_section_ids") or task.get("section_ids") or [task["section_id"]]:
+            if section in context.power_windows:
+                power_configured = True
+                ranges = _intersect_start_ranges(
+                    ranges, power_intervals(context, section, origin), duration
+                )
+        if power_configured:
+            checks["power"] = bool(ranges)
+    for field_name, calendars in (
+        ("crew_type", context.crew_windows),
+        ("machine_type", context.machine_windows),
+    ):
+        pool = task.get(field_name)
+        if pool and pool in calendars:
+            ranges = _intersect_start_ranges(
+                ranges, _merge_windows(calendars[pool], origin), duration
+            )
+            checks["crew" if field_name == "crew_type" else "machine"] = bool(ranges)
+    return ranges, checks
 
 
 def add_capacity_constraints(model, tasks, variables, context):

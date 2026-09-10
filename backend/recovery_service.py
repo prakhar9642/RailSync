@@ -32,8 +32,8 @@ def reoptimize(request):
                    task_windows=facts["task_windows"], pair_checks=facts["pair_checks"], outcomes=facts["outcomes"])
     recovered = dict(plan, proof_state=facts["proof_state"],
         service_metrics=planning._analysis_plan(summary)["metrics"],
-        block_diagnostics=planning._block_diagnostics(territory.maintenance_tasks, summary),
-        unscheduled_diagnostics=planning._unscheduled_diagnostics(territory.maintenance_tasks, summary))
+        block_diagnostics=planning._block_diagnostics(result["maintenance_tasks"], summary),
+        unscheduled_diagnostics=planning._unscheduled_diagnostics(result["maintenance_tasks"], summary))
     changes = result["changes"]
     return dict(status="success", territory_id=request.territory_id, horizon_start=start, horizon_end=end,
         disruption=request.disruption.model_dump(), scenario_provenance="SYNTHETIC_FORECAST_SCENARIO",
@@ -41,4 +41,6 @@ def reoptimize(request):
         block_changes=changes["block_changes"], task_changes=changes["task_changes"],
         newly_unscheduled_task_ids=changes["newly_unscheduled_task_ids"],
         invalidated_blocks=result["invalidated_blocks"], affected_sections=result["affected_sections"],
-        train_occupancy=result["train_occupancy"], risk=risk)
+        train_occupancy=result["train_occupancy"], risk=risk,
+        immutable_task_ids=result["immutable_task_ids"],
+        escalation_required=result["escalation_required"])
