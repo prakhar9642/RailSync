@@ -1,12 +1,12 @@
-.scenario-page { min-height: 100vh; padding-top: var(--nav-h); background: #f8f7f3; color: var(--ink); }
+.scenario-page { min-height: 100vh; padding-top: var(--nav-h); background: #FFFFFF; color: var(--ink); }
 .scenario-main { width: min(100%,1320px); margin: auto; padding: 42px 32px 64px; }
 .scenario-hero { max-width: 850px; margin-bottom: 28px; }
-.scenario-hero > span, .scenario-section-heading > div > span { display: block; font-size: 10px; color: var(--train); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 10px; }
+.scenario-hero > span, .scenario-section-heading > div > span { display: block; font-size: 12px; color: var(--train); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 10px; }
 .scenario-hero h1 { font-size: clamp(34px,4.6vw,58px); line-height: 1.05; margin-bottom: 16px; }
 .scenario-hero p { line-height: 1.6; color: var(--muted); }
 .scenario-form { display: grid; grid-template-columns: 1.3fr .7fr 1fr .7fr auto; align-items: end; gap: 18px; padding: 24px; background: white; border: 1px solid var(--line); }
 .scenario-form > div, .scenario-form label, .scenario-section-heading label { display: grid; gap: 7px; font-size: 12px; min-width: 0; }
-.scenario-form small, .scenario-form > div > span { font-size: 11px; color: var(--muted); }
+.scenario-form small, .scenario-form > div > span { font-size: 12px; color: var(--muted); }
 .scenario-form select, .scenario-form input, .scenario-section-heading select { width: 100%; padding: 10px; border: 1px solid var(--line); background: var(--white); color: var(--navy); }
 .scenario-note { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 12px 0; }
 .scenario-error { border-left: 3px solid var(--critical); padding: 16px; margin: 20px 0; background: #fff0e9; }
@@ -17,42 +17,42 @@
 .recovery-summary > p, .recovery-findings { font-size: 13px; line-height: 1.6; }
 .recovery-metrics { display: grid; grid-template-columns: repeat(4,1fr); margin: 20px 0; }
 .recovery-metrics > div { padding: 14px; border-bottom: 1px solid var(--line); }
-.recovery-metrics dt { font-size: 11px; color: var(--muted); }
+.recovery-metrics dt { font-size: 12px; color: var(--muted); }
 .recovery-metrics dd { font-size: 26px; color: var(--navy); margin: 6px 0 0; }
 .recovery-timeline-scroll { overflow-x: auto; }
 .recovery-axis, .recovery-lane { display: grid; grid-template-columns: 130px 1fr; min-width: 740px; padding: 10px 14px; border: 1px solid var(--line); border-bottom: 0; }
 .recovery-lane:last-child { border-bottom: 1px solid var(--line); }
-.recovery-axis > div { display: flex; justify-content: space-between; color: var(--muted); font-size: 10px; }
+.recovery-axis > div { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
 .recovery-lane > strong { display: flex; align-items: center; font-size: 12px; }
-.recovery-track { position: relative; height: 48px; overflow: hidden; background: #f8f7f3; }
+.recovery-track { position: relative; height: 48px; overflow: hidden; background: #FFFFFF; }
 .recovery-track > i { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--line); }
-.recovery-bar { position: absolute; top: 10px; height: 28px; display: flex; align-items: center; justify-content: center; padding: 0 5px; white-space: nowrap; overflow: hidden; font-size: 10px; color: white; background: #607588; }
+.recovery-bar { position: absolute; top: 10px; height: 28px; display: flex; align-items: center; justify-content: center; padding: 0 5px; white-space: nowrap; overflow: hidden; font-size: 12px; color: white; background: #607588; }
 .state-retained { background: #31644e; }.state-shifted { background: #aa661f; }.state-new { background: #386a97; }.state-cancelled { background: #9e5151; }.state-disrupted { background: #b3442c; }
-.recovery-legend { display: flex; flex-wrap: wrap; gap: 18px; font-size: 11px; margin: 14px 0; }
+.recovery-legend { display: flex; flex-wrap: wrap; gap: 18px; font-size: 12px; margin: 14px 0; }
 .recovery-legend .retained { color: #31644e; }.recovery-legend .shifted { color: #aa661f; }.recovery-legend .new { color: #386a97; }.recovery-legend .cancelled { color: #9e5151; }.recovery-legend .disrupted { color: #b3442c; }
 .recovery-change-list > div { display: flex; justify-content: space-between; gap: 15px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
 .recovery-change-list span { color: var(--muted); }
-.scenario-field-readonly { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; background: #f8f7f3; border: 1px solid var(--line); min-height: 56px; justify-content: center; }
-.scenario-field-readonly span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.scenario-field-readonly { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; background: #FFFFFF; border: 1px solid var(--line); min-height: 56px; justify-content: center; }
+.scenario-field-readonly span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
 .scenario-field-readonly strong { font-size: 13px; color: var(--navy); font-weight: 600; }
 .recovery-disruption-subhead { font-size: 14px; color: var(--navy); margin: 4px 0 16px; }
 .recovery-proof-note { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
 .recovery-outcome-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
-.recovery-card { padding: 14px 16px; background: #fdfdfc; border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
-.recovery-card span { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.recovery-card { padding: 14px 16px; background: #FFFFFF; border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
+.recovery-card span { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
 .recovery-card strong { font-size: 26px; font-family: var(--serif); line-height: 1.1; }
-.recovery-card small { font-size: 11px; color: var(--muted); }
+.recovery-card small { font-size: 12px; color: var(--muted); }
 .recovery-card.card-retained strong, .recovery-card.card-retained span { color: #31644e; }
 .recovery-card.card-shifted strong, .recovery-card.card-shifted span { color: #aa661f; }
 .recovery-card.card-cancelled strong, .recovery-card.card-cancelled span { color: #9e5151; }
 .recovery-card.card-new strong, .recovery-card.card-new span { color: #386a97; }
 .recovery-technical-details { margin: 24px 0; border: 1px solid var(--line); background: white; }
-.recovery-technical-details > summary { padding: 14px 20px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--navy); user-select: none; background: #faf9f6; }
-.recovery-technical-details > summary:hover { background: #f4f2ec; }
+.recovery-technical-details > summary { padding: 14px 20px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--navy); user-select: none; background: #FFFFFF; }
+.recovery-technical-details > summary:hover { background: #FFFFFF; }
 .recovery-technical-body { padding: 24px 20px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 20px; }
 .recovery-findings h3 { font-size: 16px; margin-bottom: 10px; }
 .recovery-affected-text, .recovery-unscheduled-text { font-size: 13px; line-height: 1.5; }
 @media (max-width: 1000px) { .scenario-form { grid-template-columns: repeat(2,1fr); }.scenario-form > div { grid-column: 1 / -1; } }
 @media (max-width: 720px) { .scenario-page { padding-top: 108px; }.scenario-main { padding: 28px 16px; }.scenario-section-heading, .recovery-change-list > div { align-items: flex-start; flex-direction: column; }.recovery-metrics, .recovery-outcome-cards { grid-template-columns: 1fr 1fr; }.recovery-timeline, .recovery-summary { padding: 16px; }.scenario-form { padding: 16px; grid-template-columns: 1fr; } }
 .scenario-apply-row { display:flex; align-items:center; gap:16px; margin:16px 0; padding:14px; border:1px solid var(--line); background:#fff; }
-.scenario-apply-row strong { color:var(--critical); font-size:11px; }
+.scenario-apply-row strong { color:var(--critical); font-size: 12px; }

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { trainLabel } from "../../utils/planningLabels.js";
 import { timeLabel } from "../../utils/timeline.js";
 
@@ -6,13 +6,14 @@ const WIDTH = 1000;
 const LEFT = 170;
 const RIGHT = 24;
 const TOP = 44;
-const ROW = 64;
+const ROW = 42;
 
 function minutesFrom(value, origin) {
   return (new Date(value).getTime() - new Date(origin).getTime()) / 60000;
 }
 
 export default function TimeDistanceDiagram({ territory, occupancy, blocks, horizon, selectedSection, selectedBlockId, onSelectBlock }) {
+  const [selectedTrain, setSelectedTrain] = useState(null);
   const model = useMemo(() => {
     if (!territory || !horizon) return null;
     const stations = [...territory.stations].sort((a, b) => a.order - b.order);
@@ -69,14 +70,15 @@ export default function TimeDistanceDiagram({ territory, occupancy, blocks, hori
       <svg className="time-distance-svg" viewBox={`0 0 ${WIDTH} ${model.height}`} role="img" aria-label="Time-distance chart of route stations, public train movements, and maintenance possessions">
         {model.ticks.map((tick) => <g key={tick.label + tick.x}><line x1={tick.x} y1={TOP - 20} x2={tick.x} y2={model.height - 24} className="td-grid-time" /><text x={tick.x} y={16} textAnchor="middle" className="td-time-label">{tick.label}</text></g>)}
         {model.stations.map((station) => <g key={station.station_id}><line x1={LEFT} y1={model.y(station.station_id)} x2={WIDTH - RIGHT} y2={model.y(station.station_id)} className="td-grid-station" /><text x={LEFT - 12} y={model.y(station.station_id) + 4} textAnchor="end" className="td-station-label">{station.station_name}</text></g>)}
-        {model.paths.map((train) => train.points.length > 1 ? <polyline key={train.trainId} points={train.points.map((point) => point.join(",")).join(" ")} className="td-train-path"><title>{train.label}</title></polyline> : null)}
-        {model.blockRects.map((block) => <g key={block.block_id} className={`td-possession ${selectedBlockId === block.block_id ? "is-selected" : ""}`} onClick={() => onSelectBlock(block.block_id)} role="button" tabIndex="0">
+        {model.paths.map((train) => train.points.length > 1 ? <polyline key={train.trainId} points={train.points.map((point) => point.join(",")).join(" ")} className={`td-train-path ${selectedTrain === train.trainId ? "is-selected" : ""}`} role="button" tabIndex="0" aria-label={train.label} onClick={() => setSelectedTrain(train.trainId)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedTrain(train.trainId); } }}><title>{train.label}</title></polyline> : null)}
+        {model.blockRects.map((block) => <g key={block.block_id} className={`td-possession ${selectedBlockId === block.block_id ? "is-selected" : ""}`} onClick={() => onSelectBlock(block.block_id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelectBlock(block.block_id); } }} role="button" tabIndex="0" aria-label={`Select possession ${block.block_id}`}>
           <rect x={block.x} y={block.y} width={block.width} height={block.height} rx="4"><title>{block.block_id}: {block.tasks.join(", ")} · {timeLabel(block.start_time)}–{timeLabel(block.end_time)}</title></rect>
           {block.width > 54 ? <text x={block.x + 6} y={block.y + 15}>{block.block_id}</text> : null}
         </g>)}
         {selectedSection ? <text x={WIDTH - RIGHT} y={model.height - 7} textAnchor="end" className="td-scope-label">Focused section: {selectedSection}</text> : null}
       </svg>
     </div>
+    {selectedTrain ? <p className="selected-route-train">Selected train: {trainLabel(selectedTrain, territory)}</p> : null}
     {!blocks.length ? <p className="timeline-empty">Run the CP-SAT optimizer to overlay maintenance possessions.</p> : null}
   </section>;
 }

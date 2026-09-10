@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { departmentLabel, sectionLabel } from "../../utils/planningLabels.js";
+import { departmentLabel, sectionLabel, trainLabel } from "../../utils/planningLabels.js";
+import trainMarker from "../../assets/rail-train-top-view.png";
 import { buildTicks, rangeStyle, timeLabel } from "../../utils/timeline.js";
 
 function TimelineGrid({ ticks }) {
@@ -10,7 +11,7 @@ function TimelineGrid({ ticks }) {
   );
 }
 
-export default function PairedPossessionTimeline({ analysis, territory, tasks, horizon }) {
+export default function PairedPossessionTimeline({ analysis, territory, tasks, horizon, occupancy = [] }) {
   const taskById = useMemo(
     () => new Map(tasks.map((task) => [task.task_id, task])),
     [tasks],
@@ -57,6 +58,10 @@ export default function PairedPossessionTimeline({ analysis, territory, tasks, h
           <span />
           <div>{ticks.map((tick) => <time key={tick.key}>{tick.label}</time>)}</div>
         </div>
+        {occupancy.filter((train) => train.section_id === sectionId).map((train) => <div className="paired-lane analysis-train-row" key={`${train.train_id}-${train.entry_time}`}>
+          <div className="paired-lane-label" title={trainLabel(train.train_id, territory)}><img src={trainMarker} className="analysis-train-marker" alt="" /><strong>{train.train_id}</strong></div>
+          <div className="paired-lane-track"><TimelineGrid ticks={ticks} /><span className="analysis-train-interval" style={rangeStyle(train.entry_time, train.exit_time, horizon)} title={`${trainLabel(train.train_id, territory)} · ${timeLabel(train.entry_time)}–${timeLabel(train.exit_time)}`} /></div>
+        </div>)}
         {planners.map(([label, allBlocks, className]) => {
           const blocks = allBlocks.filter((block) => (block.section_ids?.length ? block.section_ids : [block.section_id]).includes(sectionId));
           return (

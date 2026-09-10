@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   askCopilot,
-  explainBlock,
   exportBlocksCsv,
   getAlerts,
   getDataSources,
@@ -13,6 +12,10 @@ import {
   transitionBlock,
   validateTaskImport,
 } from "../../services/api.js";
+import { proofLabel } from "../../utils/planningLabels.js";
+import DataAssumptions from "../analysis/DataAssumptions.jsx";
+
+const readable = (value = "") => value.toLowerCase().replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 
 const NEXT_STATE = { DRAFT: "REVIEWED", REVIEWED: "APPROVED", APPROVED: "PUBLISHED" };
 const NEXT_BLOCK_STATE = { DRAFT: "FROZEN", FROZEN: "IN_PROGRESS", IN_PROGRESS: "COMPLETED" };
@@ -39,7 +42,6 @@ export default function OperationalPanels({ territory, plan, tasks, selectedTask
   const [whatIf, setWhatIf] = useState(null);
   const [copilotQuestion, setCopilotQuestion] = useState("");
   const [copilotAnswer, setCopilotAnswer] = useState(null);
-  const [explanation, setExplanation] = useState(null);
   const [importResult, setImportResult] = useState(null);
   const selectedTask = useMemo(() => tasks.find((item) => item.task_id === selectedTaskId), [tasks, selectedTaskId]);
 
@@ -61,7 +63,7 @@ export default function OperationalPanels({ territory, plan, tasks, selectedTask
     setBusy(true); setMessage("");
     try {
       const result = await transitionPlan(identity.plan_id, target, { note: `Advanced from Planning Workspace` });
-      setIdentity(result.identity); setMessage(`Plan advanced to ${target}.`);
+      setIdentity(result.identity); setMessage(`Plan advanced to ${readable(target).toLowerCase()}.`);
     } catch (error) { setMessage(error.message); } finally { setBusy(false); }
   }
 
@@ -71,7 +73,7 @@ export default function OperationalPanels({ territory, plan, tasks, selectedTask
     setBusy(true); setMessage("");
     try {
       const updated = await transitionBlock(identity.plan_id, selectedBlock.block_id, next);
-      onUpdateBlock(updated); setMessage(`${selectedBlock.block_id} advanced to ${next}.`);
+      onUpdateBlock(updated); setMessage(`${selectedBlock.block_id} advanced to ${readable(next).toLowerCase()}.`);
     } catch (error) { setMessage(error.message); } finally { setBusy(false); }
   }
 
@@ -100,11 +102,6 @@ export default function OperationalPanels({ territory, plan, tasks, selectedTask
     } catch (error) { setCopilotAnswer({ answer: error.message, engine: "ERROR" }); } finally { setBusy(false); }
   }
 
-  async function explainSelected() {
-    if (!selectedBlock) return;
-    setExplanation(await explainBlock(selectedBlock));
-  }
-
   async function importFile(event) {
     const file = event.target.files?.[0]; if (!file) return;
     try {
@@ -123,31 +120,65 @@ export default function OperationalPanels({ territory, plan, tasks, selectedTask
   }
 
   const rollingRows = operational?.rolling?.[tab] ?? [];
-  return <div className="operations-shell">
-    <section className="operations-card">
-      <span className="planner-kicker">Rolling planning and control</span>
-      <h2>Monthly → weekly → day-of</h2>
-      <div className="operations-tabs">{[["monthly", "Monthly"], ["weekly", "Weekly"], ["day_of", "Day-of"]].map(([key, label]) => <button key={key} type="button" className={tab === key ? "is-active" : ""} onClick={() => setTab(key)}>{label}</button>)}</div>
-      {loadError ? <p role="alert">{loadError.message}</p> : <ul className="operations-list">{rollingRows.map((row, index) => <li key={row.period ?? row.date ?? index}><strong>{row.period ?? row.date}</strong><br />{row.planning_state?.replaceAll("_", " ")} · {row.demand_count ?? row.candidate_task_ids?.length ?? row.blocks?.length ?? 0} item(s)</li>)}</ul>}
-      <h3>Plan lifecycle</h3>
-      {identity ? <><p><span className="lifecycle-badge">{identity.state}</span> {identity.plan_id} · version {identity.version}</p><div className="operations-actions"><button type="button" disabled={busy || !NEXT_STATE[identity.state]} onClick={advanceLifecycle}>{NEXT_STATE[identity.state] ? `Advance to ${NEXT_STATE[identity.state]}` : "Published"}</button><button type="button" disabled={busy || !selectedBlock || !NEXT_BLOCK_STATE[selectedBlock?.status ?? "DRAFT"]} onClick={advanceBlock}>{selectedBlock ? `${BLOCK_ACTION_LABEL[selectedBlock.status ?? "DRAFT"] ?? "Update"} ${selectedBlock.block_id}` : "Select block"}</button><button type="button" disabled={!plan} onClick={() => exportBlocksCsv(plan.blocks)}>Export CSV</button><button type="button" disabled={!plan} onClick={() => openPrintReport(plan.blocks)}>Print / PDF</button></div></> : <p>Generate a plan to start a controlled draft.</p>}
-      <h3>Solver-backed alternatives</h3>
-      <ul className="operations-list">{(plan?.alternatives ?? []).map((alternative) => <li key={alternative.alternative_id}><strong>{alternative.label}</strong><br />{alternative.metrics.possession_minutes} possession min · {alternative.metrics.scheduled_task_count} tasks · {alternative.proof_state.replaceAll("_", " ")}<br /><small>{alternative.tradeoff}</small></li>)}</ul>
-      <h3>What-if preview</h3>
-      <p>{selectedTask ? `Test ${selectedTask.task_type} at ${selectedTask.duration_minutes + 10} minutes (+10).` : "Select a maintenance task first."}</p>
-      <div className="operations-actions"><button type="button" disabled={busy || !selectedTask} onClick={previewWhatIf}>Run what-if</button>{whatIf ? <button type="button" onClick={() => onApplyPlan(whatIf)}>Apply preview as new draft</button> : null}</div>
-      {whatIf ? <p>Preview: {whatIf.blocks.length} blocks, {whatIf.unscheduled_tasks.length} outstanding · {whatIf.proof_state.replaceAll("_", " ")}. No base data changed.</p> : null}
-      {message ? <p role="status">{message}</p> : null}
-    </section>
-
-    <section className="operations-card">
-      <span className="planner-kicker">Operational context</span><h2>Resources, alerts, and Copilot</h2>
-      <h3>Alerts</h3><ul className="operations-list">{(operational?.alerts?.alerts ?? []).slice(0, 4).map((alert) => <li key={alert.code + alert.task_id}><strong>{alert.severity} · {alert.code}</strong><br />{alert.message}</li>)}{operational?.alerts?.alerts?.length === 0 ? <li>No active derived alerts.</li> : null}</ul>
-      <h3>Resource readiness</h3><p>{operational ? `${operational.resources.crew.length} crew pools · ${operational.resources.machines.length} machine pools · ${Object.keys(operational.resources.power_windows).length} section power calendars` : "Loading resources…"}</p>
-      <h3>Explain selected decision</h3><div className="operations-actions"><button type="button" disabled={!selectedBlock} onClick={explainSelected}>Explain block</button></div>{explanation ? <div className="copilot-answer"><strong>{explanation.summary}</strong><p>{explanation.reasoning.join(" · ")}</p><small>{explanation.counterfactual}</small></div> : null}
-      <h3>RailSync Copilot</h3><form className="copilot-form" onSubmit={ask}><input aria-label="Ask RailSync Copilot" value={copilotQuestion} onChange={(event) => setCopilotQuestion(event.target.value)} placeholder="Why this block, or what if it runs 10 min longer?" /><button type="submit" disabled={busy}>Ask</button></form>{copilotAnswer ? <div className="copilot-answer"><strong>{copilotAnswer.engine.replaceAll("_", " ")}</strong><p>{copilotAnswer.answer}</p>{copilotAnswer.action_preview ? <small>Action routed through CP-SAT; preview is not applied.</small> : null}</div> : null}
-      <h3>Import maintenance demand</h3><p>Validate a canonical CSV, Excel, or JSON file before any import is applied.</p><input type="file" accept=".csv,.xlsx,.json" onChange={importFile} />{importResult ? <p className={importResult.valid ? "" : "is-error"}>{importResult.valid ? `${importResult.preview.length} row(s) valid; preview only.` : `${importResult.errors.length} validation error(s).`}</p> : null}
-      <h3>Data sources</h3><p>{operational ? `${operational.sources.datasets.length} loaded datasets · ${operational.sources.service_source_urls.length} public timetable links · ${operational.sources.sources.map((item) => item.label).join(" + ")}` : "Loading provenance…"}</p>
-    </section>
+  const alerts = operational?.alerts?.alerts ?? [];
+  return <div className="operations-shell compact-tools">
+    <details className="operations-card">
+      <summary>Alerts · {operational ? alerts.length : "…"}</summary>
+      <div className="tool-body"><ul className="operations-list">{alerts.map((alert) => <li key={alert.code + alert.task_id}>
+        <strong>{alert.code === "OVERDUE_MAINTENANCE" ? "Maintenance overdue" : alert.code === "CRITICAL_TASK_PENDING" ? "Critical maintenance pending" : readable(alert.code)}</strong>
+        <small>{readable(alert.severity)} priority</small><p>{alert.message}</p>
+      </li>)}{operational && !alerts.length ? <li>No active alerts.</li> : null}</ul></div>
+    </details>
+    <details className="operations-card">
+      <summary>Resources</summary>
+      <div className="tool-body">{operational ? <dl className="resource-counts">
+        <div><dt>Crews</dt><dd>{operational.resources.crew.length} pools</dd></div>
+        <div><dt>Machines</dt><dd>{operational.resources.machines.length} pools</dd></div>
+        <div><dt>Power</dt><dd>{Object.keys(operational.resources.power_windows).length} calendars</dd></div>
+      </dl> : <p>Loading resources…</p>}</div>
+    </details>
+    <details className="operations-card">
+      <summary>Plan Tools</summary>
+      <div className="tool-body">
+        <h3>Rolling planning</h3>
+        <div className="operations-tabs">{[["monthly", "Monthly"], ["weekly", "Weekly"], ["day_of", "Day-of"]].map(([key, label]) => <button key={key} type="button" className={tab === key ? "is-active" : ""} onClick={() => setTab(key)}>{label}</button>)}</div>
+        <ul className="operations-list">{rollingRows.map((row, index) => <li key={row.period ?? row.date ?? index}><strong>{row.period ?? row.date}</strong><p>{readable(row.planning_state)} · {row.demand_count ?? row.candidate_task_ids?.length ?? row.blocks?.length ?? 0} items</p></li>)}</ul>
+        <h3>Plan lifecycle</h3>
+        {identity ? <><p><span className="lifecycle-badge">{readable(identity.state)}</span> Version {identity.version}</p>
+          <div className="operations-actions">
+            <button type="button" disabled={busy || !NEXT_STATE[identity.state]} onClick={advanceLifecycle}>{NEXT_STATE[identity.state] ? `Advance to ${readable(NEXT_STATE[identity.state]).toLowerCase()}` : "Published"}</button>
+            <button type="button" disabled={busy || !selectedBlock || !NEXT_BLOCK_STATE[selectedBlock?.status ?? "DRAFT"]} onClick={advanceBlock}>{selectedBlock ? `${BLOCK_ACTION_LABEL[selectedBlock.status ?? "DRAFT"] ?? "Update"} ${selectedBlock.block_id}` : "Select block"}</button>
+            <button type="button" onClick={() => exportBlocksCsv(plan.blocks)}>Export CSV</button>
+            <button type="button" onClick={() => openPrintReport(plan.blocks)}>Print / PDF</button>
+          </div></> : <p>Generate a plan to start a draft.</p>}
+        <h3>Plan alternatives</h3>
+        <ul className="operations-list">{(plan?.alternatives ?? []).map((alternative) => <li key={alternative.alternative_id}><strong>{alternative.label}</strong><p>{alternative.metrics.possession_minutes} possession min · {alternative.metrics.scheduled_task_count} tasks · {proofLabel(alternative.proof_state)}</p><small>{alternative.tradeoff}</small></li>)}</ul>
+        <h3>What-if preview</h3>
+        <p>{selectedTask ? `Test ${selectedTask.task_type} at ${selectedTask.duration_minutes + 10} minutes (+10).` : "Select a maintenance task first."}</p>
+        <div className="operations-actions"><button type="button" disabled={busy || !selectedTask} onClick={previewWhatIf}>Run what-if</button>{whatIf ? <button type="button" onClick={() => onApplyPlan(whatIf)}>Apply preview as new draft</button> : null}</div>
+        {whatIf ? <p>{whatIf.blocks.length} blocks · {whatIf.unscheduled_tasks.length} outstanding · {proofLabel(whatIf.proof_state)}</p> : null}
+        {message ? <p role="status">{message}</p> : null}
+      </div>
+    </details>
+    <details className="operations-card">
+      <summary>Data &amp; Assumptions</summary>
+      <div className="tool-body">
+        <dl className="resource-counts"><div><dt>Train traffic</dt><dd>Public timetable-derived</dd></div><div><dt>Maintenance demand</dt><dd>Prototype scenario</dd></div><div><dt>Optimization</dt><dd>RailSync CP-SAT</dd></div></dl>
+        <DataAssumptions territory={territory} />
+        <h3>Import Maintenance Demand</h3>
+        <p>Preview and validate CSV, Excel or JSON demand.</p>
+        <label className="import-file-label">Select demand file<input className="import-file-input" aria-label="Import maintenance demand" type="file" accept=".csv,.xlsx,.json" onChange={importFile} /></label>
+        {importResult ? <p role="status">{importResult.valid ? `${importResult.preview.length} rows valid; preview only.` : `${importResult.errors.length} validation errors.`}</p> : null}
+        {operational ? <p>{operational.sources.datasets.length} datasets · {operational.sources.service_source_urls.length} timetable sources</p> : null}
+      </div>
+    </details>
+    <details className="operations-card copilot-tool">
+      <summary>✦ RailSync Copilot</summary>
+      <div className="tool-body"><p>Ask about the current plan or explore a what-if.</p>
+        <form className="copilot-form" onSubmit={ask}><input aria-label="Ask RailSync Copilot" value={copilotQuestion} onChange={(event) => setCopilotQuestion(event.target.value)} placeholder="Why this possession?" /><button type="submit" disabled={busy}>Ask</button></form>
+        {copilotAnswer ? <div className="copilot-answer"><p>{copilotAnswer.answer}</p>{copilotAnswer.action_preview ? <small>CP-SAT preview ready; the current plan is unchanged.</small> : null}</div> : null}
+      </div>
+    </details>
+    {loadError ? <p role="alert">{loadError.message}</p> : null}
   </div>;
 }

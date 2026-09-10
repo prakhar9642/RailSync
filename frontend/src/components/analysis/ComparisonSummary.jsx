@@ -77,9 +77,7 @@ export default function ComparisonSummary({ analysis }) {
       {showSavings ? (
         <div className="analysis-outcome-card">
           <div className="outcome-primary-stat">
-            <span className="outcome-duration-shift">
-              {baseline.metrics.possession_minutes} min → {railsync.metrics.possession_minutes} min
-            </span>
+            <div className="outcome-duration-shift"><div><small>Baseline</small><strong>{baseline.metrics.possession_minutes} <small>min</small></strong></div><span aria-hidden="true">→</span><div><small>RailSync</small><strong>{railsync.metrics.possession_minutes} <small>min</small></strong></div></div>
             <strong className="outcome-saved-stat">
               {fairness.possession_saved_minutes} possession-minutes avoided
             </strong>

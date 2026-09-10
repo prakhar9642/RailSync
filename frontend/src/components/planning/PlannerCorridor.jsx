@@ -46,7 +46,7 @@ export default function PlannerCorridor({ territory, selectedSection, onSelectSe
       <div className="planner-corridor-heading">
         <div>
           <span className="planner-kicker">Corridor alignment</span>
-          <h2 id="corridor-heading">{territory.display_name}</h2>
+          <h2 id="corridor-heading">{territoryLabel(territory)}</h2>
         </div>
         <p title={selectedSection}>
           Selected section <strong>{sectionName(territory, selectedSection)}</strong>
@@ -58,7 +58,7 @@ export default function PlannerCorridor({ territory, selectedSection, onSelectSe
           className="planner-corridor-svg"
           viewBox={`0 0 ${WIDTH} 112`}
           role="img"
-          aria-label={`Selectable sections in ${territory.display_name}`}
+          aria-label={`Selectable sections in ${territoryLabel(territory)}`}
         >
           {sections.map((section, index) => {
             const x1 = xAt(index);
@@ -144,3 +144,4 @@ export default function PlannerCorridor({ territory, selectedSection, onSelectSe
     </section>
   );
 }
+import { territoryLabel } from "../../utils/planningLabels.js";

@@ -1,7 +1,7 @@
 .analysis-page {
   min-height: 100vh;
   padding-top: var(--nav-h);
-  background: #f8f7f3;
+  background: #FFFFFF;
   color: var(--ink);
 }
 
@@ -21,7 +21,7 @@
   display: block;
   margin-bottom: 8px;
   color: var(--train);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -82,7 +82,7 @@
 
 .analysis-section-heading.with-control label span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -94,7 +94,7 @@
   border: 1px solid var(--line);
   background: var(--white);
   color: var(--ink);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .analysis-outcome {
@@ -116,7 +116,7 @@
 
 .analysis-outcome span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .analysis-outcome-card {
@@ -156,7 +156,7 @@
   background: var(--confirm);
   color: #fff;
   border-radius: var(--radius);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
@@ -195,12 +195,12 @@
 .comparison-technical-details summary {
   padding: 14px 18px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--navy);
-  background: #f8f7f3;
+  background: #FFFFFF;
 }
 
 .comparison-technical-body {
@@ -210,7 +210,7 @@
 
 .analysis-outcome.is-neutral {
   border-left-color: var(--muted);
-  background: #f7f6f2;
+  background: #FFFFFF;
 }
 
 .analysis-outcome.is-neutral strong {
@@ -220,7 +220,7 @@
 .analysis-proof-caveat {
   margin: -6px 0 20px;
   color: var(--critical);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .comparison-table {
@@ -233,7 +233,7 @@
   gap: 16px;
   padding: 11px 12px;
   border-bottom: 1px solid var(--line);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .comparison-table-row > span {
@@ -248,8 +248,8 @@
 .comparison-table-row.is-header {
   padding-top: 13px;
   padding-bottom: 13px;
-  background: #f4f3ee;
-  font-size: 9px;
+  background: #FFFFFF;
+  font-size: 12px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -257,7 +257,7 @@
 .comparison-definition {
   margin: 12px 0 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .paired-timeline {
@@ -285,7 +285,7 @@
   display: flex;
   justify-content: space-between;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .paired-lane {
@@ -311,7 +311,7 @@
 
 .paired-lane-label small {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .paired-lane-track {
@@ -347,7 +347,7 @@
   padding: 0 7px;
   border-radius: var(--radius);
   color: #fff;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -371,7 +371,7 @@
   display: grid;
   place-items: center;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .paired-meaning {
@@ -380,7 +380,7 @@
   gap: 20px;
   padding: 14px 4px 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .paired-meaning strong {
@@ -397,7 +397,7 @@
 .outstanding-list article {
   padding: 20px;
   border-top: 2px solid var(--confirm);
-  background: #f7f6f2;
+  background: #FFFFFF;
 }
 
 .gain-heading {
@@ -410,7 +410,7 @@
 .gain-heading span,
 .gain-heading strong {
   color: var(--confirm);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -427,7 +427,7 @@
 .integration-gain-list article > p {
   margin: 12px 0;
   color: var(--ink);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .integration-gain-list article > p small,
@@ -435,7 +435,7 @@
   display: block;
   margin-top: 2px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .integration-gain-list ul {
@@ -453,12 +453,12 @@
 
 .integration-gain-list li strong {
   color: var(--ink);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .integration-gain-list li span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .integration-gain-list dl,
@@ -485,7 +485,7 @@
 .integration-gain-list dt,
 .outstanding-list dt {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 12px;
   text-transform: uppercase;
 }
 
@@ -493,7 +493,7 @@
 .outstanding-list dd {
   margin-top: 4px;
   color: var(--navy);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -514,7 +514,7 @@
   background: #fef2f2;
   border: 1px solid #fecaca;
   color: var(--critical);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   border-radius: var(--radius);
 }
@@ -527,7 +527,7 @@
 
 .outstanding-details summary {
   cursor: pointer;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -541,7 +541,7 @@
 .outstanding-list article > div:first-child p {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .outstanding-list dl {
@@ -555,7 +555,7 @@
 
 .outstanding-reasons > strong {
   color: var(--critical);
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -566,7 +566,7 @@
   margin: 8px 0 0;
   padding-left: 18px;
   color: var(--ink);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .analysis-empty {
@@ -580,7 +580,7 @@
 .analysis-empty > span {
   margin-bottom: 8px;
   color: var(--train);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;

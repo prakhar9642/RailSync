@@ -49,7 +49,7 @@ export default function SolutionPreview() {
                 style={{ left: "5.6%", width: "2%" }}
                 initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={play ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                transition={{ duration: 0.55, ease, delay: reduceMotion ? 0 : 0.05 }}
+                transition={{ duration: 0.4, ease, delay: 0 }}
               >
                 37786
               </motion.div>
@@ -58,7 +58,7 @@ export default function SolutionPreview() {
                 style={{ left: "17%", width: "2%" }}
                 initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={play ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                transition={{ duration: 0.55, ease, delay: reduceMotion ? 0 : 0.18 }}
+                transition={{ duration: 0.4, ease, delay: 0 }}
               >
                 37814
               </motion.div>
@@ -73,7 +73,7 @@ export default function SolutionPreview() {
                 style={{ left: "28%", width: "9.3%" }}
                 initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={play ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                transition={{ duration: 0.5, ease, delay: reduceMotion ? 0 : 0.7 }}
+                transition={{ duration: 0.4, ease, delay: 0 }}
               >
                 SKM_ENG001
               </motion.div>
@@ -88,7 +88,7 @@ export default function SolutionPreview() {
                 style={{ left: "19%", width: "33%" }}
                 initial={reduceMotion ? false : { opacity: 0 }}
                 animate={play ? { opacity: 1 } : { opacity: 0 }}
-                transition={{ duration: 0.5, ease, delay: reduceMotion ? 0 : 1.2 }}
+                transition={{ duration: 0.4, ease, delay: 0 }}
               >
                 Valid gap
               </motion.div>
@@ -118,9 +118,9 @@ export default function SolutionPreview() {
                     : { opacity: 0, x: -28, backgroundColor: "#b45309" }
                 }
                 transition={{
-                  duration: reduceMotion ? 0 : 1.35,
+                  duration: reduceMotion ? 0 : 0.4,
                   ease,
-                  delay: reduceMotion ? 0 : 1.7,
+                  delay: 0,
                   times: reduceMotion ? undefined : [0, 0.55, 1],
                 }}
               >
@@ -133,7 +133,7 @@ export default function SolutionPreview() {
             className="confirmation"
             initial={reduceMotion ? false : { opacity: 0, y: 8 }}
             animate={play ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-            transition={{ duration: 0.45, ease, delay: reduceMotion ? 0 : 3.05 }}
+            transition={{ duration: 0.45, ease, delay: 0 }}
           >
             <strong>Valid maintenance window</strong>
             No protected train conflict

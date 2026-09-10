@@ -29,9 +29,9 @@ export default function AnalysisPage({ session, onNavigate, onHome }) {
       <main className="analysis-main">
         <header className="analysis-hero">
           <span>Plan analysis</span>
-          <h1>How coordination changed the plan</h1>
+          <h1>Did RailSync improve the plan?</h1>
           <p>
-            A factual comparison with the non-integrated CP-SAT ablation using the same inputs, constraints, priorities, and runtime budget.
+            Compare possession time and maintenance delivered under the same operating constraints.
           </p>
         </header>
 
@@ -53,6 +53,7 @@ export default function AnalysisPage({ session, onNavigate, onHome }) {
               territory={territory}
               tasks={tasks}
               horizon={horizon}
+              occupancy={session.trains}
             />
             <ComparisonDetails analysis={plan.analysis} />
             <IntegrationGains

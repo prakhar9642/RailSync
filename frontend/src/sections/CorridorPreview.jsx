@@ -60,7 +60,7 @@ export default function CorridorPreview({
     <section className="section corridor" id="corridor">
       <div className="section-inner">
         <SectionHeading eyebrow="Corridor" title="Public route structure">
-          A representative New Delhi–Palwal planning slice. Choose this Northern
+          A representative Hazrat Nizamuddin–Palwal planning slice. Choose this Northern
           territory, Western HDN, or the historical Eastern demo above.
         </SectionHeading>
 
@@ -93,7 +93,7 @@ export default function CorridorPreview({
               initial={{ pathLength: reduceMotion ? 1 : 0 }}
               whileInView={{ pathLength: 1 }}
               viewport={{ once: true, amount: 0.4 }}
-              transition={{ duration: 1.15, ease }}
+              transition={{ duration: 0.4, ease }}
             />
             <motion.line
               x1={pad}
@@ -105,7 +105,7 @@ export default function CorridorPreview({
               initial={{ pathLength: reduceMotion ? 1 : 0 }}
               whileInView={{ pathLength: 1 }}
               viewport={{ once: true, amount: 0.4 }}
-              transition={{ duration: 1.15, delay: reduceMotion ? 0 : 0.08, ease }}
+              transition={{ duration: 0.4, delay: 0, ease }}
             />
 
             {sections.map((sectionId, index) => {
@@ -148,7 +148,7 @@ export default function CorridorPreview({
                     initial={reduceMotion ? false : { opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     viewport={{ once: true, amount: 0.4 }}
-                    transition={{ duration: 0.35, delay: reduceMotion ? 0 : 0.95 + index * 0.05 }}
+                    transition={{ duration: 0.35, delay: 0 }}
                   >
                     {sectionId}
                   </motion.text>
@@ -178,7 +178,7 @@ export default function CorridorPreview({
                     viewport={{ once: true, amount: 0.4 }}
                     transition={{
                       duration: 0.3,
-                      delay: reduceMotion ? 0 : 0.55 + index * 0.07,
+                      delay: 0,
                     }}
                   >
                     <StationNode
@@ -208,7 +208,7 @@ export default function CorridorPreview({
                 viewport={{ once: true, amount: 0.35 }}
                 transition={{
                   duration: 0.35,
-                  delay: reduceMotion ? 0 : 0.9 + index * 0.06,
+                  delay: 0,
                   ease,
                 }}
               >

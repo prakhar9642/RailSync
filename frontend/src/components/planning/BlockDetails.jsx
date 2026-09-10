@@ -31,21 +31,7 @@ function resourceSummary(task, resource) {
 export default function BlockDetails({ block, diagnostic, tasks, territory }) {
   const taskById = new Map(tasks.map((task) => [task.task_id, task]));
 
-  if (!block) {
-    return (
-      <section className="block-details" aria-labelledby="block-details-heading">
-        <div className="workspace-column-heading">
-          <div>
-            <span className="planner-kicker">Selected result</span>
-            <h2 id="block-details-heading">Block explanation</h2>
-          </div>
-        </div>
-        <p className="block-details-empty">
-          Generate a plan and select an optimized possession to inspect it.
-        </p>
-      </section>
-    );
-  }
+  if (!block) return null;
 
   const blockTasks = block.tasks.map((taskId) => taskById.get(taskId)).filter(Boolean);
   const departments = [...new Set(blockTasks.map((t) => departmentLabel(t.department)))];
@@ -57,9 +43,10 @@ export default function BlockDetails({ block, diagnostic, tasks, territory }) {
   const sectionPassed = diagnostic?.feasibility?.section_match === "PASSED";
   const durationPassed = diagnostic?.feasibility?.duration_fit === "PASSED";
   const trainPassed = diagnostic?.feasibility?.train_conflict === "PASSED";
-  const resourcesPassed = diagnostic?.tasks?.every((t) =>
-    Object.values(t.resource_checks ?? {}).every((s) => s !== "FAILED")
-  ) ?? true;
+  const resourcesUnknown = diagnostic?.tasks?.some((task) => Object.values(task.resource_checks ?? {}).includes("UNKNOWN"));
+  const resourcesPassed = diagnostic?.tasks?.length > 0 && diagnostic.tasks.every((t) =>
+    Object.values(t.resource_checks ?? {}).every((s) => s !== "FAILED" && s !== "UNKNOWN")
+  );
   const deadlinePassed = diagnostic?.tasks?.every((t) => t.deadline_check === "PASSED") ?? true;
 
   const minSlack = diagnostic?.robustness?.minimum_boundary_slack_minutes;
@@ -68,8 +55,8 @@ export default function BlockDetails({ block, diagnostic, tasks, territory }) {
     <section className="block-details" aria-labelledby="block-details-heading">
       <div className="workspace-column-heading">
         <div>
-          <span className="planner-kicker">Selected result</span>
-          <h2 id="block-details-heading">Block explanation</h2>
+          <span className="planner-kicker">Selected possession</span>
+          <h2 id="block-details-heading">Why this possession?</h2>
         </div>
       </div>
 
@@ -139,8 +126,8 @@ export default function BlockDetails({ block, diagnostic, tasks, territory }) {
                 <span>No protected train conflict</span>
               </li>
               <li className={resourcesPassed ? "is-passed" : "is-failed"}>
-                <span className="check-icon">{resourcesPassed ? "✓" : "✗"}</span>
-                <span>Required resources available</span>
+                <span className="check-icon">{resourcesUnknown ? "?" : resourcesPassed ? "✓" : "✗"}</span>
+                <span>{resourcesUnknown ? "Resource availability unconfirmed" : resourcesPassed ? "Required resource checks clear" : "Resource constraint failed"}</span>
               </li>
               <li className={deadlinePassed ? "is-passed" : "is-failed"}>
                 <span className="check-icon">{deadlinePassed ? "✓" : "✗"}</span>

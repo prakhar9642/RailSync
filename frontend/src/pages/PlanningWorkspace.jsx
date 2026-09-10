@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "../components/layout/Navbar.jsx";
-import DataAssumptions from "../components/analysis/DataAssumptions.jsx";
 import RiskControls, { RiskResult } from "../components/planning/RiskControls.jsx";
 import { riskOptions } from "../utils/risk.js";
 import BlockDetails from "../components/planning/BlockDetails.jsx";
 import MaintenanceTaskList from "../components/planning/MaintenanceTaskList.jsx";
 import TimeDistanceDiagram from "../components/planning/TimeDistanceDiagram.jsx";
+import MaintenanceTimeline from "../components/planning/MaintenanceTimeline.jsx";
+import { territoryLabel } from "../utils/planningLabels.js";
 import OperationalPanels from "../components/planning/OperationalPanels.jsx";
 import OptimizerControls from "../components/planning/OptimizerControls.jsx";
 import PlannerCorridor from "../components/planning/PlannerCorridor.jsx";
@@ -21,13 +22,7 @@ import "./planner/planner.css";
 const DEFAULT_TERRITORY_ID = "saktigarh_memari_public_demo";
 
 function territoryChoiceLabel(territory) {
-  if (territory.provenance?.includes("PUBLIC_TIMETABLE_DERIVED")) {
-    return `${territory.display_name.replace(/^Public Timetable Demo · /, "")} — Historical public timetable demo`;
-  }
-  if (territory.provenance?.includes("TEST_FIXTURE")) {
-    return `${territory.display_name.replace(/ Synthetic Test Fixture$/, "")} — Synthetic test fixture`;
-  }
-  return territory.display_name;
+  return territoryLabel(territory);
 }
 
 function initialDataState(session = {}) {
@@ -69,6 +64,7 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
   );
   const [optimizationError, setOptimizationError] = useState(session.optimizationError);
   const [plan, setPlan] = useState(session.plan);
+  const [timelineView, setTimelineView] = useState("section");
   const optimizeRequestId = useRef(0);
   const optimizeController = useRef(null);
   const selectedSectionRef = useRef(initialSection);
@@ -308,18 +304,13 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
           <span className="planner-kicker">Railway maintenance planning</span>
           <div className="planning-title-row">
             <h1>Planning Workspace</h1>
-            <span className="synthetic-fixture-badge">
-              {dataState.territory?.provenance?.includes("PUBLIC_TIMETABLE_DERIVED")
-                ? "Historical Public Timetable"
-                : "Synthetic Test Fixture"}
-            </span>
           </div>
           <p>
             Coordinate maintenance requirements with train occupancy and generate
             practical block windows through the RailSync optimizer.
           </p>
           <label className="territory-selector">
-            <span>Demo territory</span>
+            <span>Corridor</span>
             <select value={territoryId} onChange={selectTerritory}>
               {(availableTerritories.length
                 ? availableTerritories
@@ -361,7 +352,17 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
               trains={dataState.trains} territory={dataState.territory} disabled={optimizationStatus === "loading"} />
             <RiskResult risk={plan?.risk} />
 
-            <TimeDistanceDiagram
+            <div className="plan-view-switch" role="group" aria-label="Planning view">
+              <button type="button" aria-pressed={timelineView === "section"} onClick={() => setTimelineView("section")}>Section plan</button>
+              <button type="button" aria-pressed={timelineView === "route"} onClick={() => setTimelineView("route")}>Time–distance</button>
+            </div>
+            {timelineView === "section" ? <MaintenanceTimeline
+              sectionId={selectedSection}
+              occupancy={dataState.trains.filter((train) => train.section_id === selectedSection)}
+              blocks={(plan?.blocks ?? []).filter((block) => (block.section_ids?.length ? block.section_ids : [block.section_id]).includes(selectedSection))}
+              horizon={horizon} hasPlan={Boolean(plan)} selectedBlockId={selectedBlockId}
+              onSelectBlock={setSelectedBlockId} territory={dataState.territory} tasks={dataState.tasks}
+            /> : <TimeDistanceDiagram
               territory={dataState.territory}
               occupancy={dataState.trains}
               blocks={plan?.blocks ?? []}
@@ -369,7 +370,7 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
               selectedSection={selectedSection}
               selectedBlockId={selectedBlockId}
               onSelectBlock={setSelectedBlockId}
-            />
+            />}
 
             <div className="planning-workspace-grid">
               <MaintenanceTaskList
@@ -421,7 +422,6 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
                 setSession((current) => ({ ...current, plan: update(current.plan) }));
               }}
             />
-            <DataAssumptions plan={plan} territory={dataState.territory} />
           </>
         ) : null}
       </main>

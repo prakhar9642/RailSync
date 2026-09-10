@@ -59,17 +59,18 @@ export default function ScenarioLab({ session, setSession, onNavigate, onHome })
   return <div className="scenario-page">
     <Navbar workspace activeWorkspaceView="scenario" onNavigateWorkspace={onNavigate} onHome={onHome} />
     <main className="scenario-main">
-      <header className="scenario-hero"><span>Scenario Lab · Synthetic forecast experiment</span>
+      <header className="scenario-hero"><span>Scenario Lab</span>
         <h1>What happens when reality changes?</h1>
         <p>Apply a time-aware operational disruption. RailSync freezes elapsed or explicitly frozen work, then repairs only the remaining plan while preserving feasible decisions.</p>
       </header>
+      <div className="scenario-flow"><strong>Current plan</strong><span aria-hidden="true">→</span><strong>Disruption</strong><span aria-hidden="true">→</span><strong>Recovered plan</strong></div>
       {!plan ? <section className="analysis-empty">
         <h2>Generate a plan in Planning before running a scenario.</h2>
         <p>No base plan is available in this session.</p>
         <Button onClick={() => onNavigate("planning")}>Open Planning</Button>
       </section> : <>
         <form className="scenario-form" onSubmit={runScenario}>
-          <div><span>Current base plan</span><strong>{plan.blocks.length} possessions · {proofLabel(plan.proof_state)}</strong><small>{territory.display_name}</small></div>
+          <div><span>Current base plan</span><strong>{plan.blocks.length} possessions · {proofLabel(plan.proof_state)}</strong><small>{territoryLabel(territory)}</small></div>
           <label>Disruption<select aria-label="Disruption type" value={scenarioType} disabled={busy} onChange={(event) => setScenarioType(event.target.value)}>
             <option value="TRAIN_DELAY">Train delay</option><option value="CREW_UNAVAILABLE">Crew unavailable</option><option value="MACHINE_UNAVAILABLE">Machine unavailable</option><option value="POWER_ISOLATION_CANCELLED">Power isolation cancelled</option><option value="SECTION_UNAVAILABLE">Section unavailable</option><option value="WEATHER_RESTRICTION">Weather restriction</option><option value="EMERGENCY_WORK">Emergency work</option>
           </select></label>
@@ -96,7 +97,7 @@ export default function ScenarioLab({ session, setSession, onNavigate, onHome })
             </div>
             {recovery.recovered_plan.proof_state !== "FULLY_OPTIMAL" ? <p className="recovery-proof-note">Valid bounded recovery; minimum change is not fully proven.</p> : null}
             <p className="recovery-disruption-subhead">
-              <strong>{recovery.disruption.type.replaceAll("_", " ")}</strong> at <strong>{recovery.disruption.effective_time ?? plan.planning_context.horizon_start}</strong>. Original base plan remains preserved; {recovery.immutable_task_ids.length} task(s) were immutable.
+              <strong>{recovery.disruption.type.toLowerCase().replaceAll("_", " ")}</strong> at <strong>{recovery.disruption.effective_time ?? plan.planning_context.horizon_start}</strong>. Original base plan remains preserved; {recovery.immutable_task_ids.length} task(s) were immutable.
             </p>
             <div className="recovery-outcome-cards">
               <div className="recovery-card card-retained">
@@ -151,3 +152,4 @@ export default function ScenarioLab({ session, setSession, onNavigate, onHome })
     </main>
   </div>;
 }
+import { territoryLabel } from "../utils/planningLabels.js";

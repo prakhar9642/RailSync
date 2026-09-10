@@ -3,6 +3,7 @@ import AnalysisPage from "./pages/AnalysisPage.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
 import PlanningWorkspace from "./pages/PlanningWorkspace.jsx";
 import ScenarioLab from "./pages/ScenarioLab.jsx";
+import "./rescue.css";
 
 function App() {
   const [view, setView] = useState("landing");

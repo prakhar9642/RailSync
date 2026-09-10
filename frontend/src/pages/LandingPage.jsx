@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getTerritories } from "../services/api.js";
+import { territoryLabel } from "../utils/planningLabels.js";
 import Navbar from "../components/layout/Navbar.jsx";
 import Footer from "../components/layout/Footer.jsx";
 import HeroSection from "../sections/HeroSection.jsx";
@@ -51,7 +52,7 @@ export default function LandingPage({ onLaunchPlanner, initialTerritoryId }) {
       <HeroSection onLaunchPlanner={() => onLaunchPlanner(territoryId)} />
       <section className="landing-territory-launcher" aria-labelledby="territory-launch-heading">
         <div><span>Three public timetable territories</span><h2 id="territory-launch-heading">Choose a corridor, then keep one planning session through decision and recovery.</h2></div>
-        <label>Public corridor<select value={territoryId} onChange={(event) => setTerritoryId(event.target.value)}>{territories.map((territory) => <option key={territory.territory_id} value={territory.territory_id}>{territory.display_name}</option>)}</select></label>
+        <label>Public corridor<select value={territoryId} onChange={(event) => setTerritoryId(event.target.value)}>{territories.map((territory) => <option key={territory.territory_id} value={territory.territory_id}>{territoryLabel(territory)}</option>)}</select></label>
         <button type="button" onClick={() => onLaunchPlanner(territoryId)}>Open Planning Workspace</button>
       </section>
       <ProblemSection />

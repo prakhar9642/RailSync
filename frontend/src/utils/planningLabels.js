@@ -56,3 +56,11 @@ export function resourceStateLabel(state) {
   if (state === "NOT_EVALUATED") return "Not evaluated";
   return "Unavailable";
 }
+export function territoryLabel(territory) {
+  const names = {
+    saktigarh_memari_public_demo: "Eastern · Saktigarh → Memari",
+    western_hdn: "Western · Virar → Dahanu Road",
+    delhi_agra: "Delhi / Northern · Hazrat Nizamuddin → Palwal",
+  };
+  return names[territory?.territory_id] ?? territory?.display_name ?? "Corridor";
+}
