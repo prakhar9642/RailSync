@@ -1,0 +1,33 @@
+{
+  "territory_id": "saktigarh_memari_public_demo",
+  "display_name": "Public Timetable Demo · Saktigarh → Memari",
+  "description": "Historical public Eastern Railway timetable subset, valid 1 November 2017 to 30 June 2018, paired with explicitly synthetic prototype maintenance demand and resources.",
+  "status": "POPULATED",
+  "provenance": [
+    {
+      "label": "PUBLIC_TIMETABLE_DERIVED",
+      "datasets": ["stations", "sections", "train_occupancy"],
+      "description": "Station sequence and train occupancy were transcribed from the official Eastern Railway Combined Suburban Time Table No. 10; this is historical public information, not a live operational feed."
+    },
+    {
+      "label": "SYNTHETIC_PROTOTYPE",
+      "datasets": ["maintenance_tasks"],
+      "description": "Maintenance demand is fictional prototype input created only to demonstrate the optimizer."
+    }
+  ],
+  "datasets": {
+    "stations": {"adapter": "json_list", "path": "stations.json"},
+    "sections": {"adapter": "json_list", "path": "sections.json"},
+    "train_occupancy": {"adapter": "json_list", "path": "train_occupancy.json"},
+    "maintenance_tasks": {"adapter": "json_list", "path": "maintenance_tasks.json"}
+  },
+  "scenario_references": [],
+  "planning_horizon": {
+    "start_time": "2017-11-01T03:30:00",
+    "end_time": "2017-11-01T08:00:00"
+  },
+  "resource_context": {
+    "adapter": "resource_context_json",
+    "path": "resource_context.json"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "provenance": "SYNTHETIC_PROTOTYPE",
+  "crew_capacities": {"TRACK_CREW": 2, "SIGNAL_CREW": 2, "OHE_CREW": 1},
+  "machine_capacities": {},
+  "power_windows": {
+    "SKM_SEC04": [{"start_time": "2017-11-01T04:45:00", "end_time": "2017-11-01T05:38:00"}]
+  }
+}

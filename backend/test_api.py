@@ -13,6 +13,7 @@ from optimizer.time_utils import parse_datetime
 
 client = TestClient(app)
 FIXTURE_ID = "eastern_hdn_test_fixture"
+PUBLIC_DEMO_ID = "saktigarh_memari_public_demo"
 
 
 def comparison_side(
@@ -105,6 +106,32 @@ def test_dashboard_uses_authoritative_territory() -> None:
     assert dashboard["sections"] == territory.sections
     assert dashboard["tasks_count"] == 9
     assert dashboard["trains_count"] == 49
+
+
+def test_territory_discovery_exposes_both_runnable_demos() -> None:
+    response = client.get("/api/territories")
+    assert response.status_code == 200
+    by_id = {
+        item["territory_id"]: item for item in response.json()["territories"]
+    }
+    assert by_id[FIXTURE_ID]["planning_ready"] is True
+    assert by_id[PUBLIC_DEMO_ID]["planning_ready"] is True
+    assert by_id[PUBLIC_DEMO_ID]["provenance"] == [
+        "PUBLIC_TIMETABLE_DERIVED", "SYNTHETIC_PROTOTYPE"
+    ]
+    assert by_id["eastern_hdn"]["planning_ready"] is False
+
+
+def test_public_timetable_demo_optimizes_through_public_api() -> None:
+    response = client.post("/api/optimize", json={"territory_id": PUBLIC_DEMO_ID})
+    assert response.status_code == 200
+    result = response.json()
+    assert result["planning_context"]["territory_id"] == PUBLIC_DEMO_ID
+    assert result["unscheduled_tasks"] == []
+    assert result["comparison"]["same_task_set"] is True
+    assert result["comparison"]["closure_saved_minutes"] == 50
+    assert result["metrics"]["optimized_block_hours"] == 1.917
+    assert all(block["affected_trains"] == [] for block in result["blocks"])
 
 
 def test_tasks_and_trains_come_from_territory_loader() -> None:

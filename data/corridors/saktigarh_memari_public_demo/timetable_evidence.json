@@ -1,0 +1,16 @@
+{
+  "source_title": "Eastern Railway Combined Suburban Time Table No. 10",
+  "source_url": "https://er.indianrailways.gov.in/cris/uploads/files/1518093996396-Time%20Table_2017_Full%20book%20%281%29.pdf",
+  "local_source": "../eastern_hdn_public_demo_source.pdf",
+  "sha256": "2efae5d15264c6865a3d45440d2062c91f5bb6e76d3987896aba65669dbd4311",
+  "published_validity": {"from": "2017-11-01", "to": "2018-06-30"},
+  "table": "Barddhaman Jn. - Bandel - Howrah DN",
+  "derivation": "Each section entry is the printed time at its upstream station; exit is the printed time at the next station. The historical table presents one intermediate-station time marked d, so no unprinted arrival time was invented. This conservatively includes any downstream dwell in occupancy.",
+  "services": [
+    {"train_id": "37786", "pdf_page": 29, "printed_page": 28, "times": {"SKG": "03:45", "PLAE": "03:49", "RSLR": "03:53", "NMF": "03:56", "MYM": "03:59"}},
+    {"train_id": "37814", "pdf_page": 30, "printed_page": 29, "times": {"SKG": "04:16", "PLAE": "04:19", "RSLR": "04:23", "NMF": "04:27", "MYM": "04:30"}},
+    {"train_id": "37818", "pdf_page": 31, "printed_page": 30, "times": {"SKG": "05:53", "PLAE": "05:56", "RSLR": "06:00", "NMF": "06:04", "MYM": "06:07"}},
+    {"train_id": "37782", "pdf_page": 32, "printed_page": 31, "times": {"SKG": "06:55", "PLAE": "06:59", "RSLR": "07:03", "NMF": "07:06", "MYM": "07:09"}},
+    {"train_id": "37824", "pdf_page": 33, "printed_page": 32, "times": {"SKG": "07:11", "PLAE": "07:14", "RSLR": "07:18", "NMF": "07:22", "MYM": "07:25"}}
+  ]
+}

@@ -245,9 +245,11 @@ export default function MaintenanceTimeline({
           <div className="selected-train-pill">
             <TrainGlyph />
             <strong>{trainLabel(selectedTrain.train_id, territory)}</strong>
-            <span className="selected-train-id">
-              {canonicalTrainId(selectedTrain.train_id)}
-            </span>
+            {trainLabel(selectedTrain.train_id, territory) !== canonicalTrainId(selectedTrain.train_id) ? (
+              <span className="selected-train-id">
+                {canonicalTrainId(selectedTrain.train_id)}
+              </span>
+            ) : null}
           </div>
           <div className="selected-train-meta">
             <span className="selected-train-section">
@@ -292,7 +294,7 @@ export default function MaintenanceTimeline({
                 <div className="tooltip-header-row">
                   <TrainGlyph />
                   <strong>{tooltip.human}</strong>
-                  <small>{tooltip.canonical}</small>
+                  {tooltip.human !== tooltip.canonical ? <small>{tooltip.canonical}</small> : null}
                 </div>
                 <div className="tooltip-section-name">{tooltip.section}</div>
                 <div className="tooltip-times-row">
@@ -380,13 +382,15 @@ export default function MaintenanceTimeline({
                       }
                       onMouseEnter={(e) => handleTrainHover(train, e)}
                       onMouseLeave={hideTooltip}
-                      aria-label={`${human} (${canonical}): ${timeLabel(
+                      aria-label={`${human}${human !== canonical ? ` (${canonical})` : ""}: ${timeLabel(
                         train.entry_time,
                       )} to ${timeLabel(train.exit_time)}`}
                     >
                       <TrainGlyph />
                       <span className="train-bar-human">{human}</span>
-                      <small className="train-bar-canonical">{canonical}</small>
+                      {human !== canonical ? (
+                        <small className="train-bar-canonical">{canonical}</small>
+                      ) : null}
                     </button>
                   );
                 })}

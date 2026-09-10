@@ -74,7 +74,7 @@ export default function AnalysisPage({ session, onNavigate, onHome }) {
           </section>
         ) : null}
 
-        <DataAssumptions plan={plan} />
+        <DataAssumptions plan={plan} territory={session.territory} />
       </main>
     </div>
   );

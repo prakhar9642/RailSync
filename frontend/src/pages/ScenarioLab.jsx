@@ -125,7 +125,7 @@ export default function ScenarioLab({ session, setSession, onNavigate, onHome })
           </details>
         </> : null}
       </>}
-      <DataAssumptions />
+      <DataAssumptions territory={session.territory} />
     </main>
   </div>;
 }

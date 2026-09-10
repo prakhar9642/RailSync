@@ -11,7 +11,7 @@ from . import planning_service, recovery_service
 from .schemas import OptimizeRequest, OptimizeResponse, ReoptimizeRequest, ReoptimizeResponse
 from ml.inference import status as ml_status
 
-from data import TerritoryNotPopulatedError, UnknownTerritoryError
+from data import TerritoryNotPopulatedError, UnknownTerritoryError, list_territories
 
 LOGGER = logging.getLogger(__name__)
 
@@ -92,6 +92,28 @@ def get_dashboard(
         "trains_count": len(territory.train_occupancy),
         "recent_alerts": [],
         "system_status": "operational",
+    }
+
+
+@app.get("/api/territories")
+def get_territories():
+    return {
+        "territories": [
+            {
+                "territory_id": manifest.territory_id,
+                "display_name": manifest.display_name,
+                "description": manifest.description,
+                "status": manifest.status,
+                "provenance": sorted({item["label"] for item in manifest.provenance}),
+                "planning_ready": (
+                    manifest.status == "POPULATED"
+                    and "maintenance_tasks" in manifest.available_datasets
+                    and manifest.planning_horizon is not None
+                    and manifest.resource_context is not None
+                ),
+            }
+            for manifest in list_territories()
+        ]
     }
 
 

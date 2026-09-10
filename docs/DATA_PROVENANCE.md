@@ -33,6 +33,7 @@ it rather than returning an empty object that could be mistaken for verified dat
 | `eastern_hdn` | `PLACEHOLDER` | Contains no data. Intended provenance is `PUBLIC_TIMETABLE_DERIVED` only after verified sources are supplied. |
 | `western_hdn` | `PLACEHOLDER` | Contains no data. Intended provenance is `PUBLIC_TIMETABLE_DERIVED` only after verified sources are supplied. |
 | `eastern_hdn_test_fixture` | `POPULATED` | All stations, sections, occupancy, and maintenance tasks are fictional `TEST_FIXTURE` data. |
+| `saktigarh_memari_public_demo` | `POPULATED` | Historical public timetable-derived Saktigarh–Memari subset with synthetic prototype maintenance and resources. |
 
 Fixture manifests live under `data/fixtures/` and require their explicit fixture
 ID. A real/future corridor ID never falls back to a fixture.
@@ -40,6 +41,41 @@ ID. A real/future corridor ID never falls back to a fixture.
 The Eastern fixture manifest also fixes its six-hour planning horizon and points
 to a `TEST_FIXTURE` resource context. Crew capacities and power windows in that
 file are deterministic demonstration assumptions, not official Railway data.
+
+## Phase 8 Lite public timetable demo
+
+The `saktigarh_memari_public_demo` territory uses the official Eastern Railway
+*Combined Suburban Time Table No. 10*, published for 1 November 2017 through
+30 June 2018. Its frozen planning horizon is 1 November 2017, 03:30–08:00.
+This is historical public information and no live Indian Railways operational
+feed is connected.
+
+The five consecutive stations are Saktigarh (`SKG`), Palsit (`PLAE`), Rasulpur
+(`RSLR`), Nimo Halt (`NMF`), and Memari (`MYM`). The four IDs `SKM_SEC01` through
+`SKM_SEC04` represent consecutive RailSync planning sections only; they are not
+claims about signalling block boundaries.
+
+| Service | SKG | PLAE | RSLR | NMF | MYM | PDF page (printed) |
+| --- | --- | --- | --- | --- | --- | --- |
+| 37786 | 03:45 | 03:49 | 03:53 | 03:56 | 03:59 | 29 (28) |
+| 37814 | 04:16 | 04:19 | 04:23 | 04:27 | 04:30 | 30 (29) |
+| 37818 | 05:53 | 05:56 | 06:00 | 06:04 | 06:07 | 31 (30) |
+| 37782 | 06:55 | 06:59 | 07:03 | 07:06 | 07:09 | 32 (31) |
+| 37824 | 07:11 | 07:14 | 07:18 | 07:22 | 07:25 | 33 (32) |
+
+For each adjacent pair, occupancy starts at the printed upstream station time
+and ends at the printed downstream station time. The historical table provides
+one intermediate-station time marked `d`, so the derivation does not invent a
+separate arrival time and conservatively includes any downstream dwell. The
+source URL, local PDF digest, and machine-readable transcription are recorded in
+`data/corridors/saktigarh_memari_public_demo/timetable_evidence.json`.
+
+Stations, passenger service identifiers, and section occupancy are
+`PUBLIC_TIMETABLE_DERIVED`. Maintenance requests and crew/power availability are
+fictional `SYNTHETIC_PROTOTYPE` inputs. The timetable does not print service
+names in these columns, so the UI honestly displays the printed identifiers.
+The selected services are a compact demonstration subset, not a complete traffic
+picture, and the timetable's historical validity does not imply current operation.
 
 ## Phase 7 historical-risk source
 

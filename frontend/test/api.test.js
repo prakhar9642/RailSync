@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { optimizePlan, reoptimizePlan, ApiError } from "../src/services/api.js";
+import { optimizePlan, reoptimizePlan, getTerritories, ApiError } from "../src/services/api.js";
 import { riskOptions } from "../src/utils/risk.js";
 
 test("Planning sends the real optimize request and forwards its response", async () => {
@@ -14,6 +14,19 @@ test("Planning sends the real optimize request and forwards its response", async
       return { ok: true,json: async () => returned };
     };
     assert.equal(await optimizePlan("fixture"),returned);
+  } finally { globalThis.fetch = original; }
+});
+
+test("Territory discovery uses the shared backend registry endpoint", async () => {
+  const original = globalThis.fetch;
+  try {
+    const returned = { territories: [{ territory_id: "public-demo" }] };
+    globalThis.fetch = async (url, options) => {
+      assert.equal(url, "/api/territories");
+      assert.equal(options.method, undefined);
+      return { ok: true, json: async () => returned };
+    };
+    assert.equal(await getTerritories(), returned);
   } finally { globalThis.fetch = original; }
 });
 

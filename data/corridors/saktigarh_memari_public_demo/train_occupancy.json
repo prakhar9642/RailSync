@@ -1,0 +1,22 @@
+[
+  {"train_id": "37786", "section_id": "SKM_SEC01", "entry_time": "2017-11-01T03:45:00", "exit_time": "2017-11-01T03:49:00"},
+  {"train_id": "37786", "section_id": "SKM_SEC02", "entry_time": "2017-11-01T03:49:00", "exit_time": "2017-11-01T03:53:00"},
+  {"train_id": "37786", "section_id": "SKM_SEC03", "entry_time": "2017-11-01T03:53:00", "exit_time": "2017-11-01T03:56:00"},
+  {"train_id": "37786", "section_id": "SKM_SEC04", "entry_time": "2017-11-01T03:56:00", "exit_time": "2017-11-01T03:59:00"},
+  {"train_id": "37814", "section_id": "SKM_SEC01", "entry_time": "2017-11-01T04:16:00", "exit_time": "2017-11-01T04:19:00"},
+  {"train_id": "37814", "section_id": "SKM_SEC02", "entry_time": "2017-11-01T04:19:00", "exit_time": "2017-11-01T04:23:00"},
+  {"train_id": "37814", "section_id": "SKM_SEC03", "entry_time": "2017-11-01T04:23:00", "exit_time": "2017-11-01T04:27:00"},
+  {"train_id": "37814", "section_id": "SKM_SEC04", "entry_time": "2017-11-01T04:27:00", "exit_time": "2017-11-01T04:30:00"},
+  {"train_id": "37818", "section_id": "SKM_SEC01", "entry_time": "2017-11-01T05:53:00", "exit_time": "2017-11-01T05:56:00"},
+  {"train_id": "37818", "section_id": "SKM_SEC02", "entry_time": "2017-11-01T05:56:00", "exit_time": "2017-11-01T06:00:00"},
+  {"train_id": "37818", "section_id": "SKM_SEC03", "entry_time": "2017-11-01T06:00:00", "exit_time": "2017-11-01T06:04:00"},
+  {"train_id": "37818", "section_id": "SKM_SEC04", "entry_time": "2017-11-01T06:04:00", "exit_time": "2017-11-01T06:07:00"},
+  {"train_id": "37782", "section_id": "SKM_SEC01", "entry_time": "2017-11-01T06:55:00", "exit_time": "2017-11-01T06:59:00"},
+  {"train_id": "37782", "section_id": "SKM_SEC02", "entry_time": "2017-11-01T06:59:00", "exit_time": "2017-11-01T07:03:00"},
+  {"train_id": "37782", "section_id": "SKM_SEC03", "entry_time": "2017-11-01T07:03:00", "exit_time": "2017-11-01T07:06:00"},
+  {"train_id": "37782", "section_id": "SKM_SEC04", "entry_time": "2017-11-01T07:06:00", "exit_time": "2017-11-01T07:09:00"},
+  {"train_id": "37824", "section_id": "SKM_SEC01", "entry_time": "2017-11-01T07:11:00", "exit_time": "2017-11-01T07:14:00"},
+  {"train_id": "37824", "section_id": "SKM_SEC02", "entry_time": "2017-11-01T07:14:00", "exit_time": "2017-11-01T07:18:00"},
+  {"train_id": "37824", "section_id": "SKM_SEC03", "entry_time": "2017-11-01T07:18:00", "exit_time": "2017-11-01T07:22:00"},
+  {"train_id": "37824", "section_id": "SKM_SEC04", "entry_time": "2017-11-01T07:22:00", "exit_time": "2017-11-01T07:25:00"}
+]

@@ -60,6 +60,10 @@ export function getTerritory(territoryId, { signal } = {}) {
   return request(`/dashboard${territoryQuery(territoryId)}`, { signal });
 }
 
+export function getTerritories({ signal } = {}) {
+  return request("/territories", { signal });
+}
+
 export function getTasks(territoryId, { signal } = {}) {
   return request(`/tasks${territoryQuery(territoryId)}`, { signal });
 }

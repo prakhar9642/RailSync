@@ -102,6 +102,25 @@
   text-transform: uppercase;
 }
 
+.territory-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+  color: var(--text-muted, #64748b);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.territory-selector select {
+  max-width: min(30rem, 70vw);
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  border-radius: 0.55rem;
+  background: #fff;
+  color: #0f172a;
+  padding: 0.5rem 0.7rem;
+}
+
 .planner-data-state {
   display: flex;
   align-items: center;

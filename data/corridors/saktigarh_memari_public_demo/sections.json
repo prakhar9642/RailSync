@@ -1,0 +1,6 @@
+[
+  {"section_id": "SKM_SEC01", "from_station": "SKG", "to_station": "PLAE"},
+  {"section_id": "SKM_SEC02", "from_station": "PLAE", "to_station": "RSLR"},
+  {"section_id": "SKM_SEC03", "from_station": "RSLR", "to_station": "NMF"},
+  {"section_id": "SKM_SEC04", "from_station": "NMF", "to_station": "MYM"}
+]

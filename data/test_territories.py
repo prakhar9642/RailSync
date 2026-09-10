@@ -26,6 +26,7 @@ def test_multiple_territories_are_registered() -> None:
         "delhi_agra",
         "eastern_hdn",
         "eastern_hdn_test_fixture",
+        "saktigarh_memari_public_demo",
         "western_hdn",
     }
 
@@ -189,3 +190,44 @@ def test_eastern_fixture_uses_existing_fair_comparison_pipeline() -> None:
     assert comparison["baseline"]["scheduled_tasks"] == comparison["optimized"][
         "scheduled_tasks"
     ]
+
+
+def test_public_timetable_demo_loads_canonical_historical_data() -> None:
+    territory = load_territory("saktigarh_memari_public_demo")
+    assert len(territory.stations) == 5
+    assert len(territory.sections) == 4
+    assert len(territory.train_occupancy) == 20
+    assert len(territory.maintenance_tasks) == 6
+    assert territory.stations[0] == {
+        "station_id": "SKG", "station_name": "Saktigarh", "order": 1
+    }
+    assert territory.stations[-1]["station_id"] == "MYM"
+    assert {item["label"] for item in territory.manifest.provenance} == {
+        "PUBLIC_TIMETABLE_DERIVED", "SYNTHETIC_PROTOTYPE"
+    }
+    public_record = next(
+        item for item in territory.manifest.provenance
+        if item["label"] == "PUBLIC_TIMETABLE_DERIVED"
+    )
+    assert set(public_record["datasets"]) == {
+        "stations", "sections", "train_occupancy"
+    }
+    assert territory.resource_provenance == "SYNTHETIC_PROTOTYPE"
+
+
+def test_public_timetable_demo_runs_unchanged_optimizer_and_fair_comparison() -> None:
+    territory = load_territory("saktigarh_memari_public_demo")
+    comparison = compare_plans(
+        territory.as_optimizer_input(),
+        territory.manifest.planning_horizon["start_time"],
+        territory.manifest.planning_horizon["end_time"],
+        resource_context=territory.resource_context,
+    )
+    plan = comparison["optimized"]["plan"]
+    assert comparison["comparison_proof_state"] == "FULLY_OPTIMAL"
+    assert comparison["comparison"]["same_task_set"] is True
+    assert comparison["comparison"]["closure_saved_minutes"] == 50
+    assert plan["status"] == "success"
+    assert plan["unscheduled_tasks"] == []
+    assert plan["metrics"]["integrated_blocks"] == 2
+    assert all(block["affected_trains"] == [] for block in plan["blocks"])

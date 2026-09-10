@@ -11,12 +11,13 @@ import PlannerCorridor from "../components/planning/PlannerCorridor.jsx";
 import {
   getTasks,
   getTerritory,
+  getTerritories,
   getTrains,
   optimizePlan,
 } from "../services/api.js";
 import "./planner/planner.css";
 
-const DEMO_TERRITORY_ID = "eastern_hdn_test_fixture";
+const DEFAULT_TERRITORY_ID = "eastern_hdn_test_fixture";
 
 function initialDataState(session = {}) {
   if (session.territory) {
@@ -44,6 +45,10 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
     (block) => block.section_id === initialSection,
   );
   const [dataState, setDataState] = useState(() => initialDataState(session));
+  const [territoryId, setTerritoryId] = useState(
+    session.territoryId ?? session.territory?.territory_id ?? DEFAULT_TERRITORY_ID,
+  );
+  const [availableTerritories, setAvailableTerritories] = useState([]);
   const [loadVersion, setLoadVersion] = useState(0);
   const [selectedSection, setSelectedSection] = useState(initialSection);
   const [selectedTaskId, setSelectedTaskId] = useState(initialTask?.task_id ?? "");
@@ -58,13 +63,25 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
   const selectedSectionRef = useRef(initialSection);
 
   useEffect(() => {
-    if (session.territory) return undefined;
+    const controller = new AbortController();
+    getTerritories({ signal: controller.signal })
+      .then((response) => setAvailableTerritories(
+        (response.territories ?? []).filter((item) => item.planning_ready),
+      ))
+      .catch((error) => {
+        if (error.name !== "AbortError") setAvailableTerritories([]);
+      });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (session.territory?.territory_id === territoryId) return undefined;
     const controller = new AbortController();
 
     Promise.all([
-      getTerritory(DEMO_TERRITORY_ID, { signal: controller.signal }),
-      getTasks(DEMO_TERRITORY_ID, { signal: controller.signal }),
-      getTrains(DEMO_TERRITORY_ID, { signal: controller.signal }),
+      getTerritory(territoryId, { signal: controller.signal }),
+      getTasks(territoryId, { signal: controller.signal }),
+      getTrains(territoryId, { signal: controller.signal }),
     ])
       .then(([territory, taskResponse, trainResponse]) => {
         const territoryIds = [
@@ -72,7 +89,7 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
           taskResponse.territory_id,
           trainResponse.territory_id,
         ];
-        if (territoryIds.some((id) => id !== DEMO_TERRITORY_ID)) {
+        if (territoryIds.some((id) => id !== territoryId)) {
           throw new Error("Backend returned inconsistent territory data.");
         }
 
@@ -90,6 +107,7 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
         });
         setSession((current) => ({
           ...current,
+          territoryId,
           territory,
           tasks,
           trains: trainResponse.trains ?? [],
@@ -110,7 +128,7 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
       });
 
     return () => controller.abort();
-  }, [loadVersion, session.territory, setSession]);
+  }, [loadVersion, session.territory, setSession, territoryId]);
 
   useEffect(
     () => () => {
@@ -198,7 +216,7 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
     setSelectedBlockId("");
 
     try {
-      const result = await optimizePlan(DEMO_TERRITORY_ID, {
+      const result = await optimizePlan(territoryId, {
         signal: controller.signal,
         ...riskOptions(session.riskConfig),
       });
@@ -248,6 +266,31 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
     }));
     setLoadVersion((version) => version + 1);
   };
+  const selectTerritory = (event) => {
+    const nextId = event.target.value;
+    optimizeRequestId.current += 1;
+    optimizeController.current?.abort();
+    setTerritoryId(nextId);
+    setDataState(initialDataState());
+    setSelectedSection("");
+    selectedSectionRef.current = "";
+    setSelectedTaskId("");
+    setSelectedBlockId("");
+    setPlan(null);
+    setOptimizationStatus("idle");
+    setOptimizationError(null);
+    setSession((current) => ({
+      ...current,
+      territoryId: nextId,
+      territory: null,
+      tasks: [],
+      trains: [],
+      plan: null,
+      recovery: null,
+      dataError: null,
+      optimizationError: null,
+    }));
+  };
   const dataReady = dataState.status === "ready";
 
   return (
@@ -264,12 +307,29 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
           <span className="planner-kicker">Railway maintenance planning</span>
           <div className="planning-title-row">
             <h1>Planning Workspace</h1>
-            <span className="synthetic-fixture-badge">Synthetic Test Fixture</span>
+            <span className="synthetic-fixture-badge">
+              {dataState.territory?.provenance?.includes("PUBLIC_TIMETABLE_DERIVED")
+                ? "Historical Public Timetable"
+                : "Synthetic Test Fixture"}
+            </span>
           </div>
           <p>
             Coordinate maintenance requirements with train occupancy and generate
             practical block windows through the RailSync optimizer.
           </p>
+          <label className="territory-selector">
+            <span>Demo territory</span>
+            <select value={territoryId} onChange={selectTerritory}>
+              {(availableTerritories.length
+                ? availableTerritories
+                : [{ territory_id: territoryId, display_name: dataState.territory?.display_name ?? territoryId }]
+              ).map((item) => (
+                <option key={item.territory_id} value={item.territory_id}>
+                  {item.display_name}
+                </option>
+              ))}
+            </select>
+          </label>
         </header>
 
         {dataState.status === "loading" ? (
@@ -343,7 +403,7 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
                 />
               </aside>
             </div>
-            <DataAssumptions plan={plan} />
+            <DataAssumptions plan={plan} territory={dataState.territory} />
           </>
         ) : null}
       </main>
