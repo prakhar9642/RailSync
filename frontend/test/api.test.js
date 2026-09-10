@@ -1,7 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { optimizePlan, reoptimizePlan, getTerritories, ApiError } from "../src/services/api.js";
-import { riskOptions } from "../src/utils/risk.js";
+import {
+  isPublicTerritory,
+  findExactProfileMatches,
+  effectiveRiskStatus,
+  riskOptions,
+} from "../src/utils/risk.js";
 
 test("Planning sends the real optimize request and forwards its response", async () => {
   const original = globalThis.fetch;
@@ -68,4 +73,83 @@ test("Risk transfer requires explicit complete selection and is omitted in stati
   const selection={mode:"ML_ASSISTED",target:"T|S",profile:"12345|STATION"};
   assert.deepEqual(riskOptions(selection).risk_profiles,[{train_id:"T",section_id:"S",historical_train_id:"12345",historical_station_id:"STATION"}]);
   assert.deepEqual(riskOptions({...selection,mode:"STATIC"}).risk_profiles,[]);
+});
+
+test("Synthetic fixture: incomplete binding is Off, complete explicit binding is Experimental", () => {
+  const fixture = { territory_id: "eastern_hdn_test_fixture" };
+  assert.equal(effectiveRiskStatus({ mode: "STATIC" }, fixture), "Off");
+  assert.equal(effectiveRiskStatus({ mode: "ML_ASSISTED", target: "", profile: "" }, fixture), "Off");
+  assert.equal(effectiveRiskStatus({ mode: "ML_ASSISTED", target: "TR101|SEC_A", profile: "" }, fixture), "Off");
+  assert.equal(effectiveRiskStatus({ mode: "ML_ASSISTED", target: "", profile: "12345|STN" }, fixture), "Off");
+  assert.equal(
+    effectiveRiskStatus({ mode: "ML_ASSISTED", target: "TR101|SEC_A", profile: "12345|STN" }, fixture),
+    "Experimental"
+  );
+});
+
+test("Public territory: evaluates to Unavailable when no exact profile match exists", () => {
+  const publicTerritory = {
+    territory_id: "saktigarh_memari_public_demo",
+    provenance: [{ label: "PUBLIC_TIMETABLE_DERIVED" }],
+  };
+  assert.equal(isPublicTerritory(publicTerritory), true);
+  assert.equal(effectiveRiskStatus({ mode: "STATIC" }, publicTerritory, []), "Unavailable");
+  assert.equal(
+    effectiveRiskStatus(
+      { mode: "ML_ASSISTED", target: "37814|SEC_1", profile: "12345|BWN" },
+      publicTerritory,
+      []
+    ),
+    "Unavailable"
+  );
+  assert.deepEqual(
+    riskOptions({ mode: "ML_ASSISTED", target: "37814|SEC_1", profile: "12345|BWN" }, publicTerritory),
+    { risk_mode: "STATIC", risk_profiles: [] }
+  );
+});
+
+test("Exact profile matching: strictly requires identical train_id without fuzzy or route/station matching", () => {
+  const publicTrains = [
+    { train_id: "37786" },
+    { train_id: "37814" },
+    { train_id: "37818" },
+    { train_id: "37782" },
+    { train_id: "37824" },
+  ];
+
+  // Disjoint profile IDs (simulating aggregate delay dataset which contains long-distance express trains)
+  const unrelatedProfiles = [
+    { train_id: "02501", station_code: "BWN", train_name: "AGTL SPECIAL" },
+    { train_id: "12346", station_code: "BWN", train_name: "SARAIGHAT EXP" },
+  ];
+  assert.deepEqual(findExactProfileMatches(publicTrains, unrelatedProfiles), []);
+
+  // No partial or fuzzy matches
+  const partialProfiles = [
+    { train_id: "3781", station_code: "BWN" },
+    { train_id: "378140", station_code: "BWN" },
+    { train_id: "EMU-37814", station_code: "BWN" },
+  ];
+  assert.deepEqual(findExactProfileMatches(publicTrains, partialProfiles), []);
+
+  // Genuine exact match
+  const matchedProfile = { train_id: "37814", station_code: "BWN", train_name: "HOWRAH LOCAL" };
+  const matches = findExactProfileMatches(publicTrains, [...unrelatedProfiles, matchedProfile]);
+  assert.deepEqual(matches, [matchedProfile]);
+
+  // When exact match is available on public territory
+  const publicTerritory = { territory_id: "saktigarh_memari_public_demo" };
+  assert.equal(effectiveRiskStatus({ mode: "STATIC" }, publicTerritory, matches), "Off");
+  assert.equal(
+    effectiveRiskStatus({ mode: "ML_ASSISTED", target: "", profile: "" }, publicTerritory, matches),
+    "Off"
+  );
+  assert.equal(
+    effectiveRiskStatus(
+      { mode: "ML_ASSISTED", target: "37814|SEC_1", profile: "37814|BWN" },
+      publicTerritory,
+      matches
+    ),
+    "Experimental"
+  );
 });

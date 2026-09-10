@@ -48,6 +48,12 @@
   border: 1px solid #fde68a;
 }
 
+.risk-status-value.is-unavailable {
+  color: var(--muted);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
 .risk-status-info {
   margin: 0;
   color: var(--muted);
@@ -123,6 +129,40 @@
 
 .risk-bindings p {
   grid-column: 1 / -1;
+}
+
+.risk-subsection-title {
+  margin: 14px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.risk-transfer-note {
+  margin: 4px 0 10px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.risk-public-status {
+  margin: 12px 0 6px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.risk-public-status p {
+  margin: 0 !important;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.risk-exact-match-note {
+  font-size: 11px;
+  color: var(--navy);
+  font-weight: 500;
+  margin-bottom: 8px !important;
 }
 
 .risk-result {
