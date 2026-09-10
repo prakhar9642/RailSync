@@ -57,7 +57,7 @@ export default function MaintenanceTaskList({
           <select value={selectedSection} onChange={(event) => onSelectSection(event.target.value)}>
             {sections.map((item) => (
               <option key={item.section_id} value={item.section_id}>
-                {sectionLabel(territory, item.section_id)} · {item.section_id}
+                {sectionLabel(territory, item.section_id)}
               </option>
             ))}
           </select>
@@ -87,13 +87,15 @@ export default function MaintenanceTaskList({
                 onClick={() => onSelectTask(task)}
               >
                 <span className="planner-task-name" data-label="Task">
-                  <strong>{task.task_type}</strong>
-                  <small>{departmentLabel(task.department)} · {task.task_id}</small>
-                  {unscheduled ? <em className="task-plan-state is-unscheduled">Unscheduled</em> : null}
-                  {scheduled ? <em className="task-plan-state is-scheduled">Scheduled</em> : null}
+                  <span className="planner-task-title-row">
+                    <strong>{task.task_type}</strong>
+                    {unscheduled ? <em className="task-plan-state is-unscheduled">Unscheduled</em> : null}
+                    {scheduled ? <em className="task-plan-state is-scheduled">Scheduled</em> : null}
+                  </span>
+                  <small>{sectionLabel(territory, task.section_id)} · {task.task_id}</small>
                 </span>
-                <span data-label="Department">{departmentLabel(task.department)}</span>
-                <span data-label="Duration">{task.duration_minutes} min</span>
+                <span className="planner-task-meta" data-label="Department">{departmentLabel(task.department)}</span>
+                <span className="planner-task-meta" data-label="Duration">{task.duration_minutes} min</span>
                 <span
                   className={`planner-task-priority priority-${taskPriority.toLowerCase()}`}
                   data-label="Priority"

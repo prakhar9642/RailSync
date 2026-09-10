@@ -8,7 +8,7 @@ function App() {
   const [view, setView] = useState("landing");
   const [workspaceView, setWorkspaceView] = useState("planning");
   const [planningSession, setPlanningSession] = useState({
-    territoryId: "eastern_hdn_test_fixture",
+    territoryId: "saktigarh_memari_public_demo",
     territory: null,
     tasks: [],
     trains: [],

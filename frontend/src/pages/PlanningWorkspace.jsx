@@ -17,7 +17,17 @@ import {
 } from "../services/api.js";
 import "./planner/planner.css";
 
-const DEFAULT_TERRITORY_ID = "eastern_hdn_test_fixture";
+const DEFAULT_TERRITORY_ID = "saktigarh_memari_public_demo";
+
+function territoryChoiceLabel(territory) {
+  if (territory.provenance?.includes("PUBLIC_TIMETABLE_DERIVED")) {
+    return `${territory.display_name.replace(/^Public Timetable Demo · /, "")} — Historical public timetable demo`;
+  }
+  if (territory.provenance?.includes("TEST_FIXTURE")) {
+    return `${territory.display_name.replace(/ Synthetic Test Fixture$/, "")} — Synthetic test fixture`;
+  }
+  return territory.display_name;
+}
 
 function initialDataState(session = {}) {
   if (session.territory) {
@@ -325,7 +335,7 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
                 : [{ territory_id: territoryId, display_name: dataState.territory?.display_name ?? territoryId }]
               ).map((item) => (
                 <option key={item.territory_id} value={item.territory_id}>
-                  {item.display_name}
+                  {territoryChoiceLabel(item)}
                 </option>
               ))}
             </select>
@@ -361,18 +371,6 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
             <RiskResult risk={plan?.risk} />
 
             <div className="planning-workspace-grid">
-              <MaintenanceTaskList
-                tasks={dataState.tasks}
-                sections={dataState.territory.sections}
-                territory={dataState.territory}
-                selectedSection={selectedSection}
-                selectedTaskId={selectedTaskId}
-                scheduledTaskIds={scheduledTaskIds}
-                unscheduledTaskIds={unscheduledTaskIds}
-                onSelectSection={selectSection}
-                onSelectTask={selectTask}
-              />
-
               <MaintenanceTimeline
                 sectionId={selectedSection}
                 occupancy={sectionOccupancy}
@@ -385,6 +383,18 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
                 tasks={dataState.tasks}
               />
 
+              <MaintenanceTaskList
+                tasks={dataState.tasks}
+                sections={dataState.territory.sections}
+                territory={dataState.territory}
+                selectedSection={selectedSection}
+                selectedTaskId={selectedTaskId}
+                scheduledTaskIds={scheduledTaskIds}
+                unscheduledTaskIds={unscheduledTaskIds}
+                onSelectSection={selectSection}
+                onSelectTask={selectTask}
+              />
+
               <aside className="planner-control-column">
                 <OptimizerControls
                   optimizationStatus={optimizationStatus}
@@ -395,14 +405,14 @@ export default function PlanningWorkspace({ session, setSession, onNavigate, onH
                   canOptimize={dataReady}
                   tasks={dataState.tasks}
                 />
-                <BlockDetails
-                  block={selectedBlock}
-                  diagnostic={selectedBlockDiagnostic}
-                  tasks={dataState.tasks}
-                  territory={dataState.territory}
-                />
               </aside>
             </div>
+            <BlockDetails
+              block={selectedBlock}
+              diagnostic={selectedBlockDiagnostic}
+              tasks={dataState.tasks}
+              territory={dataState.territory}
+            />
             <DataAssumptions plan={plan} territory={dataState.territory} />
           </>
         ) : null}

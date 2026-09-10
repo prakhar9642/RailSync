@@ -46,7 +46,7 @@ export default function OptimizerControls({
       <div className="workspace-column-heading">
         <div>
           <span className="planner-kicker">Plan action</span>
-          <h2 id="optimizer-heading">Optimizer Controls</h2>
+          <h2 id="optimizer-heading">Plan Controls</h2>
         </div>
       </div>
 
@@ -85,10 +85,7 @@ export default function OptimizerControls({
 
       {plan ? (
         <div className="optimizer-result-summary">
-          <p className="optimizer-policy-note">
-            <strong>Optimization policy</strong>
-            <span>Maintenance service and infrastructure availability</span>
-          </p>
+          <p className="optimizer-policy-note"><strong>Policy</strong><span>Service and infrastructure availability</span></p>
           <dl>
             <div><dt>Possessions</dt><dd>{plan.blocks.length}</dd></div>
             <div><dt>Integrated</dt><dd>{plan.metrics.integrated_blocks}</dd></div>
@@ -116,9 +113,6 @@ export default function OptimizerControls({
         </div>
       ) : null}
 
-      <p className="optimizer-local-note">
-        Plan generated from current timetable, maintenance requests and constraints.
-      </p>
     </section>
   );
 }

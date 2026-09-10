@@ -2,6 +2,17 @@ const WIDTH = 1120;
 const PAD = 48;
 const TRACK_Y = 68;
 
+function sectionName(territory, sectionId) {
+  const section = territory.sections?.find((item) => item.section_id === sectionId);
+  if (!section) return "Selected section";
+  const stations = new Map(
+    territory.stations?.map((station) => [station.station_id, station.station_name]),
+  );
+  return `${stations.get(section.from_station) ?? section.from_station} → ${
+    stations.get(section.to_station) ?? section.to_station
+  }`;
+}
+
 function StationIcon() {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true">
@@ -37,8 +48,8 @@ export default function PlannerCorridor({ territory, selectedSection, onSelectSe
           <span className="planner-kicker">Corridor alignment</span>
           <h2 id="corridor-heading">{territory.display_name}</h2>
         </div>
-        <p>
-          Selected section <strong>{selectedSection}</strong>
+        <p title={selectedSection}>
+          Selected section <strong>{sectionName(territory, selectedSection)}</strong>
         </p>
       </div>
 
@@ -87,7 +98,7 @@ export default function PlannerCorridor({ territory, selectedSection, onSelectSe
                   textAnchor="middle"
                   className="planner-corridor-section-label"
                 >
-                  {section.section_id}
+                  {`Section ${index + 1}`}
                 </text>
               </g>
             );

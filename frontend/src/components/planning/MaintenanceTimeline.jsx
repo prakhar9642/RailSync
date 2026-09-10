@@ -12,6 +12,7 @@ import {
   rangeStyle,
   timeLabel,
 } from "../../utils/timeline.js";
+import trainTopView from "../../assets/rail-train-top-view.png";
 
 function TimelineGrid({ ticks }) {
   return (
@@ -23,58 +24,23 @@ function TimelineGrid({ ticks }) {
   );
 }
 
-// 2D railway train glyph (top-down / front rail silhouette)
-function TrainGlyph() {
+function TrainImage({ large = false }) {
   return (
-    <svg
-      className="train-glyph"
-      viewBox="0 0 14 14"
-      width="12"
-      height="12"
+    <img
+      className={`train-top-view${large ? " is-large" : ""}`}
+      src={trainTopView}
+      alt=""
       aria-hidden="true"
-    >
-      <rect
-        x="2"
-        y="1"
-        width="10"
-        height="12"
-        rx="2.5"
-        fill="currentColor"
-        fillOpacity="0.25"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
-      <rect
-        x="3.5"
-        y="3"
-        width="7"
-        height="3"
-        rx="1"
-        fill="currentColor"
-        fillOpacity="0.9"
-      />
-      <circle cx="4.5" cy="10" r="1.1" fill="currentColor" />
-      <circle cx="9.5" cy="10" r="1.1" fill="currentColor" />
-      <line
-        x1="1"
-        y1="13"
-        x2="3"
-        y2="13"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-      />
-      <line
-        x1="11"
-        y1="13"
-        x2="13"
-        y2="13"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-      />
-    </svg>
+    />
   );
+}
+
+function intervalDensity(startTime, endTime, horizon) {
+  const total = Math.max(1, durationMinutes(horizon.start_time, horizon.end_time));
+  const percentage = (durationMinutes(startTime, endTime) / total) * 100;
+  if (percentage >= 8) return "wide";
+  if (percentage >= 3) return "medium";
+  return "narrow";
 }
 
 export default function MaintenanceTimeline({
@@ -108,26 +74,32 @@ export default function MaintenanceTimeline({
   const trainLanes = useMemo(() => {
     if (!occupancy.length) return [];
     const sorted = [...occupancy].sort(
-      (a, b) => new Date(a.entry_time) - new Date(b.entry_time),
+      (a, b) =>
+        new Date(a.entry_time) - new Date(b.entry_time) ||
+        a.train_id.localeCompare(b.train_id),
     );
-    const lanes = [];
+    const laneCount = Math.min(3, sorted.length);
+    const lanes = Array.from({ length: laneCount }, () => []);
+    const laneEnds = Array(laneCount).fill(-Infinity);
+    let nextLane = 0;
     for (const train of sorted) {
       const start = new Date(train.entry_time).getTime();
-      let placed = false;
-      for (const lane of lanes) {
-        const last = lane[lane.length - 1];
-        const lastEnd = new Date(last.exit_time).getTime();
-        if (start >= lastEnd) {
-          lane.push(train);
-          placed = true;
+      let selectedLane = -1;
+      for (let offset = 0; offset < laneCount; offset += 1) {
+        const candidate = (nextLane + offset) % laneCount;
+        if (start >= laneEnds[candidate]) {
+          selectedLane = candidate;
           break;
         }
       }
-      if (!placed) {
-        lanes.push([train]);
+      if (selectedLane === -1) {
+        selectedLane = laneEnds.indexOf(Math.min(...laneEnds));
       }
+      lanes[selectedLane].push(train);
+      laneEnds[selectedLane] = new Date(train.exit_time).getTime();
+      nextLane = (selectedLane + 1) % laneCount;
     }
-    return lanes;
+    return lanes.filter((lane) => lane.length > 0);
   }, [occupancy]);
 
   const selectedTrain = useMemo(() => {
@@ -224,7 +196,6 @@ export default function MaintenanceTimeline({
             <strong className="timeline-scope-name">
               {sectionLabel(territory, sectionId)}
             </strong>
-            <span className="timeline-section-code">{sectionId}</span>
           </div>
         </div>
       </div>
@@ -236,14 +207,14 @@ export default function MaintenanceTimeline({
         </span>
         <span>
           <i className="valid" />
-          Optimized possession (SET | WORK | REL)
+          Optimized possession · segmented setup / work / release
         </span>
       </div>
 
       {selectedTrain ? (
         <div className="timeline-selected-train-banner">
           <div className="selected-train-pill">
-            <TrainGlyph />
+            <TrainImage large />
             <strong>{trainLabel(selectedTrain.train_id, territory)}</strong>
             {trainLabel(selectedTrain.train_id, territory) !== canonicalTrainId(selectedTrain.train_id) ? (
               <span className="selected-train-id">
@@ -292,7 +263,7 @@ export default function MaintenanceTimeline({
             {tooltip.type === "train" ? (
               <div className="tooltip-train-box">
                 <div className="tooltip-header-row">
-                  <TrainGlyph />
+                  <TrainImage />
                   <strong>{tooltip.human}</strong>
                   {tooltip.human !== tooltip.canonical ? <small>{tooltip.canonical}</small> : null}
                 </div>
@@ -353,13 +324,18 @@ export default function MaintenanceTimeline({
                   .map((t) => trainLabel(t.train_id, territory))
                   .join(", ")}
               >
-                {trainLanes.length === 1 ? "Trains" : `Trains · T${laneIdx + 1}`}
+                {laneIdx === 0 ? "Train movements" : ""}
               </span>
               <div className="planner-timeline-track">
                 <TimelineGrid ticks={ticks} />
                 {lane.map((train) => {
                   const human = trainLabel(train.train_id, territory);
                   const canonical = canonicalTrainId(train.train_id);
+                  const density = intervalDensity(
+                    train.entry_time,
+                    train.exit_time,
+                    horizon,
+                  );
                   const trainKey = `${train.train_id}-${train.entry_time}`;
                   const isSelected = selectedTrainKey === trainKey;
 
@@ -367,7 +343,7 @@ export default function MaintenanceTimeline({
                     <button
                       key={trainKey}
                       type="button"
-                      className={`planner-timeline-bar train ${
+                      className={`planner-timeline-bar train marker-${density} ${
                         isSelected ? "is-selected" : ""
                       }`}
                       style={rangeStyle(
@@ -386,11 +362,10 @@ export default function MaintenanceTimeline({
                         train.entry_time,
                       )} to ${timeLabel(train.exit_time)}`}
                     >
-                      <TrainGlyph />
-                      <span className="train-bar-human">{human}</span>
-                      {human !== canonical ? (
-                        <small className="train-bar-canonical">{canonical}</small>
-                      ) : null}
+                      <span className="train-marker-visual">
+                        <TrainImage />
+                        <span className="train-bar-human">{canonical}</span>
+                      </span>
                     </button>
                   );
                 })}
@@ -420,12 +395,17 @@ export default function MaintenanceTimeline({
                 const deptText =
                   depts.length > 0 ? depts.join(" + ") : "Maintenance";
                 const isSelected = selectedBlockId === block.block_id;
+                const density = intervalDensity(
+                  block.start_time,
+                  block.end_time,
+                  horizon,
+                );
 
                 return (
                   <button
                     key={block.block_id}
                     type="button"
-                    className={`planner-timeline-bar maintenance valid ${
+                    className={`planner-timeline-bar maintenance valid marker-${density} ${
                       block.integrated ? "is-integrated" : ""
                     } ${isSelected ? "is-selected" : ""}`}
                     style={rangeStyle(block.start_time, block.end_time, horizon)}
@@ -438,29 +418,22 @@ export default function MaintenanceTimeline({
                   >
                     <span
                       className="possession-phase setup"
+                      title="Setup"
                       aria-hidden="true"
-                    >
-                      <span className="phase-letter">SET</span>
-                    </span>
+                    />
                     <span className="possession-phase work">
                       <strong className="possession-dept-title">
                         {deptText}
                       </strong>
-                      <span className="possession-meta-sub">
-                        <small className="possession-type-tag">
-                          {block.integrated ? "Integrated" : "Individual"}
-                        </small>
-                        <small className="possession-id-tag">
-                          {block.block_id}
-                        </small>
-                      </span>
+                      <small className="possession-type-tag">
+                        {block.block_id}{density === "wide" && block.integrated ? " · Shared" : ""}
+                      </small>
                     </span>
                     <span
                       className="possession-phase release"
+                      title="Release"
                       aria-hidden="true"
-                    >
-                      <span className="phase-letter">REL</span>
-                    </span>
+                    />
                   </button>
                 );
               })}
@@ -476,9 +449,7 @@ export default function MaintenanceTimeline({
         </div>
       </div>
 
-      <div className="timeline-reading-order">
-        Possession includes setup, maintenance activity and release.
-      </div>
+      <div className="timeline-reading-order">Possession bars include setup, productive work, and release.</div>
     </section>
   );
 }

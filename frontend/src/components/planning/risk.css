@@ -1,5 +1,5 @@
 .risk-section-wrapper {
-  margin: 16px 0;
+  margin: 10px 0 14px;
 }
 
 .risk-status-indicator {
@@ -63,12 +63,17 @@
 }
 
 .risk-controls {
-  padding: 12px 16px;
+  padding: 0;
   border: 1px solid var(--line);
   background: var(--white);
 }
 
 .risk-controls summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 13px;
   cursor: pointer;
   color: var(--navy);
   font-size: 12px;
@@ -76,13 +81,12 @@
 }
 
 .risk-controls summary small {
-  margin-left: 8px;
   color: var(--muted);
   font-weight: 400;
 }
 
 .risk-advanced-body {
-  margin-top: 12px;
+  margin: 0 13px 13px;
   padding-top: 12px;
   border-top: 1px solid var(--line);
 }

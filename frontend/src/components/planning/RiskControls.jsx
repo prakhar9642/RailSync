@@ -7,6 +7,7 @@ import "./risk.css";
 export function RiskResult({ risk }) {
   if (!risk) return null;
   const isMl = risk.effective_mode === "ML_ASSISTED";
+  if (!isMl) return null;
   return (
     <div className="risk-result">
       <div className="risk-result-header">
@@ -65,26 +66,13 @@ export default function RiskControls({ config, onChange, trains, territory, disa
 
   return (
     <div className="risk-section-wrapper">
-      <div className="risk-status-indicator">
-        <div className="risk-status-pill">
-          <span className="risk-status-label">Risk assistance:</span>
-          <strong className={`risk-status-value ${statusClass}`}>
-            {statusValue}
-          </strong>
-        </div>
-        <p className="risk-status-info">
-          {statusValue === "Unavailable"
-            ? "No matching historical profile is available for the services in this territory."
-            : isPublic && exactMatches.length > 0
-            ? `Historical risk profile available for ${exactMatches.map((m) => `Service ${m.train_id}`).join(", ")}.`
-            : "Experimental historical aggregate-delay estimates may influence robustness preference. Hard feasibility constraints remain unchanged."}
-        </p>
-      </div>
-
       <details className="risk-controls" aria-label="Experimental ML configuration">
         <summary>
-          <span>Advanced</span>
-          <small>→ Experimental ML configuration</small>
+          <span className="risk-status-pill">
+            <span className="risk-status-label">Risk assistance</span>
+            <strong className={`risk-status-value ${statusClass}`}>{statusValue}</strong>
+          </span>
+          <small>Experimental settings</small>
         </summary>
         <div className="risk-advanced-body">
           <p>Estimates historical train–station average delay, not an individual future train run. Hard constraints and safety margins remain authoritative.</p>
