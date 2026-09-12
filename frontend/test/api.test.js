@@ -27,7 +27,7 @@ test("Territory discovery uses the shared backend registry endpoint", async () =
   try {
     const returned = { territories: [{ territory_id: "public-demo" }] };
     globalThis.fetch = async (url, options) => {
-      assert.equal(url, "/api/territories");
+      assert.equal(url, "/api/territories?include_test=false");
       assert.equal(options.method, undefined);
       return { ok: true, json: async () => returned };
     };
