@@ -61,7 +61,7 @@ export function getTerritory(territoryId, { signal } = {}) {
 }
 
 export function getTerritories({ signal } = {}) {
-  return request("/territories", { signal });
+  return request("/territories?include_test=false", { signal });
 }
 
 export function getTasks(territoryId, { signal } = {}) {
