@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://railsync-s6lh.onrender.com/api/:path*"
+      "destination": "https://railsync-s61h.onrender.com/api/:path*"
     }
   ]
 }
